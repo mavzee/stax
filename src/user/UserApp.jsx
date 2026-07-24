@@ -203,7 +203,7 @@ function formatPrice(price) {
   }).format(price);
 }
 
-function UserApp() {
+function UserApp({ onLogout }) {
   const [activePage, setActivePage] = useState("home");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -1042,7 +1042,11 @@ function UserApp() {
           </div>
         </div>
 
-        <button type="button" className="sidebar-logout">
+        <button
+          type="button"
+          className="sidebar-logout"
+          onClick={onLogout}
+        >
           <LogOut size={19} />
           Log out
         </button>

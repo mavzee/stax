@@ -22,6 +22,7 @@ function App() {
   }
 
   function handleLogout() {
+    localStorage.removeItem("staxAccountRole");
     setAccountRole("");
   }
 

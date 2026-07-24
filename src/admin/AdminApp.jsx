@@ -366,7 +366,7 @@ function getInitials(name = "") {
     .toUpperCase();
 }
 
-function AdminApp() {
+function AdminApp({ onLogout }) {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
@@ -1551,9 +1551,16 @@ function AdminApp() {
           })}
         </nav>
 
-        <button type="button" className="admin-logout">
+       <button
+          type="button"
+          className="admin-logout"
+          onClick={() => {
+            localStorage.removeItem("staxAccountRole");
+            onLogout();
+          }}
+        >
           <LogOut size={19} />
-          Log out
+          <span>Log out</span>
         </button>
       </aside>
 
