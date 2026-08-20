@@ -12,69 +12,125 @@ import {
   LogOut,
   Menu,
   MessageCircle,
-  MoreVertical,
   Package,
   Plus,
   Search,
   Settings,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   Trash2,
   Trophy,
-  UserCog,
   Users,
   X,
 } from "lucide-react";
 
 import "./admin.css";
 
+const RARITIES = ["Common", "Uncommon", "Rare", "Mythic Rare"];
+
+const COLOR_IDENTITIES = [
+  "White",
+  "Blue",
+  "Black",
+  "Red",
+  "Green",
+  "Multicolor",
+  "Colorless",
+];
+
+const CONDITIONS = [
+  "Near Mint",
+  "Lightly Played",
+  "Moderately Played",
+  "Heavily Played",
+  "Damaged",
+];
+
+const FINISHES = ["Nonfoil", "Foil", "Etched Foil"];
+
+const FORMATS = [
+  "Standard",
+  "Pioneer",
+  "Modern",
+  "Legacy",
+  "Vintage",
+  "Commander",
+  "Pauper",
+];
+
+const RARITY_LETTER = {
+  Common: "C",
+  Uncommon: "U",
+  Rare: "R",
+  "Mythic Rare": "M",
+};
+
+const COLOR_LETTER = {
+  White: "W",
+  Blue: "U",
+  Black: "B",
+  Red: "R",
+  Green: "G",
+  Multicolor: "M",
+  Colorless: "C",
+};
+
 const initialCards = [
   {
     id: 1,
-    name: "Charizard ex",
-    game: "Pokemon",
-    set: "Obsidian Flames",
-    rarity: "Special Illustration Rare",
+    name: "The One Ring",
+    set: "Lord of the Rings: Tales of Middle-earth",
+    setCode: "LTR",
+    rarity: "Mythic Rare",
+    colors: "Colorless",
     condition: "Near Mint",
+    finish: "Foil",
     seller: "STAX Card Shop",
-    price: 4250,
+    price: 8500,
     stock: 2,
     featured: true,
     status: "Available",
   },
   {
     id: 2,
-    name: "Blue-Eyes White Dragon",
-    game: "Yu-Gi-Oh!",
-    set: "Legend of Blue Eyes",
-    rarity: "Ultra Rare",
-    condition: "Excellent",
+    name: "Ragavan, Nimble Pilferer",
+    set: "Modern Horizons 2",
+    setCode: "MH2",
+    rarity: "Mythic Rare",
+    colors: "Red",
+    condition: "Near Mint",
+    finish: "Nonfoil",
     seller: "STAX Card Shop",
-    price: 1950,
+    price: 3600,
     stock: 4,
     featured: false,
     status: "Available",
   },
   {
     id: 3,
-    name: "Monkey D. Luffy",
-    game: "One Piece",
-    set: "Romance Dawn",
-    rarity: "Leader Parallel",
-    condition: "Near Mint",
+    name: "Tarmogoyf",
+    set: "Modern Masters",
+    setCode: "MMA",
+    rarity: "Rare",
+    colors: "Green",
+    condition: "Lightly Played",
+    finish: "Nonfoil",
     seller: "STAX Card Shop",
-    price: 3200,
-    stock: 1,
+    price: 2100,
+    stock: 3,
     featured: true,
     status: "Available",
   },
   {
     id: 4,
     name: "Jace, the Mind Sculptor",
-    game: "Magic",
     set: "Worldwake",
+    setCode: "WWK",
     rarity: "Mythic Rare",
-    condition: "Excellent",
+    colors: "Blue",
+    condition: "Moderately Played",
+    finish: "Nonfoil",
     seller: "STAX Card Shop",
     price: 2200,
     stock: 0,
@@ -86,41 +142,41 @@ const initialCards = [
 const initialEvents = [
   {
     id: 1,
-    title: "Saturday Pokemon League",
-    game: "Pokemon",
+    title: "Saturday Standard Showdown",
+    format: "Standard",
     date: "2026-08-03",
     time: "14:00",
     venue: "STAX Card Shop",
     fee: 150,
     slots: 24,
     registered: 16,
-    bracket: "Bracket 1",
+    bracket: "Division 1",
     status: "Open",
   },
   {
     id: 2,
-    title: "One Piece Weekly Tournament",
-    game: "One Piece",
+    title: "Commander Deckbuilders Night",
+    format: "Commander",
     date: "2026-08-07",
     time: "17:30",
     venue: "STAX Card Shop",
     fee: 250,
     slots: 24,
     registered: 12,
-    bracket: "Bracket 2",
+    bracket: "Division 2",
     status: "Open",
   },
   {
     id: 3,
-    title: "Yu-Gi-Oh! Duel Night",
-    game: "Yu-Gi-Oh!",
+    title: "Legacy Masters Qualifier",
+    format: "Legacy",
     date: "2026-08-10",
     time: "16:00",
     venue: "STAX Card Shop",
     fee: 200,
     slots: 16,
     registered: 16,
-    bracket: "Bracket 3",
+    bracket: "Division 3",
     status: "Full",
   },
 ];
@@ -191,12 +247,19 @@ const initialRankings = [
   },
 ];
 
+const BRACKET_FORMAT = {
+  1: "Standard",
+  2: "Commander",
+  3: "Legacy",
+  4: "Modern",
+};
+
 const initialQuestions = [
   {
     id: 1,
     user: "Paolo Reyes",
     category: "Card Rules",
-    question: "Can Japanese cards be used in local Pokemon tournaments?",
+    question: "Can foreign-language Magic cards be used in local tournaments?",
     replies: 8,
     status: "Open",
     date: "2026-07-22",
@@ -205,7 +268,7 @@ const initialQuestions = [
     id: 2,
     user: "Marco Santos",
     category: "Deck Building",
-    question: "What is a good beginner deck for One Piece?",
+    question: "What's a good beginner deck for Commander?",
     replies: 12,
     status: "Answered",
     date: "2026-07-21",
@@ -264,9 +327,9 @@ const initialOrders = [
   {
     id: "STX-1001",
     customer: "Ivan Guerrero",
-    item: "Charizard ex",
+    item: "The One Ring",
     quantity: 1,
-    total: 4250,
+    total: 8500,
     payment: "Paid",
     delivery: "Processing",
     date: "2026-07-22",
@@ -274,9 +337,9 @@ const initialOrders = [
   {
     id: "STX-1002",
     customer: "Marco Santos",
-    item: "Blue-Eyes White Dragon",
+    item: "Ragavan, Nimble Pilferer",
     quantity: 2,
-    total: 3900,
+    total: 7200,
     payment: "Pending",
     delivery: "Pending",
     date: "2026-07-21",
@@ -284,9 +347,9 @@ const initialOrders = [
   {
     id: "STX-1003",
     customer: "Paolo Reyes",
-    item: "Monkey D. Luffy",
+    item: "Tarmogoyf",
     quantity: 1,
-    total: 3200,
+    total: 2100,
     payment: "Paid",
     delivery: "Shipped",
     date: "2026-07-20",
@@ -306,10 +369,12 @@ const navigationItems = [
 
 const emptyCardForm = {
   name: "",
-  game: "Pokemon",
   set: "",
-  rarity: "",
+  setCode: "",
+  rarity: "Rare",
+  colors: "Colorless",
   condition: "Near Mint",
+  finish: "Nonfoil",
   seller: "STAX Card Shop",
   price: "",
   stock: "",
@@ -319,14 +384,14 @@ const emptyCardForm = {
 
 const emptyEventForm = {
   title: "",
-  game: "Pokemon",
+  format: "Standard",
   date: "",
   time: "",
   venue: "STAX Card Shop",
   fee: "",
   slots: "",
   registered: 0,
-  bracket: "Bracket 1",
+  bracket: "Division 1",
   status: "Open",
 };
 
@@ -366,10 +431,37 @@ function getInitials(name = "") {
     .toUpperCase();
 }
 
+function RarityBadge({ value }) {
+  const className = String(value).toLowerCase().replaceAll(" ", "-");
+
+  return (
+    <span className={`admin-rarity admin-rarity--${className}`}>
+      <span className="admin-rarity-dot">
+        {RARITY_LETTER[value] || "?"}
+      </span>
+      {value}
+    </span>
+  );
+}
+
+function ColorPip({ value }) {
+  const className = String(value).toLowerCase();
+
+  return (
+    <span className={`admin-color-pip admin-color-pip--${className}`}>
+      <span className="admin-color-pip-dot">
+        {COLOR_LETTER[value] || "?"}
+      </span>
+      {value}
+    </span>
+  );
+}
+
 function AdminApp({ onLogout }) {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState("");
+  const [rarityFilter, setRarityFilter] = useState("All");
 
   const [cards, setCards] = useState(initialCards);
   const [events, setEvents] = useState(initialEvents);
@@ -393,25 +485,36 @@ function AdminApp({ onLogout }) {
 
   const lowStockCards = cards.filter((card) => card.stock <= 2);
 
+  const mythicCount = cards.filter(
+    (card) => card.rarity === "Mythic Rare"
+  ).length;
+
   const filteredCards = useMemo(() => {
     const query = globalSearch.trim().toLowerCase();
 
-    if (!query) return cards;
+    return cards.filter((card) => {
+      const matchesQuery =
+        !query ||
+        `${card.name} ${card.set} ${card.setCode} ${card.rarity} ${card.colors}`
+          .toLowerCase()
+          .includes(query);
 
-    return cards.filter((card) =>
-      `${card.name} ${card.game} ${card.set} ${card.rarity}`
-        .toLowerCase()
-        .includes(query)
-    );
-  }, [cards, globalSearch]);
+      const matchesRarity =
+        rarityFilter === "All" || card.rarity === rarityFilter;
+
+      return matchesQuery && matchesRarity;
+    });
+  }, [cards, globalSearch, rarityFilter]);
 
   const filteredEvents = useMemo(() => {
     const query = globalSearch.trim().toLowerCase();
 
-    if (!query) return events;
+    if (!query) {
+      return events;
+    }
 
     return events.filter((event) =>
-      `${event.title} ${event.game} ${event.venue}`
+      `${event.title} ${event.format} ${event.venue}`
         .toLowerCase()
         .includes(query)
     );
@@ -420,7 +523,9 @@ function AdminApp({ onLogout }) {
   const filteredUsers = useMemo(() => {
     const query = globalSearch.trim().toLowerCase();
 
-    if (!query) return users;
+    if (!query) {
+      return users;
+    }
 
     return users.filter((user) =>
       `${user.name} ${user.email} ${user.role}`
@@ -432,7 +537,9 @@ function AdminApp({ onLogout }) {
   const filteredOrders = useMemo(() => {
     const query = globalSearch.trim().toLowerCase();
 
-    if (!query) return orders;
+    if (!query) {
+      return orders;
+    }
 
     return orders.filter((order) =>
       `${order.id} ${order.customer} ${order.item}`
@@ -445,14 +552,24 @@ function AdminApp({ onLogout }) {
     setActivePage(page);
     setSidebarOpen(false);
     setGlobalSearch("");
+    setRarityFilter("All");
   }
 
   function openAddModal(type) {
     setEditingItem(null);
 
-    if (type === "card") setCardForm(emptyCardForm);
-    if (type === "event") setEventForm(emptyEventForm);
-    if (type === "ranking") setRankingForm(emptyRankingForm);
+    if (type === "card") {
+      setCardForm(emptyCardForm);
+    }
+
+    if (type === "event") {
+      setEventForm(emptyEventForm);
+    }
+
+    if (type === "ranking") {
+      setRankingForm(emptyRankingForm);
+    }
+
     if (type === "user") {
       setUserForm({
         ...emptyUserForm,
@@ -492,13 +609,19 @@ function AdminApp({ onLogout }) {
       setCards((current) =>
         current.map((card) =>
           card.id === editingItem.id
-            ? { ...normalizedCard, id: editingItem.id }
+            ? {
+                ...normalizedCard,
+                id: editingItem.id,
+              }
             : card
         )
       );
     } else {
       setCards((current) => [
-        { ...normalizedCard, id: Date.now() },
+        {
+          ...normalizedCard,
+          id: Date.now(),
+        },
         ...current,
       ]);
     }
@@ -520,13 +643,19 @@ function AdminApp({ onLogout }) {
       setEvents((current) =>
         current.map((item) =>
           item.id === editingItem.id
-            ? { ...normalizedEvent, id: editingItem.id }
+            ? {
+                ...normalizedEvent,
+                id: editingItem.id,
+              }
             : item
         )
       );
     } else {
       setEvents((current) => [
-        { ...normalizedEvent, id: Date.now() },
+        {
+          ...normalizedEvent,
+          id: Date.now(),
+        },
         ...current,
       ]);
     }
@@ -550,13 +679,19 @@ function AdminApp({ onLogout }) {
       setRankings((current) =>
         current.map((item) =>
           item.id === editingItem.id
-            ? { ...normalizedRanking, id: editingItem.id }
+            ? {
+                ...normalizedRanking,
+                id: editingItem.id,
+              }
             : item
         )
       );
     } else {
       setRankings((current) => [
-        { ...normalizedRanking, id: Date.now() },
+        {
+          ...normalizedRanking,
+          id: Date.now(),
+        },
         ...current,
       ]);
     }
@@ -576,13 +711,19 @@ function AdminApp({ onLogout }) {
       setUsers((current) =>
         current.map((item) =>
           item.id === editingItem.id
-            ? { ...normalizedUser, id: editingItem.id }
+            ? {
+                ...normalizedUser,
+                id: editingItem.id,
+              }
             : item
         )
       );
     } else {
       setUsers((current) => [
-        { ...normalizedUser, id: Date.now() },
+        {
+          ...normalizedUser,
+          id: Date.now(),
+        },
         ...current,
       ]);
     }
@@ -600,7 +741,9 @@ function AdminApp({ onLogout }) {
     const { type, item } = deleteTarget;
 
     if (type === "card") {
-      setCards((current) => current.filter((card) => card.id !== item.id));
+      setCards((current) =>
+        current.filter((card) => card.id !== item.id)
+      );
     }
 
     if (type === "event") {
@@ -622,11 +765,15 @@ function AdminApp({ onLogout }) {
     }
 
     if (type === "user") {
-      setUsers((current) => current.filter((user) => user.id !== item.id));
+      setUsers((current) =>
+        current.filter((user) => user.id !== item.id)
+      );
     }
 
     if (type === "order") {
-      setOrders((current) => current.filter((order) => order.id !== item.id));
+      setOrders((current) =>
+        current.filter((order) => order.id !== item.id)
+      );
     }
 
     setDeleteTarget(null);
@@ -635,7 +782,12 @@ function AdminApp({ onLogout }) {
   function updateQuestionStatus(id, status) {
     setQuestions((current) =>
       current.map((question) =>
-        question.id === id ? { ...question, status } : question
+        question.id === id
+          ? {
+              ...question,
+              status,
+            }
+          : question
       )
     );
   }
@@ -643,7 +795,12 @@ function AdminApp({ onLogout }) {
   function updateOrderField(id, field, value) {
     setOrders((current) =>
       current.map((order) =>
-        order.id === id ? { ...order, [field]: value } : order
+        order.id === id
+          ? {
+              ...order,
+              [field]: value,
+            }
+          : order
       )
     );
   }
@@ -654,8 +811,13 @@ function AdminApp({ onLogout }) {
         <section className="admin-page-heading">
           <div>
             <span className="admin-eyebrow">Overview</span>
+
             <h1>Admin Dashboard</h1>
-            <p>Manage the entire STAX card shop from one dashboard.</p>
+
+            <p>
+              Manage the entire STAX Magic: The Gathering vault from one
+              dashboard.
+            </p>
           </div>
 
           <button
@@ -695,15 +857,13 @@ function AdminApp({ onLogout }) {
 
           <article className="admin-stat-card">
             <div className="admin-stat-icon">
-              <CalendarDays size={23} />
+              <Sparkles size={23} />
             </div>
 
             <div>
-              <span>Active events</span>
-              <strong>
-                {events.filter((event) => event.status !== "Closed").length}
-              </strong>
-              <small>{events.length} total events</small>
+              <span>Mythic rares</span>
+              <strong>{mythicCount}</strong>
+              <small>In current inventory</small>
             </div>
           </article>
 
@@ -715,6 +875,7 @@ function AdminApp({ onLogout }) {
             <div>
               <span>Registered users</span>
               <strong>{users.length}</strong>
+
               <small>
                 {users.filter((user) => user.status === "Active").length} active
               </small>
@@ -734,17 +895,24 @@ function AdminApp({ onLogout }) {
             </div>
 
             <div className="admin-chart">
-              {[35, 48, 40, 67, 56, 78, 88].map((height, index) => (
-                <div className="admin-chart-column" key={index}>
-                  <div
-                    className="admin-chart-bar"
-                    style={{ height: `${height}%` }}
-                  />
-                  <span>
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index]}
-                  </span>
-                </div>
-              ))}
+              {[35, 48, 40, 67, 56, 78, 88].map(
+                (height, index) => (
+                  <div className="admin-chart-column" key={index}>
+                    <div
+                      className="admin-chart-bar"
+                      style={{ height: `${height}%` }}
+                    />
+
+                    <span>
+                      {
+                        ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+                          index
+                        ]
+                      }
+                    </span>
+                  </div>
+                )
+              )}
             </div>
           </article>
 
@@ -767,7 +935,7 @@ function AdminApp({ onLogout }) {
 
                   <div>
                     <strong>{card.name}</strong>
-                    <span>{card.game}</span>
+                    <span>{card.set}</span>
                   </div>
 
                   <span
@@ -781,7 +949,9 @@ function AdminApp({ onLogout }) {
               ))}
 
               {lowStockCards.length === 0 && (
-                <div className="admin-empty-small">No low-stock cards.</div>
+                <div className="admin-empty-small">
+                  No low-stock cards.
+                </div>
               )}
             </div>
           </article>
@@ -813,6 +983,7 @@ function AdminApp({ onLogout }) {
 
                   <div>
                     <strong>{order.customer}</strong>
+
                     <span>
                       {order.id} · {order.item}
                     </span>
@@ -839,9 +1010,14 @@ function AdminApp({ onLogout }) {
                 .filter((question) => question.status === "Open")
                 .slice(0, 4)
                 .map((question) => (
-                  <div className="admin-question-preview" key={question.id}>
+                  <div
+                    className="admin-question-preview"
+                    key={question.id}
+                  >
                     <strong>{question.user}</strong>
+
                     <p>{question.question}</p>
+
                     <button
                       type="button"
                       onClick={() =>
@@ -865,8 +1041,13 @@ function AdminApp({ onLogout }) {
         <section className="admin-page-heading">
           <div>
             <span className="admin-eyebrow">Inventory</span>
+
             <h1>Manage Cards</h1>
-            <p>Add, edit, delete, price, and update card inventory.</p>
+
+            <p>
+              Add, edit, delete, price, and update Magic: The Gathering
+              inventory.
+            </p>
           </div>
 
           <button
@@ -879,18 +1060,40 @@ function AdminApp({ onLogout }) {
           </button>
         </section>
 
+        <div className="admin-filter-row">
+          <button
+            type="button"
+            className={rarityFilter === "All" ? "active" : ""}
+            onClick={() => setRarityFilter("All")}
+          >
+            All rarities
+          </button>
+
+          {RARITIES.map((rarity) => (
+            <button
+              key={rarity}
+              type="button"
+              className={rarityFilter === rarity ? "active" : ""}
+              onClick={() => setRarityFilter(rarity)}
+            >
+              {rarity}
+            </button>
+          ))}
+        </div>
+
         <AdminTableCard>
           <div className="admin-table-wrapper">
             <table className="admin-table">
               <thead>
                 <tr>
                   <th>Card</th>
-                  <th>Game</th>
                   <th>Set</th>
+                  <th>Color</th>
+                  <th>Rarity</th>
+                  <th>Finish</th>
                   <th>Price</th>
                   <th>Stock</th>
                   <th>Status</th>
-                  <th>Featured</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -905,17 +1108,43 @@ function AdminApp({ onLogout }) {
                         </div>
 
                         <div>
-                          <strong>{card.name}</strong>
-                          <span>{card.rarity}</span>
+                          <strong>
+                            {card.name}
+
+                            {card.featured && (
+                              <Sparkles
+                                size={12}
+                                className="admin-featured-star"
+                              />
+                            )}
+                          </strong>
+
+                          <span>{card.condition}</span>
                         </div>
                       </div>
                     </td>
 
-                    <td>{card.game}</td>
-                    <td>{card.set}</td>
+                    <td>
+                      {card.set}
+                      <span className="admin-set-code">
+                        {card.setCode}
+                      </span>
+                    </td>
+
+                    <td>
+                      <ColorPip value={card.colors} />
+                    </td>
+
+                    <td>
+                      <RarityBadge value={card.rarity} />
+                    </td>
+
+                    <td>{card.finish}</td>
+
                     <td>
                       <strong>{formatCurrency(card.price)}</strong>
                     </td>
+
                     <td>
                       <span
                         className={`admin-stock-count ${
@@ -925,10 +1154,11 @@ function AdminApp({ onLogout }) {
                         {card.stock}
                       </span>
                     </td>
+
                     <td>
                       <StatusBadge value={card.status} />
                     </td>
-                    <td>{card.featured ? "Yes" : "No"}</td>
+
                     <td>
                       <ActionButtons
                         onEdit={() => openEditModal("card", card)}
@@ -937,6 +1167,17 @@ function AdminApp({ onLogout }) {
                     </td>
                   </tr>
                 ))}
+
+                {filteredCards.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="9"
+                      className="admin-empty-table"
+                    >
+                      No cards match this filter.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -952,7 +1193,11 @@ function AdminApp({ onLogout }) {
           <div>
             <span className="admin-eyebrow">Tournaments</span>
             <h1>Manage Events</h1>
-            <p>Create events and manage registration schedules and slots.</p>
+
+            <p>
+              Create Magic: The Gathering tournaments and manage schedules
+              and slots.
+            </p>
           </div>
 
           <button
@@ -967,9 +1212,12 @@ function AdminApp({ onLogout }) {
 
         <div className="admin-event-grid">
           {filteredEvents.map((event) => (
-            <article className="admin-event-card" key={event.id}>
+            <article
+              className="admin-event-card"
+              key={event.id}
+            >
               <div className="admin-event-card__header">
-                <span>{event.game}</span>
+                <span>{event.format}</span>
                 <StatusBadge value={event.status} />
               </div>
 
@@ -979,15 +1227,19 @@ function AdminApp({ onLogout }) {
                 <p>
                   <strong>Date:</strong> {event.date}
                 </p>
+
                 <p>
                   <strong>Time:</strong> {event.time}
                 </p>
+
                 <p>
                   <strong>Venue:</strong> {event.venue}
                 </p>
+
                 <p>
-                  <strong>Bracket:</strong> {event.bracket}
+                  <strong>Division:</strong> {event.bracket}
                 </p>
+
                 <p>
                   <strong>Fee:</strong> {formatCurrency(event.fee)}
                 </p>
@@ -1045,7 +1297,10 @@ function AdminApp({ onLogout }) {
           <div>
             <span className="admin-eyebrow">Leaderboards</span>
             <h1>Manage Rankings</h1>
-            <p>Update player brackets, ranks, wins, losses, and points.</p>
+
+            <p>
+              Update player divisions, ranks, wins, losses, and points.
+            </p>
           </div>
 
           <button
@@ -1061,7 +1316,7 @@ function AdminApp({ onLogout }) {
         {[1, 2, 3, 4].map((bracket) => (
           <AdminTableCard
             key={bracket}
-            title={`Bracket ${bracket}`}
+            title={`Division ${bracket} · ${BRACKET_FORMAT[bracket]}`}
             icon={<Trophy size={20} />}
           >
             <div className="admin-table-wrapper">
@@ -1094,15 +1349,18 @@ function AdminApp({ onLogout }) {
                             <div className="admin-user-avatar">
                               {getInitials(player.name)}
                             </div>
+
                             <strong>{player.name}</strong>
                           </div>
                         </td>
 
                         <td>{player.wins}</td>
                         <td>{player.losses}</td>
+
                         <td>
                           <strong>{player.points}</strong>
                         </td>
+
                         <td>
                           <ActionButtons
                             onEdit={() =>
@@ -1116,11 +1374,15 @@ function AdminApp({ onLogout }) {
                       </tr>
                     ))}
 
-                  {rankings.filter((player) => player.bracket === bracket)
-                    .length === 0 && (
+                  {rankings.filter(
+                    (player) => player.bracket === bracket
+                  ).length === 0 && (
                     <tr>
-                      <td colSpan="6" className="admin-empty-table">
-                        No players in this bracket.
+                      <td
+                        colSpan="6"
+                        className="admin-empty-table"
+                      >
+                        No players in this division.
                       </td>
                     </tr>
                   )}
@@ -1140,13 +1402,19 @@ function AdminApp({ onLogout }) {
           <div>
             <span className="admin-eyebrow">Moderation</span>
             <h1>Manage Community</h1>
-            <p>Review, answer, close, or remove community questions.</p>
+
+            <p>
+              Review, answer, close, or remove community questions.
+            </p>
           </div>
         </section>
 
         <div className="admin-question-list">
           {questions.map((question) => (
-            <article className="admin-question-card" key={question.id}>
+            <article
+              className="admin-question-card"
+              key={question.id}
+            >
               <div className="admin-question-card__top">
                 <div className="admin-name-cell">
                   <div className="admin-user-avatar">
@@ -1155,6 +1423,7 @@ function AdminApp({ onLogout }) {
 
                   <div>
                     <strong>{question.user}</strong>
+
                     <span>
                       {question.category} · {question.date}
                     </span>
@@ -1165,7 +1434,6 @@ function AdminApp({ onLogout }) {
               </div>
 
               <h3>{question.question}</h3>
-
               <p>{question.replies} replies</p>
 
               <div className="admin-card-actions">
@@ -1192,7 +1460,9 @@ function AdminApp({ onLogout }) {
                 <button
                   type="button"
                   className="danger"
-                  onClick={() => requestDelete("question", question)}
+                  onClick={() =>
+                    requestDelete("question", question)
+                  }
                 >
                   <Trash2 size={16} />
                   Delete
@@ -1212,7 +1482,10 @@ function AdminApp({ onLogout }) {
           <div>
             <span className="admin-eyebrow">Accounts</span>
             <h1>Manage Users</h1>
-            <p>Add, edit, suspend, or remove player and admin accounts.</p>
+
+            <p>
+              Add, edit, suspend, or remove player and admin accounts.
+            </p>
           </div>
 
           <button
@@ -1232,7 +1505,7 @@ function AdminApp({ onLogout }) {
                 <tr>
                   <th>User</th>
                   <th>Role</th>
-                  <th>Bracket</th>
+                  <th>Division</th>
                   <th>Status</th>
                   <th>Joined</th>
                   <th>Actions</th>
@@ -1256,15 +1529,26 @@ function AdminApp({ onLogout }) {
                     </td>
 
                     <td>{user.role}</td>
-                    <td>Bracket {user.bracket}</td>
+
+                    <td>
+                      Division {user.bracket} ·{" "}
+                      {BRACKET_FORMAT[user.bracket]}
+                    </td>
+
                     <td>
                       <StatusBadge value={user.status} />
                     </td>
+
                     <td>{user.joined}</td>
+
                     <td>
                       <ActionButtons
-                        onEdit={() => openEditModal("user", user)}
-                        onDelete={() => requestDelete("user", user)}
+                        onEdit={() =>
+                          openEditModal("user", user)
+                        }
+                        onDelete={() =>
+                          requestDelete("user", user)
+                        }
                       />
                     </td>
                   </tr>
@@ -1284,7 +1568,10 @@ function AdminApp({ onLogout }) {
           <div>
             <span className="admin-eyebrow">Sales</span>
             <h1>Manage Orders</h1>
-            <p>Manage payments, deliveries, cancellations, and order status.</p>
+
+            <p>
+              Manage payments, deliveries, cancellations, and order status.
+            </p>
           </div>
         </section>
 
@@ -1310,12 +1597,17 @@ function AdminApp({ onLogout }) {
                     <td>
                       <strong>{order.id}</strong>
                     </td>
+
                     <td>{order.customer}</td>
+
                     <td>
                       {order.item} × {order.quantity}
                     </td>
+
                     <td>
-                      <strong>{formatCurrency(order.total)}</strong>
+                      <strong>
+                        {formatCurrency(order.total)}
+                      </strong>
                     </td>
 
                     <td>
@@ -1349,10 +1641,16 @@ function AdminApp({ onLogout }) {
                         }
                       >
                         <option value="Pending">Pending</option>
-                        <option value="Processing">Processing</option>
+                        <option value="Processing">
+                          Processing
+                        </option>
                         <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="Delivered">
+                          Delivered
+                        </option>
+                        <option value="Cancelled">
+                          Cancelled
+                        </option>
                       </select>
                     </td>
 
@@ -1360,7 +1658,10 @@ function AdminApp({ onLogout }) {
 
                     <td>
                       <div className="admin-action-buttons">
-                        <button type="button" title="View order">
+                        <button
+                          type="button"
+                          title="View order"
+                        >
                           <Eye size={16} />
                         </button>
 
@@ -1368,7 +1669,9 @@ function AdminApp({ onLogout }) {
                           type="button"
                           className="danger"
                           title="Delete order"
-                          onClick={() => requestDelete("order", order)}
+                          onClick={() =>
+                            requestDelete("order", order)
+                          }
                         >
                           <Trash2 size={16} />
                         </button>
@@ -1390,8 +1693,13 @@ function AdminApp({ onLogout }) {
         <section className="admin-page-heading">
           <div>
             <span className="admin-eyebrow">Configuration</span>
+
             <h1>Shop Settings</h1>
-            <p>Update the public information and preferences of your shop.</p>
+
+            <p>
+              Update the public information and preferences of your Magic:
+              The Gathering shop.
+            </p>
           </div>
         </section>
 
@@ -1412,7 +1720,10 @@ function AdminApp({ onLogout }) {
             </AdminField>
 
             <AdminField label="Shop email">
-              <input type="email" defaultValue="admin@stax.com" />
+              <input
+                type="email"
+                defaultValue="admin@stax.com"
+              />
             </AdminField>
 
             <AdminField label="Phone number">
@@ -1426,7 +1737,10 @@ function AdminApp({ onLogout }) {
               />
             </AdminField>
 
-            <button type="submit" className="admin-primary-button">
+            <button
+              type="submit"
+              className="admin-primary-button"
+            >
               Save information
             </button>
           </form>
@@ -1437,15 +1751,23 @@ function AdminApp({ onLogout }) {
           >
             <div className="admin-panel-heading">
               <div>
-                <span className="admin-eyebrow">Marketplace</span>
+                <span className="admin-eyebrow">
+                  Marketplace
+                </span>
+
                 <h2>Order settings</h2>
               </div>
             </div>
 
             <AdminField label="Default currency">
               <select defaultValue="PHP">
-                <option value="PHP">PHP — Philippine Peso</option>
-                <option value="USD">USD — US Dollar</option>
+                <option value="PHP">
+                  PHP — Philippine Peso
+                </option>
+
+                <option value="USD">
+                  USD — US Dollar
+                </option>
               </select>
             </AdminField>
 
@@ -1470,7 +1792,10 @@ function AdminApp({ onLogout }) {
               </select>
             </AdminField>
 
-            <button type="submit" className="admin-primary-button">
+            <button
+              type="submit"
+              className="admin-primary-button"
+            >
               Save preferences
             </button>
           </form>
@@ -1483,18 +1808,25 @@ function AdminApp({ onLogout }) {
     switch (activePage) {
       case "cards":
         return renderCards();
+
       case "events":
         return renderEvents();
+
       case "rankings":
         return renderRankings();
+
       case "community":
         return renderCommunity();
+
       case "users":
         return renderUsers();
+
       case "orders":
         return renderOrders();
+
       case "settings":
         return renderSettings();
+
       default:
         return renderDashboard();
     }
@@ -1503,14 +1835,16 @@ function AdminApp({ onLogout }) {
   return (
     <div className="admin-app">
       <aside
-        className={`admin-sidebar ${sidebarOpen ? "is-mobile-open" : ""}`}
+        className={`admin-sidebar ${
+          sidebarOpen ? "is-mobile-open" : ""
+        }`}
       >
         <div className="admin-brand">
           <div className="admin-brand__logo">S</div>
 
           <div>
             <strong>STAX</strong>
-            <span>Administration</span>
+            <span>Magic: The Gathering Vault</span>
           </div>
 
           <button
@@ -1532,7 +1866,9 @@ function AdminApp({ onLogout }) {
         </div>
 
         <nav className="admin-navigation">
-          <span className="admin-navigation-label">Main menu</span>
+          <span className="admin-navigation-label">
+            Main menu
+          </span>
 
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -1541,7 +1877,9 @@ function AdminApp({ onLogout }) {
               <button
                 type="button"
                 key={item.id}
-                className={activePage === item.id ? "active" : ""}
+                className={
+                  activePage === item.id ? "active" : ""
+                }
                 onClick={() => navigate(item.id)}
               >
                 <Icon size={19} />
@@ -1551,7 +1889,7 @@ function AdminApp({ onLogout }) {
           })}
         </nav>
 
-       <button
+        <button
           type="button"
           className="admin-logout"
           onClick={() => {
@@ -1585,20 +1923,29 @@ function AdminApp({ onLogout }) {
 
           <label className="admin-header-search">
             <Search size={18} />
+
             <input
               type="search"
               placeholder="Search current section..."
               value={globalSearch}
-              onChange={(event) => setGlobalSearch(event.target.value)}
+              onChange={(event) =>
+                setGlobalSearch(event.target.value)
+              }
             />
           </label>
 
           <div className="admin-header-actions">
-            <button type="button" className="admin-header-icon">
+            <button
+              type="button"
+              className="admin-header-icon"
+            >
               <ClipboardList size={19} />
             </button>
 
-            <button type="button" className="admin-profile-button">
+            <button
+              type="button"
+              className="admin-profile-button"
+            >
               <div className="admin-user-avatar">AU</div>
 
               <div>
@@ -1611,7 +1958,9 @@ function AdminApp({ onLogout }) {
           </div>
         </header>
 
-        <main className="admin-content">{renderPage()}</main>
+        <main className="admin-content">
+          {renderPage()}
+        </main>
       </div>
 
       {modal === "card" && (
@@ -1619,50 +1968,106 @@ function AdminApp({ onLogout }) {
           title={editingItem ? "Edit card" : "Add new card"}
           onClose={closeModal}
         >
-          <form className="admin-form" onSubmit={saveCard}>
+          <form
+            className="admin-form"
+            onSubmit={saveCard}
+          >
             <div className="admin-form-grid">
-              <AdminField label="Card name">
+              <AdminField
+                label="Card name"
+                full
+              >
                 <input
                   required
                   value={cardForm.name}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, name: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      name: event.target.value,
+                    })
                   }
                 />
               </AdminField>
 
-              <AdminField label="Game">
-                <select
-                  value={cardForm.game}
-                  onChange={(event) =>
-                    setCardForm({ ...cardForm, game: event.target.value })
-                  }
-                >
-                  <option>Pokemon</option>
-                  <option>Yu-Gi-Oh!</option>
-                  <option>One Piece</option>
-                  <option>Magic</option>
-                </select>
-              </AdminField>
-
-              <AdminField label="Set">
+              <AdminField label="Set name">
                 <input
                   required
                   value={cardForm.set}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, set: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      set: event.target.value,
+                    })
                   }
                 />
               </AdminField>
 
-              <AdminField label="Rarity">
+              <AdminField label="Set code">
                 <input
                   required
-                  value={cardForm.rarity}
+                  placeholder="e.g. MH2"
+                  value={cardForm.setCode}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, rarity: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      setCode: event.target.value,
+                    })
                   }
                 />
+              </AdminField>
+
+              <AdminField label="Color identity">
+                <select
+                  value={cardForm.colors}
+                  onChange={(event) =>
+                    setCardForm({
+                      ...cardForm,
+                      colors: event.target.value,
+                    })
+                  }
+                >
+                  {COLOR_IDENTITIES.map((color) => (
+                    <option key={color}>
+                      {color}
+                    </option>
+                  ))}
+                </select>
+              </AdminField>
+
+              <AdminField label="Rarity">
+                <select
+                  value={cardForm.rarity}
+                  onChange={(event) =>
+                    setCardForm({
+                      ...cardForm,
+                      rarity: event.target.value,
+                    })
+                  }
+                >
+                  {RARITIES.map((rarity) => (
+                    <option key={rarity}>
+                      {rarity}
+                    </option>
+                  ))}
+                </select>
+              </AdminField>
+
+              <AdminField label="Finish">
+                <select
+                  value={cardForm.finish}
+                  onChange={(event) =>
+                    setCardForm({
+                      ...cardForm,
+                      finish: event.target.value,
+                    })
+                  }
+                >
+                  {FINISHES.map((finish) => (
+                    <option key={finish}>
+                      {finish}
+                    </option>
+                  ))}
+                </select>
               </AdminField>
 
               <AdminField label="Condition">
@@ -1675,11 +2080,11 @@ function AdminApp({ onLogout }) {
                     })
                   }
                 >
-                  <option>Near Mint</option>
-                  <option>Excellent</option>
-                  <option>Lightly Played</option>
-                  <option>Good</option>
-                  <option>Damaged</option>
+                  {CONDITIONS.map((condition) => (
+                    <option key={condition}>
+                      {condition}
+                    </option>
+                  ))}
                 </select>
               </AdminField>
 
@@ -1687,7 +2092,10 @@ function AdminApp({ onLogout }) {
                 <input
                   value={cardForm.seller}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, seller: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      seller: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -1699,7 +2107,10 @@ function AdminApp({ onLogout }) {
                   min="0"
                   value={cardForm.price}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, price: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      price: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -1711,7 +2122,10 @@ function AdminApp({ onLogout }) {
                   min="0"
                   value={cardForm.stock}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, stock: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      stock: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -1720,7 +2134,10 @@ function AdminApp({ onLogout }) {
                 <select
                   value={cardForm.status}
                   onChange={(event) =>
-                    setCardForm({ ...cardForm, status: event.target.value })
+                    setCardForm({
+                      ...cardForm,
+                      status: event.target.value,
+                    })
                   }
                 >
                   <option>Available</option>
@@ -1740,6 +2157,7 @@ function AdminApp({ onLogout }) {
                       })
                     }
                   />
+
                   Show this card as featured
                 </label>
               </AdminField>
@@ -1752,12 +2170,20 @@ function AdminApp({ onLogout }) {
 
       {modal === "event" && (
         <Modal
-          title={editingItem ? "Edit event" : "Create event"}
+          title={
+            editingItem ? "Edit event" : "Create event"
+          }
           onClose={closeModal}
         >
-          <form className="admin-form" onSubmit={saveEvent}>
+          <form
+            className="admin-form"
+            onSubmit={saveEvent}
+          >
             <div className="admin-form-grid">
-              <AdminField label="Event title" full>
+              <AdminField
+                label="Event title"
+                full
+              >
                 <input
                   required
                   value={eventForm.title}
@@ -1770,21 +2196,25 @@ function AdminApp({ onLogout }) {
                 />
               </AdminField>
 
-              <AdminField label="Game">
+              <AdminField label="Format">
                 <select
-                  value={eventForm.game}
+                  value={eventForm.format}
                   onChange={(event) =>
-                    setEventForm({ ...eventForm, game: event.target.value })
+                    setEventForm({
+                      ...eventForm,
+                      format: event.target.value,
+                    })
                   }
                 >
-                  <option>Pokemon</option>
-                  <option>Yu-Gi-Oh!</option>
-                  <option>One Piece</option>
-                  <option>Magic</option>
+                  {FORMATS.map((format) => (
+                    <option key={format}>
+                      {format}
+                    </option>
+                  ))}
                 </select>
               </AdminField>
 
-              <AdminField label="Bracket">
+              <AdminField label="Division">
                 <select
                   value={eventForm.bracket}
                   onChange={(event) =>
@@ -1794,10 +2224,10 @@ function AdminApp({ onLogout }) {
                     })
                   }
                 >
-                  <option>Bracket 1</option>
-                  <option>Bracket 2</option>
-                  <option>Bracket 3</option>
-                  <option>Bracket 4</option>
+                  <option>Division 1</option>
+                  <option>Division 2</option>
+                  <option>Division 3</option>
+                  <option>Division 4</option>
                 </select>
               </AdminField>
 
@@ -1807,7 +2237,10 @@ function AdminApp({ onLogout }) {
                   type="date"
                   value={eventForm.date}
                   onChange={(event) =>
-                    setEventForm({ ...eventForm, date: event.target.value })
+                    setEventForm({
+                      ...eventForm,
+                      date: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -1818,12 +2251,18 @@ function AdminApp({ onLogout }) {
                   type="time"
                   value={eventForm.time}
                   onChange={(event) =>
-                    setEventForm({ ...eventForm, time: event.target.value })
+                    setEventForm({
+                      ...eventForm,
+                      time: event.target.value,
+                    })
                   }
                 />
               </AdminField>
 
-              <AdminField label="Venue" full>
+              <AdminField
+                label="Venue"
+                full
+              >
                 <input
                   required
                   value={eventForm.venue}
@@ -1843,7 +2282,10 @@ function AdminApp({ onLogout }) {
                   min="0"
                   value={eventForm.fee}
                   onChange={(event) =>
-                    setEventForm({ ...eventForm, fee: event.target.value })
+                    setEventForm({
+                      ...eventForm,
+                      fee: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -1855,7 +2297,10 @@ function AdminApp({ onLogout }) {
                   min="1"
                   value={eventForm.slots}
                   onChange={(event) =>
-                    setEventForm({ ...eventForm, slots: event.target.value })
+                    setEventForm({
+                      ...eventForm,
+                      slots: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -1898,12 +2343,22 @@ function AdminApp({ onLogout }) {
 
       {modal === "ranking" && (
         <Modal
-          title={editingItem ? "Edit player ranking" : "Add ranked player"}
+          title={
+            editingItem
+              ? "Edit player ranking"
+              : "Add ranked player"
+          }
           onClose={closeModal}
         >
-          <form className="admin-form" onSubmit={saveRanking}>
+          <form
+            className="admin-form"
+            onSubmit={saveRanking}
+          >
             <div className="admin-form-grid">
-              <AdminField label="Player name" full>
+              <AdminField
+                label="Player name"
+                full
+              >
                 <input
                   required
                   value={rankingForm.name}
@@ -1916,7 +2371,7 @@ function AdminApp({ onLogout }) {
                 />
               </AdminField>
 
-              <AdminField label="Bracket">
+              <AdminField label="Division">
                 <select
                   value={rankingForm.bracket}
                   onChange={(event) =>
@@ -1926,10 +2381,21 @@ function AdminApp({ onLogout }) {
                     })
                   }
                 >
-                  <option value="1">Bracket 1</option>
-                  <option value="2">Bracket 2</option>
-                  <option value="3">Bracket 3</option>
-                  <option value="4">Bracket 4</option>
+                  <option value="1">
+                    Division 1 · Standard
+                  </option>
+
+                  <option value="2">
+                    Division 2 · Commander
+                  </option>
+
+                  <option value="3">
+                    Division 3 · Legacy
+                  </option>
+
+                  <option value="4">
+                    Division 4 · Modern
+                  </option>
                 </select>
               </AdminField>
 
@@ -1978,7 +2444,10 @@ function AdminApp({ onLogout }) {
                 />
               </AdminField>
 
-              <AdminField label="Points" full>
+              <AdminField
+                label="Points"
+                full
+              >
                 <input
                   required
                   type="number"
@@ -2001,17 +2470,25 @@ function AdminApp({ onLogout }) {
 
       {modal === "user" && (
         <Modal
-          title={editingItem ? "Edit user" : "Add new user"}
+          title={
+            editingItem ? "Edit user" : "Add new user"
+          }
           onClose={closeModal}
         >
-          <form className="admin-form" onSubmit={saveUser}>
+          <form
+            className="admin-form"
+            onSubmit={saveUser}
+          >
             <div className="admin-form-grid">
               <AdminField label="Full name">
                 <input
                   required
                   value={userForm.name}
                   onChange={(event) =>
-                    setUserForm({ ...userForm, name: event.target.value })
+                    setUserForm({
+                      ...userForm,
+                      name: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -2022,7 +2499,10 @@ function AdminApp({ onLogout }) {
                   type="email"
                   value={userForm.email}
                   onChange={(event) =>
-                    setUserForm({ ...userForm, email: event.target.value })
+                    setUserForm({
+                      ...userForm,
+                      email: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -2031,7 +2511,10 @@ function AdminApp({ onLogout }) {
                 <select
                   value={userForm.role}
                   onChange={(event) =>
-                    setUserForm({ ...userForm, role: event.target.value })
+                    setUserForm({
+                      ...userForm,
+                      role: event.target.value,
+                    })
                   }
                 >
                   <option>Player</option>
@@ -2039,7 +2522,7 @@ function AdminApp({ onLogout }) {
                 </select>
               </AdminField>
 
-              <AdminField label="Bracket">
+              <AdminField label="Division">
                 <select
                   value={userForm.bracket}
                   onChange={(event) =>
@@ -2049,10 +2532,21 @@ function AdminApp({ onLogout }) {
                     })
                   }
                 >
-                  <option value="1">Bracket 1</option>
-                  <option value="2">Bracket 2</option>
-                  <option value="3">Bracket 3</option>
-                  <option value="4">Bracket 4</option>
+                  <option value="1">
+                    Division 1 · Standard
+                  </option>
+
+                  <option value="2">
+                    Division 2 · Commander
+                  </option>
+
+                  <option value="3">
+                    Division 3 · Legacy
+                  </option>
+
+                  <option value="4">
+                    Division 4 · Modern
+                  </option>
                 </select>
               </AdminField>
 
@@ -2060,7 +2554,10 @@ function AdminApp({ onLogout }) {
                 <select
                   value={userForm.status}
                   onChange={(event) =>
-                    setUserForm({ ...userForm, status: event.target.value })
+                    setUserForm({
+                      ...userForm,
+                      status: event.target.value,
+                    })
                   }
                 >
                   <option>Active</option>
@@ -2075,7 +2572,10 @@ function AdminApp({ onLogout }) {
                   type="date"
                   value={userForm.joined}
                   onChange={(event) =>
-                    setUserForm({ ...userForm, joined: event.target.value })
+                    setUserForm({
+                      ...userForm,
+                      joined: event.target.value,
+                    })
                   }
                 />
               </AdminField>
@@ -2130,7 +2630,11 @@ function AdminApp({ onLogout }) {
   );
 }
 
-function AdminTableCard({ title, icon, children }) {
+function AdminTableCard({
+  title,
+  icon,
+  children,
+}) {
   return (
     <section className="admin-table-card">
       {title && (
@@ -2146,17 +2650,28 @@ function AdminTableCard({ title, icon, children }) {
 }
 
 function StatusBadge({ value }) {
-  const className = String(value).toLowerCase().replaceAll(" ", "-");
+  const className = String(value)
+    .toLowerCase()
+    .replaceAll(" ", "-");
 
   return (
-    <span className={`admin-status admin-status--${className}`}>{value}</span>
+    <span className={`admin-status admin-status--${className}`}>
+      {value}
+    </span>
   );
 }
 
-function ActionButtons({ onEdit, onDelete }) {
+function ActionButtons({
+  onEdit,
+  onDelete,
+}) {
   return (
     <div className="admin-action-buttons">
-      <button type="button" title="Edit" onClick={onEdit}>
+      <button
+        type="button"
+        title="Edit"
+        onClick={onEdit}
+      >
         <Edit3 size={16} />
       </button>
 
@@ -2172,31 +2687,51 @@ function ActionButtons({ onEdit, onDelete }) {
   );
 }
 
-function AdminField({ label, full = false, children }) {
+function AdminField({
+  label,
+  full = false,
+  children,
+}) {
   return (
-    <label className={`admin-field ${full ? "admin-field--full" : ""}`}>
+    <label
+      className={`admin-field ${
+        full ? "admin-field--full" : ""
+      }`}
+    >
       <span>{label}</span>
       {children}
     </label>
   );
 }
 
-function Modal({ title, onClose, children }) {
+function Modal({
+  title,
+  onClose,
+  children,
+}) {
   return (
     <div className="admin-modal-backdrop">
       <div className="admin-modal">
         <div className="admin-modal-header">
           <div>
-            <span className="admin-eyebrow">STAX Administration</span>
+            <span className="admin-eyebrow">
+              STAX Administration
+            </span>
+
             <h2>{title}</h2>
           </div>
 
-          <button type="button" onClick={onClose}>
+          <button
+            type="button"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className="admin-modal-body">{children}</div>
+        <div className="admin-modal-body">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -2213,7 +2748,10 @@ function ModalFooter({ onCancel }) {
         Cancel
       </button>
 
-      <button type="submit" className="admin-primary-button">
+      <button
+        type="submit"
+        className="admin-primary-button"
+      >
         Save changes
       </button>
     </div>

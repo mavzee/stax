@@ -74,11 +74,15 @@ function Login({ onLogin }) {
         <div className="stax-login-showcase__glow" />
 
         <div className="stax-login-brand">
-          <div className="stax-login-brand__logo">S</div>
+          <div className="stax-login-brand__logo">
+            S
+          </div>
 
           <div>
             <strong>STAX</strong>
-            <span>Cards. Events. Community.</span>
+            <span>
+              Cards. Events. Community.
+            </span>
           </div>
         </div>
 
@@ -90,7 +94,10 @@ function Login({ onLogin }) {
 
           <h1>
             Build your deck.
-            <span> Rise through the ranks.</span>
+            <span>
+              {" "}
+              Rise through the ranks.
+            </span>
           </h1>
 
           <p>
@@ -104,7 +111,10 @@ function Login({ onLogin }) {
 
               <div>
                 <strong>Secure access</strong>
-                <span>Separate user and administrator areas.</span>
+
+                <span>
+                  Separate user and administrator areas.
+                </span>
               </div>
             </article>
 
@@ -113,7 +123,10 @@ function Login({ onLogin }) {
 
               <div>
                 <strong>One platform</strong>
-                <span>Manage cards, events, rankings, and orders.</span>
+
+                <span>
+                  Manage cards, events, rankings, and orders.
+                </span>
               </div>
             </article>
           </div>
@@ -127,7 +140,9 @@ function Login({ onLogin }) {
       <section className="stax-login-panel">
         <div className="stax-login-form-wrapper">
           <div className="stax-login-mobile-brand">
-            <div className="stax-login-brand__logo">S</div>
+            <div className="stax-login-brand__logo">
+              S
+            </div>
 
             <div>
               <strong>STAX</strong>
@@ -136,12 +151,21 @@ function Login({ onLogin }) {
           </div>
 
           <div className="stax-login-heading">
-            <span className="stax-login-eyebrow">Welcome back</span>
+            <span className="stax-login-eyebrow">
+              Welcome back
+            </span>
+
             <h2>Sign in to STAX</h2>
-            <p>Enter your account credentials to continue.</p>
+
+            <p>
+              Enter your account credentials to continue.
+            </p>
           </div>
 
-          <form className="stax-login-form" onSubmit={handleSubmit}>
+          <form
+            className="stax-login-form"
+            onSubmit={handleSubmit}
+          >
             <label className="stax-login-field">
               <span>Email or username</span>
 
@@ -171,24 +195,43 @@ function Login({ onLogin }) {
                   name="password"
                   placeholder="Enter your password"
                   required
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   value={form.password}
                   onChange={handleChange}
                 />
 
                 <button
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
                   className="stax-password-toggle"
                   type="button"
-                  onClick={() => setShowPassword((current) => !current)}
+                  onClick={() =>
+                    setShowPassword(
+                      (current) => !current
+                    )
+                  }
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
                 </button>
               </div>
             </label>
 
             {error && (
-              <div className="stax-login-error" role="alert">
+              <div
+                className="stax-login-error"
+                role="alert"
+              >
                 {error}
               </div>
             )}
@@ -198,7 +241,12 @@ function Login({ onLogin }) {
               disabled={isSubmitting}
               type="submit"
             >
-              <span>{isSubmitting ? "Signing in..." : "Sign in"}</span>
+              <span>
+                {isSubmitting
+                  ? "Signing in..."
+                  : "Sign in"}
+              </span>
+
               <ArrowRight size={18} />
             </button>
           </form>
@@ -208,8 +256,15 @@ function Login({ onLogin }) {
           </div>
 
           <div className="stax-demo-accounts">
-            <button type="button" onClick={() => fillDemoAccount("user")}>
-              <span className="stax-demo-icon">U</span>
+            <button
+              type="button"
+              onClick={() =>
+                fillDemoAccount("user")
+              }
+            >
+              <span className="stax-demo-icon">
+                U
+              </span>
 
               <span>
                 <strong>User account</strong>
@@ -217,8 +272,15 @@ function Login({ onLogin }) {
               </span>
             </button>
 
-            <button type="button" onClick={() => fillDemoAccount("admin")}>
-              <span className="stax-demo-icon">A</span>
+            <button
+              type="button"
+              onClick={() =>
+                fillDemoAccount("admin")
+              }
+            >
+              <span className="stax-demo-icon">
+                A
+              </span>
 
               <span>
                 <strong>Admin account</strong>

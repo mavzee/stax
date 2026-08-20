@@ -133,28 +133,127 @@ const shopEvents = [
 
 const rankings = {
   1: [
-    { rank: 1, name: "Marco Santos", wins: 18, losses: 2, points: 56 },
-    { rank: 2, name: "Jared Cruz", wins: 16, losses: 4, points: 50 },
-    { rank: 3, name: "Paolo Reyes", wins: 14, losses: 5, points: 44 },
-    { rank: 4, name: "Luis Mendoza", wins: 12, losses: 7, points: 38 },
+    {
+      rank: 1,
+      name: "Marco Santos",
+      wins: 18,
+      losses: 2,
+      points: 56,
+    },
+    {
+      rank: 2,
+      name: "Jared Cruz",
+      wins: 16,
+      losses: 4,
+      points: 50,
+    },
+    {
+      rank: 3,
+      name: "Paolo Reyes",
+      wins: 14,
+      losses: 5,
+      points: 44,
+    },
+    {
+      rank: 4,
+      name: "Luis Mendoza",
+      wins: 12,
+      losses: 7,
+      points: 38,
+    },
   ],
+
   2: [
-    { rank: 1, name: "Kevin Lim", wins: 15, losses: 3, points: 48 },
-    { rank: 2, name: "Joshua Tan", wins: 13, losses: 4, points: 42 },
-    { rank: 3, name: "Miguel Ramos", wins: 11, losses: 6, points: 36 },
-    { rank: 4, name: "Aaron Flores", wins: 10, losses: 8, points: 32 },
+    {
+      rank: 1,
+      name: "Kevin Lim",
+      wins: 15,
+      losses: 3,
+      points: 48,
+    },
+    {
+      rank: 2,
+      name: "Joshua Tan",
+      wins: 13,
+      losses: 4,
+      points: 42,
+    },
+    {
+      rank: 3,
+      name: "Miguel Ramos",
+      wins: 11,
+      losses: 6,
+      points: 36,
+    },
+    {
+      rank: 4,
+      name: "Aaron Flores",
+      wins: 10,
+      losses: 8,
+      points: 32,
+    },
   ],
+
   3: [
-    { rank: 1, name: "Daniel Sy", wins: 12, losses: 4, points: 40 },
-    { rank: 2, name: "Ken Garcia", wins: 11, losses: 5, points: 36 },
-    { rank: 3, name: "Ralph Ong", wins: 9, losses: 7, points: 30 },
-    { rank: 4, name: "John Velasco", wins: 8, losses: 8, points: 27 },
+    {
+      rank: 1,
+      name: "Daniel Sy",
+      wins: 12,
+      losses: 4,
+      points: 40,
+    },
+    {
+      rank: 2,
+      name: "Ken Garcia",
+      wins: 11,
+      losses: 5,
+      points: 36,
+    },
+    {
+      rank: 3,
+      name: "Ralph Ong",
+      wins: 9,
+      losses: 7,
+      points: 30,
+    },
+    {
+      rank: 4,
+      name: "John Velasco",
+      wins: 8,
+      losses: 8,
+      points: 27,
+    },
   ],
+
   4: [
-    { rank: 1, name: "Ivan Guerrero", wins: 10, losses: 5, points: 34 },
-    { rank: 2, name: "Chris Dela Cruz", wins: 9, losses: 6, points: 31 },
-    { rank: 3, name: "Nathan Lee", wins: 8, losses: 7, points: 28 },
-    { rank: 4, name: "Sam Bautista", wins: 7, losses: 8, points: 25 },
+    {
+      rank: 1,
+      name: "Ivan Guerrero",
+      wins: 10,
+      losses: 5,
+      points: 34,
+    },
+    {
+      rank: 2,
+      name: "Chris Dela Cruz",
+      wins: 9,
+      losses: 6,
+      points: 31,
+    },
+    {
+      rank: 3,
+      name: "Nathan Lee",
+      wins: 8,
+      losses: 7,
+      points: 28,
+    },
+    {
+      rank: 4,
+      name: "Sam Bautista",
+      wins: 7,
+      losses: 8,
+      points: 25,
+    },
   ],
 };
 
@@ -186,13 +285,41 @@ const initialQuestions = [
 ];
 
 const menuItems = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "shop", label: "Card Shop", icon: Store },
-  { id: "events", label: "Events", icon: CalendarDays },
-  { id: "rankings", label: "Rankings", icon: Trophy },
-  { id: "community", label: "Community", icon: MessageCircle },
-  { id: "cart", label: "My Cart", icon: ShoppingCart },
-  { id: "profile", label: "Profile", icon: User },
+  {
+    id: "home",
+    label: "Home",
+    icon: Home,
+  },
+  {
+    id: "shop",
+    label: "Card Shop",
+    icon: Store,
+  },
+  {
+    id: "events",
+    label: "Events",
+    icon: CalendarDays,
+  },
+  {
+    id: "rankings",
+    label: "Rankings",
+    icon: Trophy,
+  },
+  {
+    id: "community",
+    label: "Community",
+    icon: MessageCircle,
+  },
+  {
+    id: "cart",
+    label: "My Cart",
+    icon: ShoppingCart,
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    icon: User,
+  },
 ];
 
 function formatPrice(price) {
@@ -205,17 +332,26 @@ function formatPrice(price) {
 
 function UserApp({ onLogout }) {
   const [activePage, setActivePage] = useState("home");
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const [mobileSidebarOpen, setMobileSidebarOpen] =
+    useState(false);
+
   const [searchText, setSearchText] = useState("");
   const [gameFilter, setGameFilter] = useState("All");
   const [selectedBracket, setSelectedBracket] = useState(1);
   const [favorites, setFavorites] = useState([]);
   const [cart, setCart] = useState([]);
-  const [questions, setQuestions] = useState(initialQuestions);
-  const [questionText, setQuestionText] = useState("");
+
+  const [questions, setQuestions] =
+    useState(initialQuestions);
+
+  const [questionText, setQuestionText] =
+    useState("");
 
   const filteredCards = useMemo(() => {
-    const search = searchText.trim().toLowerCase();
+    const search = searchText
+      .trim()
+      .toLowerCase();
 
     return cardItems.filter((card) => {
       const matchesSearch =
@@ -225,23 +361,33 @@ function UserApp({ onLogout }) {
         card.set.toLowerCase().includes(search);
 
       const matchesGame =
-        gameFilter === "All" || card.game === gameFilter;
+        gameFilter === "All" ||
+        card.game === gameFilter;
 
       return matchesSearch && matchesGame;
     });
   }, [searchText, gameFilter]);
 
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartCount = cart.reduce(
+    (total, item) =>
+      total + item.quantity,
+    0
+  );
 
   const cartTotal = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) =>
+      total + item.price * item.quantity,
     0
   );
 
   function navigate(page) {
     setActivePage(page);
     setMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function toggleFavorite(cardId) {
@@ -254,24 +400,39 @@ function UserApp({ onLogout }) {
 
   function addToCart(card) {
     setCart((current) => {
-      const existingItem = current.find((item) => item.id === card.id);
+      const existingItem =
+        current.find(
+          (item) => item.id === card.id
+        );
 
       if (existingItem) {
         return current.map((item) =>
           item.id === card.id
             ? {
                 ...item,
-                quantity: Math.min(item.quantity + 1, card.stock),
+                quantity: Math.min(
+                  item.quantity + 1,
+                  card.stock
+                ),
               }
             : item
         );
       }
 
-      return [...current, { ...card, quantity: 1 }];
+      return [
+        ...current,
+        {
+          ...card,
+          quantity: 1,
+        },
+      ];
     });
   }
 
-  function changeQuantity(cardId, amount) {
+  function changeQuantity(
+    cardId,
+    amount
+  ) {
     setCart((current) =>
       current
         .map((item) =>
@@ -280,19 +441,25 @@ function UserApp({ onLogout }) {
                 ...item,
                 quantity: Math.max(
                   0,
-                  Math.min(item.quantity + amount, item.stock)
+                  Math.min(
+                    item.quantity + amount,
+                    item.stock
+                  )
                 ),
               }
             : item
         )
-        .filter((item) => item.quantity > 0)
+        .filter(
+          (item) => item.quantity > 0
+        )
     );
   }
 
   function submitQuestion(event) {
     event.preventDefault();
 
-    const cleanQuestion = questionText.trim();
+    const cleanQuestion =
+      questionText.trim();
 
     if (!cleanQuestion) {
       return;
@@ -307,7 +474,11 @@ function UserApp({ onLogout }) {
       time: "Just now",
     };
 
-    setQuestions((current) => [newQuestion, ...current]);
+    setQuestions((current) => [
+      newQuestion,
+      ...current,
+    ]);
+
     setQuestionText("");
   }
 
@@ -319,16 +490,25 @@ function UserApp({ onLogout }) {
     return (
       <div className="card-market-grid">
         {displayedCards.map((card) => (
-          <article className="market-card" key={card.id}>
-            <div className={`market-card__image game-image-${card.id}`}>
+          <article
+            className="market-card"
+            key={card.id}
+          >
+            <div
+              className={`market-card__image game-image-${card.id}`}
+            >
               <span>{card.game}</span>
 
               <button
                 type="button"
                 className={`favorite-button ${
-                  favorites.includes(card.id) ? "is-favorite" : ""
+                  favorites.includes(card.id)
+                    ? "is-favorite"
+                    : ""
                 }`}
-                onClick={() => toggleFavorite(card.id)}
+                onClick={() =>
+                  toggleFavorite(card.id)
+                }
                 aria-label="Add card to favorites"
               >
                 <Heart size={19} />
@@ -340,28 +520,48 @@ function UserApp({ onLogout }) {
                 <span>{card.set}</span>
 
                 <span className="rating">
-                  <Star size={14} fill="currentColor" />
+                  <Star
+                    size={14}
+                    fill="currentColor"
+                  />
                   {card.rating}
                 </span>
               </div>
 
               <h3>{card.name}</h3>
 
-              <p className="card-rarity">{card.rarity}</p>
+              <p className="card-rarity">
+                {card.rarity}
+              </p>
 
               <div className="card-condition-row">
-                <span>{card.condition}</span>
-                <span>{card.stock} available</span>
+                <span>
+                  {card.condition}
+                </span>
+
+                <span>
+                  {card.stock} available
+                </span>
               </div>
 
               <div className="market-card__seller">
-                Sold by <strong>{card.seller}</strong>
+                Sold by{" "}
+                <strong>
+                  {card.seller}
+                </strong>
               </div>
 
               <div className="market-card__footer">
-                <strong>{formatPrice(card.price)}</strong>
+                <strong>
+                  {formatPrice(card.price)}
+                </strong>
 
-                <button type="button" onClick={() => addToCart(card)}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    addToCart(card)
+                  }
+                >
                   <ShoppingBag size={17} />
                   Add
                 </button>
@@ -373,8 +573,13 @@ function UserApp({ onLogout }) {
         {displayedCards.length === 0 && (
           <div className="empty-state full-grid-item">
             <Search size={38} />
+
             <h3>No cards found</h3>
-            <p>Try changing your search or game filter.</p>
+
+            <p>
+              Try changing your search or game
+              filter.
+            </p>
           </div>
         )}
       </div>
@@ -386,17 +591,30 @@ function UserApp({ onLogout }) {
       <>
         <section className="hero-section">
           <div className="hero-section__content">
-            <span className="eyebrow">The home of local card players</span>
+            <span className="eyebrow">
+              The home of local card players
+            </span>
 
-            <h1>Find cards. Join events. Become the top player.</h1>
+            <h1>
+              Find cards. Join events.
+              Become the top player.
+            </h1>
 
             <p>
-              Browse cards from trusted sellers, register for local events,
-              check your bracket ranking, and connect with other players.
+              Browse cards from trusted
+              sellers, register for local
+              events, check your bracket
+              ranking, and connect with other
+              players.
             </p>
 
             <div className="hero-actions">
-              <button type="button" onClick={() => navigate("shop")}>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("shop")
+                }
+              >
                 Browse cards
                 <ChevronRight size={18} />
               </button>
@@ -404,7 +622,9 @@ function UserApp({ onLogout }) {
               <button
                 type="button"
                 className="secondary"
-                onClick={() => navigate("events")}
+                onClick={() =>
+                  navigate("events")
+                }
               >
                 View events
               </button>
@@ -435,15 +655,24 @@ function UserApp({ onLogout }) {
         <section className="content-section">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Marketplace</span>
+              <span className="eyebrow">
+                Marketplace
+              </span>
+
               <h2>Popular cards</h2>
-              <p>Discover cards currently trending in the community.</p>
+
+              <p>
+                Discover cards currently
+                trending in the community.
+              </p>
             </div>
 
             <button
               type="button"
               className="text-button"
-              onClick={() => navigate("shop")}
+              onClick={() =>
+                navigate("shop")
+              }
             >
               View all cards
               <ChevronRight size={17} />
@@ -457,7 +686,10 @@ function UserApp({ onLogout }) {
           <article className="dashboard-panel">
             <div className="section-heading compact">
               <div>
-                <span className="eyebrow">Upcoming</span>
+                <span className="eyebrow">
+                  Upcoming
+                </span>
+
                 <h2>Shop events</h2>
               </div>
 
@@ -465,59 +697,93 @@ function UserApp({ onLogout }) {
             </div>
 
             <div className="mini-event-list">
-              {shopEvents.slice(0, 3).map((event) => (
-                <div className="mini-event-item" key={event.id}>
-                  <div className="event-date-box">
-                    <strong>{event.date.split(" ")[1].replace(",", "")}</strong>
-                    <span>{event.date.split(" ")[0].slice(0, 3)}</span>
-                  </div>
+              {shopEvents
+                .slice(0, 3)
+                .map((event) => (
+                  <div
+                    className="mini-event-item"
+                    key={event.id}
+                  >
+                    <div className="event-date-box">
+                      <strong>
+                        {event.date
+                          .split(" ")[1]
+                          .replace(",", "")}
+                      </strong>
 
-                  <div>
-                    <h3>{event.title}</h3>
-                    <p>
-                      {event.time} · {event.slots} slots left
-                    </p>
+                      <span>
+                        {event.date
+                          .split(" ")[0]
+                          .slice(0, 3)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3>{event.title}</h3>
+
+                      <p>
+                        {event.time} ·{" "}
+                        {event.slots} slots left
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </article>
 
           <article className="dashboard-panel">
             <div className="section-heading compact">
               <div>
-                <span className="eyebrow">Leaderboard</span>
-                <h2>Bracket 1 leaders</h2>
+                <span className="eyebrow">
+                  Leaderboard
+                </span>
+
+                <h2>
+                  Bracket 1 leaders
+                </h2>
               </div>
 
               <Trophy size={25} />
             </div>
 
             <div className="leader-preview-list">
-              {rankings[1].slice(0, 3).map((player) => (
-                <div className="leader-preview-item" key={player.name}>
-                  <span className="rank-number">{player.rank}</span>
-
-                  <div className="player-avatar">
-                    {player.name
-                      .split(" ")
-                      .map((part) => part[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </div>
-
-                  <div>
-                    <strong>{player.name}</strong>
-                    <span>
-                      {player.wins}W · {player.losses}L
+              {rankings[1]
+                .slice(0, 3)
+                .map((player) => (
+                  <div
+                    className="leader-preview-item"
+                    key={player.name}
+                  >
+                    <span className="rank-number">
+                      {player.rank}
                     </span>
-                  </div>
 
-                  <strong className="player-points">
-                    {player.points} pts
-                  </strong>
-                </div>
-              ))}
+                    <div className="player-avatar">
+                      {player.name
+                        .split(" ")
+                        .map(
+                          (part) => part[0]
+                        )
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+
+                    <div>
+                      <strong>
+                        {player.name}
+                      </strong>
+
+                      <span>
+                        {player.wins}W ·{" "}
+                        {player.losses}L
+                      </span>
+                    </div>
+
+                    <strong className="player-points">
+                      {player.points} pts
+                    </strong>
+                  </div>
+                ))}
             </div>
           </article>
         </section>
@@ -530,15 +796,24 @@ function UserApp({ onLogout }) {
       <section className="content-section page-section">
         <div className="page-title-row">
           <div>
-            <span className="eyebrow">Marketplace</span>
+            <span className="eyebrow">
+              Marketplace
+            </span>
+
             <h1>Card Shop</h1>
-            <p>Search cards by name, game, set, rarity, or seller.</p>
+
+            <p>
+              Search cards by name, game,
+              set, rarity, or seller.
+            </p>
           </div>
 
           <button
             type="button"
             className="cart-summary-button"
-            onClick={() => navigate("cart")}
+            onClick={() =>
+              navigate("cart")
+            }
           >
             <ShoppingCart size={20} />
             Cart
@@ -554,24 +829,49 @@ function UserApp({ onLogout }) {
               type="search"
               placeholder="Search for a card..."
               value={searchText}
-              onChange={(event) => setSearchText(event.target.value)}
+              onChange={(event) =>
+                setSearchText(
+                  event.target.value
+                )
+              }
             />
           </label>
 
           <select
             value={gameFilter}
-            onChange={(event) => setGameFilter(event.target.value)}
+            onChange={(event) =>
+              setGameFilter(
+                event.target.value
+              )
+            }
           >
-            <option value="All">All games</option>
-            <option value="Pokemon">Pokemon</option>
-            <option value="Yu-Gi-Oh!">Yu-Gi-Oh!</option>
-            <option value="One Piece">One Piece</option>
-            <option value="Magic">Magic</option>
+            <option value="All">
+              All games
+            </option>
+
+            <option value="Pokemon">
+              Pokemon
+            </option>
+
+            <option value="Yu-Gi-Oh!">
+              Yu-Gi-Oh!
+            </option>
+
+            <option value="One Piece">
+              One Piece
+            </option>
+
+            <option value="Magic">
+              Magic
+            </option>
           </select>
         </div>
 
         <div className="results-line">
-          <strong>{filteredCards.length}</strong> cards found
+          <strong>
+            {filteredCards.length}
+          </strong>{" "}
+          cards found
         </div>
 
         {renderCardGrid()}
@@ -584,43 +884,70 @@ function UserApp({ onLogout }) {
       <section className="content-section page-section">
         <div className="page-title-row">
           <div>
-            <span className="eyebrow">Compete and connect</span>
+            <span className="eyebrow">
+              Compete and connect
+            </span>
+
             <h1>Upcoming Events</h1>
-            <p>Register for tournaments, leagues, and community meetups.</p>
+
+            <p>
+              Register for tournaments,
+              leagues, and community meetups.
+            </p>
           </div>
         </div>
 
         <div className="event-grid">
           {shopEvents.map((event) => (
-            <article className="event-card" key={event.id}>
+            <article
+              className="event-card"
+              key={event.id}
+            >
               <div className="event-card__banner">
                 <span>{event.game}</span>
                 <CalendarDays size={34} />
               </div>
 
               <div className="event-card__body">
-                <span className="event-status">Registration open</span>
+                <span className="event-status">
+                  Registration open
+                </span>
 
                 <h2>{event.title}</h2>
 
                 <div className="event-detail-list">
                   <p>
-                    <strong>Date:</strong> {event.date}
+                    <strong>Date:</strong>{" "}
+                    {event.date}
                   </p>
+
                   <p>
-                    <strong>Time:</strong> {event.time}
+                    <strong>Time:</strong>{" "}
+                    {event.time}
                   </p>
+
                   <p>
-                    <strong>Venue:</strong> {event.venue}
+                    <strong>Venue:</strong>{" "}
+                    {event.venue}
                   </p>
+
                   <p>
-                    <strong>Entry fee:</strong> {formatPrice(event.fee)}
+                    <strong>
+                      Entry fee:
+                    </strong>{" "}
+                    {formatPrice(event.fee)}
                   </p>
                 </div>
 
                 <div className="event-card__footer">
-                  <span>{event.slots} slots remaining</span>
-                  <button type="button">Register now</button>
+                  <span>
+                    {event.slots} slots
+                    remaining
+                  </span>
+
+                  <button type="button">
+                    Register now
+                  </button>
                 </div>
               </div>
             </article>
@@ -631,15 +958,23 @@ function UserApp({ onLogout }) {
   }
 
   function renderRankings() {
-    const selectedPlayers = rankings[selectedBracket];
+    const selectedPlayers =
+      rankings[selectedBracket];
 
     return (
       <section className="content-section page-section">
         <div className="page-title-row">
           <div>
-            <span className="eyebrow">Player standings</span>
+            <span className="eyebrow">
+              Player standings
+            </span>
+
             <h1>Bracket Rankings</h1>
-            <p>View wins, losses, points, and current player positions.</p>
+
+            <p>
+              View wins, losses, points, and
+              current player positions.
+            </p>
           </div>
         </div>
 
@@ -648,8 +983,14 @@ function UserApp({ onLogout }) {
             <button
               type="button"
               key={bracket}
-              className={selectedBracket === bracket ? "active" : ""}
-              onClick={() => setSelectedBracket(bracket)}
+              className={
+                selectedBracket === bracket
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSelectedBracket(bracket)
+              }
             >
               Bracket {bracket}
             </button>
@@ -659,8 +1000,13 @@ function UserApp({ onLogout }) {
         <div className="ranking-card">
           <div className="ranking-card__header">
             <div>
-              <span>Current standings</span>
-              <h2>Bracket {selectedBracket}</h2>
+              <span>
+                Current standings
+              </span>
+
+              <h2>
+                Bracket {selectedBracket}
+              </h2>
             </div>
 
             <Trophy size={33} />
@@ -679,37 +1025,52 @@ function UserApp({ onLogout }) {
               </thead>
 
               <tbody>
-                {selectedPlayers.map((player) => (
-                  <tr key={player.name}>
-                    <td>
-                      <span
-                        className={`rank-badge rank-badge-${player.rank}`}
-                      >
-                        {player.rank}
-                      </span>
-                    </td>
+                {selectedPlayers.map(
+                  (player) => (
+                    <tr key={player.name}>
+                      <td>
+                        <span
+                          className={`rank-badge rank-badge-${player.rank}`}
+                        >
+                          {player.rank}
+                        </span>
+                      </td>
 
-                    <td>
-                      <div className="ranking-player">
-                        <div className="player-avatar">
-                          {player.name
-                            .split(" ")
-                            .map((part) => part[0])
-                            .join("")
-                            .slice(0, 2)}
+                      <td>
+                        <div className="ranking-player">
+                          <div className="player-avatar">
+                            {player.name
+                              .split(" ")
+                              .map(
+                                (part) =>
+                                  part[0]
+                              )
+                              .join("")
+                              .slice(0, 2)}
+                          </div>
+
+                          <strong>
+                            {player.name}
+                          </strong>
                         </div>
+                      </td>
 
-                        <strong>{player.name}</strong>
-                      </div>
-                    </td>
+                      <td>
+                        {player.wins}
+                      </td>
 
-                    <td>{player.wins}</td>
-                    <td>{player.losses}</td>
-                    <td>
-                      <strong>{player.points}</strong>
-                    </td>
-                  </tr>
-                ))}
+                      <td>
+                        {player.losses}
+                      </td>
+
+                      <td>
+                        <strong>
+                          {player.points}
+                        </strong>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -723,17 +1084,27 @@ function UserApp({ onLogout }) {
       <section className="content-section page-section">
         <div className="page-title-row">
           <div>
-            <span className="eyebrow">Ask the community</span>
-            <h1>Questions and Discussions</h1>
+            <span className="eyebrow">
+              Ask the community
+            </span>
+
+            <h1>
+              Questions and Discussions
+            </h1>
+
             <p>
-              Ask about card rules, events, card values, or deck building.
+              Ask about card rules, events,
+              card values, or deck building.
             </p>
           </div>
         </div>
 
         <div className="community-layout">
           <div>
-            <form className="question-form" onSubmit={submitQuestion}>
+            <form
+              className="question-form"
+              onSubmit={submitQuestion}
+            >
               <div className="question-form__icon">
                 <CircleHelp size={25} />
               </div>
@@ -743,59 +1114,103 @@ function UserApp({ onLogout }) {
 
                 <textarea
                   value={questionText}
-                  onChange={(event) => setQuestionText(event.target.value)}
+                  onChange={(event) =>
+                    setQuestionText(
+                      event.target.value
+                    )
+                  }
                   placeholder="What would you like to ask?"
                   rows={4}
                 />
 
                 <div className="question-form__footer">
-                  <span>Be respectful and provide enough details.</span>
-                  <button type="submit">Post question</button>
+                  <span>
+                    Be respectful and provide
+                    enough details.
+                  </span>
+
+                  <button type="submit">
+                    Post question
+                  </button>
                 </div>
               </div>
             </form>
 
             <div className="question-list">
-              {questions.map((question) => (
-                <article className="question-card" key={question.id}>
-                  <div className="question-avatar">
-                    {question.user
-                      .split(" ")
-                      .map((part) => part[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </div>
-
-                  <div className="question-card__content">
-                    <div className="question-meta">
-                      <strong>{question.user}</strong>
-                      <span>{question.time}</span>
+              {questions.map(
+                (question) => (
+                  <article
+                    className="question-card"
+                    key={question.id}
+                  >
+                    <div className="question-avatar">
+                      {question.user
+                        .split(" ")
+                        .map(
+                          (part) => part[0]
+                        )
+                        .join("")
+                        .slice(0, 2)}
                     </div>
 
-                    <span className="question-category">
-                      {question.category}
-                    </span>
+                    <div className="question-card__content">
+                      <div className="question-meta">
+                        <strong>
+                          {question.user}
+                        </strong>
 
-                    <h3>{question.question}</h3>
+                        <span>
+                          {question.time}
+                        </span>
+                      </div>
 
-                    <button type="button">
-                      <MessageCircle size={17} />
-                      {question.replies} replies
-                    </button>
-                  </div>
-                </article>
-              ))}
+                      <span className="question-category">
+                        {question.category}
+                      </span>
+
+                      <h3>
+                        {question.question}
+                      </h3>
+
+                      <button type="button">
+                        <MessageCircle
+                          size={17}
+                        />
+                        {question.replies}{" "}
+                        replies
+                      </button>
+                    </div>
+                  </article>
+                )
+              )}
             </div>
           </div>
 
           <aside className="community-sidebar">
-            <h3>Community guidelines</h3>
+            <h3>
+              Community guidelines
+            </h3>
 
             <ul>
-              <li>Use a clear and descriptive question.</li>
-              <li>Respect other players and their opinions.</li>
-              <li>Do not post fake card listings.</li>
-              <li>Report suspicious sellers to shop staff.</li>
+              <li>
+                Use a clear and descriptive
+                question.
+              </li>
+
+              <li>
+                Respect other players and
+                their opinions.
+              </li>
+
+              <li>
+                Do not post fake card
+                listings.
+              </li>
+
+              <li>
+                Report suspicious sellers to
+                shop staff.
+              </li>
             </ul>
           </aside>
         </div>
@@ -808,18 +1223,38 @@ function UserApp({ onLogout }) {
       <section className="content-section page-section">
         <div className="page-title-row">
           <div>
-            <span className="eyebrow">Your order</span>
+            <span className="eyebrow">
+              Your order
+            </span>
+
             <h1>Shopping Cart</h1>
-            <p>Review your selected cards before checkout.</p>
+
+            <p>
+              Review your selected cards
+              before checkout.
+            </p>
           </div>
         </div>
 
         {cart.length === 0 ? (
           <div className="empty-state large">
             <ShoppingCart size={47} />
-            <h2>Your cart is empty</h2>
-            <p>Browse the marketplace and add cards to your cart.</p>
-            <button type="button" onClick={() => navigate("shop")}>
+
+            <h2>
+              Your cart is empty
+            </h2>
+
+            <p>
+              Browse the marketplace and add
+              cards to your cart.
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("shop")
+              }
+            >
               Browse cards
             </button>
           </div>
@@ -827,38 +1262,69 @@ function UserApp({ onLogout }) {
           <div className="cart-layout">
             <div className="cart-list">
               {cart.map((item) => (
-                <article className="cart-item" key={item.id}>
-                  <div className={`cart-item__image game-image-${item.id}`}>
-                    <span>{item.game}</span>
+                <article
+                  className="cart-item"
+                  key={item.id}
+                >
+                  <div
+                    className={`cart-item__image game-image-${item.id}`}
+                  >
+                    <span>
+                      {item.game}
+                    </span>
                   </div>
 
                   <div className="cart-item__details">
-                    <span>{item.set}</span>
-                    <h3>{item.name}</h3>
+                    <span>
+                      {item.set}
+                    </span>
+
+                    <h3>
+                      {item.name}
+                    </h3>
+
                     <p>
-                      {item.condition} · {item.seller}
+                      {item.condition} ·{" "}
+                      {item.seller}
                     </p>
                   </div>
 
                   <div className="quantity-control">
                     <button
                       type="button"
-                      onClick={() => changeQuantity(item.id, -1)}
+                      onClick={() =>
+                        changeQuantity(
+                          item.id,
+                          -1
+                        )
+                      }
                     >
                       <Minus size={16} />
                     </button>
 
-                    <span>{item.quantity}</span>
+                    <span>
+                      {item.quantity}
+                    </span>
 
                     <button
                       type="button"
-                      onClick={() => changeQuantity(item.id, 1)}
+                      onClick={() =>
+                        changeQuantity(
+                          item.id,
+                          1
+                        )
+                      }
                     >
                       <Plus size={16} />
                     </button>
                   </div>
 
-                  <strong>{formatPrice(item.price * item.quantity)}</strong>
+                  <strong>
+                    {formatPrice(
+                      item.price *
+                        item.quantity
+                    )}
+                  </strong>
                 </article>
               ))}
             </div>
@@ -868,25 +1334,42 @@ function UserApp({ onLogout }) {
 
               <div>
                 <span>Items</span>
-                <strong>{cartCount}</strong>
+                <strong>
+                  {cartCount}
+                </strong>
               </div>
 
               <div>
                 <span>Subtotal</span>
-                <strong>{formatPrice(cartTotal)}</strong>
+
+                <strong>
+                  {formatPrice(
+                    cartTotal
+                  )}
+                </strong>
               </div>
 
               <div>
                 <span>Shipping</span>
-                <strong>Calculated later</strong>
+
+                <strong>
+                  Calculated later
+                </strong>
               </div>
 
               <div className="order-total">
                 <span>Total</span>
-                <strong>{formatPrice(cartTotal)}</strong>
+
+                <strong>
+                  {formatPrice(
+                    cartTotal
+                  )}
+                </strong>
               </div>
 
-              <button type="button">Proceed to checkout</button>
+              <button type="button">
+                Proceed to checkout
+              </button>
             </aside>
           </div>
         )}
@@ -898,44 +1381,77 @@ function UserApp({ onLogout }) {
     return (
       <section className="content-section page-section">
         <div className="profile-header-card">
-          <div className="profile-avatar">IG</div>
-
-          <div>
-            <span className="eyebrow">Player account</span>
-            <h1>Ivan Guerrero</h1>
-            <p>Card collector and tournament player</p>
+          <div className="profile-avatar">
+            IG
           </div>
 
-          <button type="button">Edit profile</button>
+          <div>
+            <span className="eyebrow">
+              Player account
+            </span>
+
+            <h1>Ivan Guerrero</h1>
+
+            <p>
+              Card collector and tournament
+              player
+            </p>
+          </div>
+
+          <button type="button">
+            Edit profile
+          </button>
         </div>
 
         <div className="profile-grid">
           <article className="profile-panel">
-            <h2>Player information</h2>
+            <h2>
+              Player information
+            </h2>
 
             <div className="profile-info-row">
-              <span>Current bracket</span>
-              <strong>Bracket 4</strong>
+              <span>
+                Current bracket
+              </span>
+
+              <strong>
+                Bracket 4
+              </strong>
             </div>
 
             <div className="profile-info-row">
-              <span>Current rank</span>
+              <span>
+                Current rank
+              </span>
+
               <strong>#1</strong>
             </div>
 
             <div className="profile-info-row">
-              <span>Total points</span>
-              <strong>34 points</strong>
+              <span>
+                Total points
+              </span>
+
+              <strong>
+                34 points
+              </strong>
             </div>
 
             <div className="profile-info-row">
-              <span>Member since</span>
-              <strong>January 2026</strong>
+              <span>
+                Member since
+              </span>
+
+              <strong>
+                January 2026
+              </strong>
             </div>
           </article>
 
           <article className="profile-panel">
-            <h2>Account activity</h2>
+            <h2>
+              Account activity
+            </h2>
 
             <div className="profile-stat-grid">
               <div>
@@ -945,20 +1461,28 @@ function UserApp({ onLogout }) {
               </div>
 
               <div>
-                <CalendarDays size={21} />
+                <CalendarDays
+                  size={21}
+                />
                 <strong>8</strong>
                 <span>Events</span>
               </div>
 
               <div>
                 <Heart size={21} />
-                <strong>{favorites.length}</strong>
+                <strong>
+                  {favorites.length}
+                </strong>
                 <span>Favorites</span>
               </div>
 
               <div>
-                <MessageCircle size={21} />
-                <strong>{questions.length}</strong>
+                <MessageCircle
+                  size={21}
+                />
+                <strong>
+                  {questions.length}
+                </strong>
                 <span>Questions</span>
               </div>
             </div>
@@ -972,16 +1496,22 @@ function UserApp({ onLogout }) {
     switch (activePage) {
       case "shop":
         return renderShop();
+
       case "events":
         return renderEvents();
+
       case "rankings":
         return renderRankings();
+
       case "community":
         return renderCommunity();
+
       case "cart":
         return renderCart();
+
       case "profile":
         return renderProfile();
+
       default:
         return renderHome();
     }
@@ -991,21 +1521,29 @@ function UserApp({ onLogout }) {
     <div className="user-app">
       <aside
         className={`user-sidebar ${
-          mobileSidebarOpen ? "is-mobile-open" : ""
+          mobileSidebarOpen
+            ? "is-mobile-open"
+            : ""
         }`}
       >
         <div className="sidebar-brand">
-          <div className="sidebar-brand__logo">S</div>
+          <div className="sidebar-brand__logo">
+            S
+          </div>
 
           <div>
             <strong>STAX</strong>
-            <span>Card Marketplace</span>
+            <span>
+              Card Marketplace
+            </span>
           </div>
 
           <button
             type="button"
             className="sidebar-close-button"
-            onClick={() => setMobileSidebarOpen(false)}
+            onClick={() =>
+              setMobileSidebarOpen(false)
+            }
           >
             <X size={21} />
           </button>
@@ -1019,26 +1557,45 @@ function UserApp({ onLogout }) {
               <button
                 type="button"
                 key={item.id}
-                className={activePage === item.id ? "active" : ""}
-                onClick={() => navigate(item.id)}
+                className={
+                  activePage === item.id
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  navigate(item.id)
+                }
               >
                 <Icon size={20} />
-                <span>{item.label}</span>
 
-                {item.id === "cart" && cartCount > 0 && (
-                  <span className="sidebar-count">{cartCount}</span>
-                )}
+                <span>
+                  {item.label}
+                </span>
+
+                {item.id === "cart" &&
+                  cartCount > 0 && (
+                    <span className="sidebar-count">
+                      {cartCount}
+                    </span>
+                  )}
               </button>
             );
           })}
         </nav>
 
         <div className="sidebar-player-card">
-          <div className="player-avatar">IG</div>
+          <div className="player-avatar">
+            IG
+          </div>
 
           <div>
-            <strong>Ivan Guerrero</strong>
-            <span>Bracket 4 · Rank #1</span>
+            <strong>
+              Ivan Guerrero
+            </strong>
+
+            <span>
+              Bracket 4 · Rank #1
+            </span>
           </div>
         </div>
 
@@ -1057,7 +1614,9 @@ function UserApp({ onLogout }) {
           type="button"
           className="sidebar-overlay"
           aria-label="Close sidebar"
-          onClick={() => setMobileSidebarOpen(false)}
+          onClick={() =>
+            setMobileSidebarOpen(false)
+          }
         />
       )}
 
@@ -1066,19 +1625,28 @@ function UserApp({ onLogout }) {
           <button
             type="button"
             className="mobile-menu-button"
-            onClick={() => setMobileSidebarOpen(true)}
+            onClick={() =>
+              setMobileSidebarOpen(true)
+            }
           >
             <Menu size={23} />
           </button>
 
           <label className="header-search">
             <Search size={18} />
+
             <input
               type="search"
               placeholder="Search cards..."
               value={searchText}
-              onChange={(event) => setSearchText(event.target.value)}
-              onFocus={() => setActivePage("shop")}
+              onChange={(event) =>
+                setSearchText(
+                  event.target.value
+                )
+              }
+              onFocus={() =>
+                setActivePage("shop")
+              }
             />
           </label>
 
@@ -1086,7 +1654,9 @@ function UserApp({ onLogout }) {
             <button
               type="button"
               className="header-cart-button"
-              onClick={() => navigate("cart")}
+              onClick={() =>
+                navigate("cart")
+              }
             >
               <ShoppingCart size={20} />
               <span>{cartCount}</span>
@@ -1095,9 +1665,13 @@ function UserApp({ onLogout }) {
             <button
               type="button"
               className="header-profile-button"
-              onClick={() => navigate("profile")}
+              onClick={() =>
+                navigate("profile")
+              }
             >
-              <div className="player-avatar">IG</div>
+              <div className="player-avatar">
+                IG
+              </div>
 
               <div>
                 <strong>Ivan</strong>
@@ -1107,7 +1681,9 @@ function UserApp({ onLogout }) {
           </div>
         </header>
 
-        <main className="user-page-content">{renderPage()}</main>
+        <main className="user-page-content">
+          {renderPage()}
+        </main>
       </div>
     </div>
   );
