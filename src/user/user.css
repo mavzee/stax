@@ -26,7 +26,9 @@
   --user-radius: 18px;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -55,10 +57,18 @@ button {
   cursor: pointer;
 }
 
+img {
+  max-width: 100%;
+}
+
 .user-app {
   min-height: 100vh;
   background: var(--user-background);
 }
+
+/* =========================================
+   SIDEBAR
+========================================= */
 
 .user-sidebar {
   position: fixed;
@@ -69,8 +79,8 @@ button {
   display: flex;
   width: 270px;
   flex-direction: column;
-  padding: 24px 18px;
   overflow-y: auto;
+  padding: 24px 18px;
   background:
     radial-gradient(
       circle at top left,
@@ -245,6 +255,10 @@ button {
   color: #f2a4b1;
 }
 
+/* =========================================
+   MAIN / HEADER
+========================================= */
+
 .user-main {
   min-height: 100vh;
   margin-left: 270px;
@@ -297,6 +311,10 @@ button {
   outline: 0;
   background: transparent;
   color: var(--user-text);
+}
+
+.header-search input::placeholder {
+  color: #92a3b5;
 }
 
 .header-actions {
@@ -361,8 +379,13 @@ button {
 
 .user-page-content {
   width: 100%;
+  min-width: 0;
   padding: 28px 32px 50px;
 }
+
+/* =========================================
+   HERO
+========================================= */
 
 .hero-section {
   position: relative;
@@ -510,6 +533,10 @@ button {
   font-size: 12px;
 }
 
+/* =========================================
+   GENERAL SECTIONS
+========================================= */
+
 .content-section {
   margin-top: 40px;
 }
@@ -568,6 +595,10 @@ button {
   font-weight: 700;
 }
 
+/* =========================================
+   MARKETPLACE
+========================================= */
+
 .card-market-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -575,6 +606,7 @@ button {
 }
 
 .market-card {
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--user-border);
   border-radius: var(--user-radius);
@@ -600,9 +632,10 @@ button {
 }
 
 .market-card__image {
-  height: 205px;
+  height: 260px;
 }
 
+/* fallback fake-card frame only */
 .market-card__image::before,
 .cart-item__image::before {
   position: absolute;
@@ -635,6 +668,52 @@ button {
   text-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
 }
 
+/* =========================================
+   REAL CARD IMAGES
+========================================= */
+
+.market-card__image.has-real-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(96, 165, 232, 0.16),
+      transparent 42%
+    ),
+    linear-gradient(145deg, #0f1f33, #17365d);
+}
+
+.market-card__image.has-real-image::before {
+  display: none;
+}
+
+.market-card__actual-image {
+  position: relative;
+  z-index: 1;
+
+  display: block;
+
+  width: auto;
+  max-width: 100%;
+
+  height: 100%;
+  max-height: 232px;
+
+  object-fit: contain;
+  object-position: center;
+
+  border-radius: 10px;
+
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.28));
+}
+
+.market-card__image.has-real-image .favorite-button {
+  z-index: 5;
+}
+
 .game-image-2,
 .game-image-6 {
   background: linear-gradient(145deg, #0f1f33, #2563b9);
@@ -665,6 +744,11 @@ button {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
   color: #64748b;
+  box-shadow: 0 5px 15px rgba(15, 31, 51, 0.14);
+}
+
+.favorite-button:hover {
+  transform: translateY(-1px);
 }
 
 .favorite-button.is-favorite {
@@ -705,6 +789,7 @@ button {
 .market-card h3 {
   min-height: 47px;
   margin: 10px 0 4px;
+  color: var(--user-text);
   font-size: 17px;
   line-height: 1.4;
 }
@@ -741,6 +826,7 @@ button {
 }
 
 .market-card__footer > strong {
+  color: var(--user-text);
   font-size: 18px;
 }
 
@@ -756,6 +842,14 @@ button {
   font-size: 12px;
   font-weight: 700;
 }
+
+.market-card__footer button:hover {
+  background: var(--user-primary-dark);
+}
+
+/* =========================================
+   DASHBOARD
+========================================= */
 
 .dashboard-grid {
   display: grid;
@@ -858,6 +952,10 @@ button {
   font-size: 12px;
 }
 
+/* =========================================
+   SHOP TOOLBAR
+========================================= */
+
 .shop-toolbar {
   display: flex;
   gap: 12px;
@@ -877,6 +975,11 @@ button {
   border: 1px solid var(--user-border);
   border-radius: 11px;
   color: var(--user-muted);
+}
+
+.search-field:focus-within {
+  border-color: var(--user-primary-light);
+  box-shadow: 0 0 0 4px rgba(37, 99, 185, 0.07);
 }
 
 .search-field input {
@@ -928,6 +1031,10 @@ button {
   color: var(--user-primary);
   font-size: 11px;
 }
+
+/* =========================================
+   EVENTS
+========================================= */
 
 .event-grid {
   display: grid;
@@ -1030,6 +1137,23 @@ button {
   font-size: 12px;
   font-weight: 700;
 }
+
+.event-card__footer button:hover:not(:disabled),
+.question-form__footer button:hover:not(:disabled),
+.empty-state button:hover:not(:disabled),
+.order-summary button:hover:not(:disabled) {
+  background: var(--user-primary-dark);
+}
+
+.event-card__footer button:disabled,
+.order-summary button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* =========================================
+   RANKINGS
+========================================= */
 
 .bracket-tabs {
   display: flex;
@@ -1147,6 +1271,10 @@ button {
   background: #edf4fb;
   color: #2563b9;
 }
+
+/* =========================================
+   COMMUNITY
+========================================= */
 
 .community-layout {
   display: grid;
@@ -1306,6 +1434,10 @@ button {
   line-height: 1.6;
 }
 
+/* =========================================
+   CART
+========================================= */
+
 .cart-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 330px;
@@ -1330,8 +1462,32 @@ button {
 
 .cart-item__image {
   width: 90px;
-  height: 105px;
+  height: 120px;
   border-radius: 12px;
+}
+
+/* real cart image */
+.cart-item__image.has-real-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: #0f1f33;
+}
+
+.cart-item__image.has-real-image::before {
+  display: none;
+}
+
+.cart-item__actual-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 108px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 7px;
 }
 
 .cart-item__image::before {
@@ -1375,6 +1531,11 @@ button {
   place-items: center;
   border: 0;
   background: var(--user-surface-soft);
+}
+
+.quantity-control button:hover {
+  background: var(--user-primary-soft);
+  color: var(--user-primary);
 }
 
 .quantity-control span {
@@ -1423,6 +1584,10 @@ button {
   padding: 13px;
 }
 
+/* =========================================
+   EMPTY STATE
+========================================= */
+
 .empty-state {
   display: grid;
   min-height: 220px;
@@ -1453,6 +1618,10 @@ button {
 .full-grid-item {
   grid-column: 1 / -1;
 }
+
+/* =========================================
+   PROFILE
+========================================= */
 
 .profile-header-card {
   display: flex;
@@ -1573,6 +1742,10 @@ button {
   display: none;
 }
 
+/* =========================================
+   RESPONSIVE
+========================================= */
+
 @media (max-width: 1250px) {
   .card-market-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1677,8 +1850,8 @@ button {
 
 @media (max-width: 650px) {
   .user-header {
-    gap: 10px;
     min-height: 66px;
+    gap: 10px;
     padding: 9px 14px;
   }
 
@@ -1740,7 +1913,11 @@ button {
   }
 
   .market-card__image {
-    height: 230px;
+    height: 300px;
+  }
+
+  .market-card__actual-image {
+    max-height: 270px;
   }
 
   .shop-toolbar {
@@ -1766,7 +1943,11 @@ button {
 
   .cart-item__image {
     width: 74px;
-    height: 92px;
+    height: 98px;
+  }
+
+  .cart-item__actual-image {
+    max-height: 88px;
   }
 
   .quantity-control,
@@ -1810,5 +1991,13 @@ button {
 
   .profile-stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .market-card__image {
+    height: 280px;
+  }
+
+  .market-card__actual-image {
+    max-height: 252px;
   }
 }

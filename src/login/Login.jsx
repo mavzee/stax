@@ -1,4 +1,7 @@
-import { useState } from "react";
+import {
+  useState,
+} from "react";
+
 import {
   ArrowRight,
   Eye,
@@ -9,257 +12,412 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import {
+  supabase,
+} from "../lib/supabase";
+
 import "./login.css";
 
-function Login({ onLogin }) {
-  const [form, setForm] = useState({
+
+function Login() {
+  const [
+    form,
+    setForm,
+  ] = useState({
     email: "",
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
 
-  function handleChange(event) {
-    const { name, value } = event.target;
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false);
 
-    if (error) {
-      setError("");
-    }
+
+  function handleChange(
+    event
+  ) {
+    const {
+      name,
+      value,
+    } = event.target;
+
+    setForm(
+      (current) => ({
+        ...current,
+        [name]: value,
+      })
+    );
+
+    setError("");
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
 
-    const email = form.email.trim().toLowerCase();
-    const password = form.password.trim().toLowerCase();
+  async function handleSubmit(
+    event
+  ) {
+    event.preventDefault();
 
     setError("");
     setIsSubmitting(true);
 
-    window.setTimeout(() => {
-      if (email === "user" && password === "user") {
-        onLogin("user");
-        return;
-      }
+    try {
+      const {
+        error:
+          loginError,
+      } =
+        await supabase.auth.signInWithPassword({
+          email:
+            form.email.trim(),
 
-      if (email === "admin" && password === "admin") {
-        onLogin("admin");
-        return;
-      }
+          password:
+            form.password,
+        });
 
-      setError("Invalid email or password.");
+      if (loginError) {
+        throw loginError;
+      }
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      setError(
+        "Invalid email or password."
+      );
+
       setIsSubmitting(false);
-    }, 400);
+    }
   }
 
-  function fillDemoAccount(role) {
-    setForm({
-      email: role,
-      password: role,
-    });
+
+  function fillDemoAccount(
+    role
+  ) {
+    if (
+      role === "admin"
+    ) {
+      setForm({
+        email:
+          "admin@stax.com",
+
+        password:
+          "admin123456",
+      });
+    } else {
+      setForm({
+        email:
+          "user@stax.com",
+
+        password:
+          "user123456",
+      });
+    }
 
     setError("");
   }
 
+
   return (
     <main className="stax-login-page">
+
       <section className="stax-login-showcase">
+
         <div className="stax-login-showcase__glow" />
 
         <div className="stax-login-brand">
+
           <div className="stax-login-brand__logo">
             S
           </div>
 
           <div>
-            <strong>STAX</strong>
+            <strong>
+              STAX
+            </strong>
+
             <span>
               Cards. Events. Community.
             </span>
           </div>
+
         </div>
 
+
         <div className="stax-login-showcase__content">
+
           <span className="stax-login-eyebrow">
-            <Sparkles size={15} />
+
+            <Sparkles
+              size={15}
+            />
+
             The card shop experience
+
           </span>
+
 
           <h1>
             Build your deck.
+
             <span>
               {" "}
               Rise through the ranks.
             </span>
           </h1>
 
+
           <p>
-            Browse collectible cards, join competitive events, check player
-            rankings, and connect with the STAX community.
+            Browse collectible cards,
+            join competitive events,
+            check player rankings,
+            and connect with the
+            STAX community.
           </p>
 
+
           <div className="stax-login-features">
-            <article>
-              <ShieldCheck size={21} />
-
-              <div>
-                <strong>Secure access</strong>
-
-                <span>
-                  Separate user and administrator areas.
-                </span>
-              </div>
-            </article>
 
             <article>
-              <Sparkles size={21} />
+
+              <ShieldCheck
+                size={21}
+              />
 
               <div>
-                <strong>One platform</strong>
+                <strong>
+                  Secure access
+                </strong>
 
                 <span>
-                  Manage cards, events, rankings, and orders.
+                  Separate player
+                  and administrator
+                  accounts.
                 </span>
               </div>
+
             </article>
+
+
+            <article>
+
+              <Sparkles
+                size={21}
+              />
+
+              <div>
+                <strong>
+                  One platform
+                </strong>
+
+                <span>
+                  Cards, tournaments,
+                  rankings and orders.
+                </span>
+              </div>
+
+            </article>
+
           </div>
+
         </div>
 
+
         <p className="stax-login-showcase__footer">
-          STAX Card Shop Management Platform
+          STAX Card Shop
+          Management Platform
         </p>
+
       </section>
 
+
       <section className="stax-login-panel">
+
         <div className="stax-login-form-wrapper">
+
           <div className="stax-login-mobile-brand">
+
             <div className="stax-login-brand__logo">
               S
             </div>
 
             <div>
-              <strong>STAX</strong>
-              <span>Card Shop</span>
+              <strong>
+                STAX
+              </strong>
+
+              <span>
+                Card Shop
+              </span>
             </div>
+
           </div>
 
+
           <div className="stax-login-heading">
+
             <span className="stax-login-eyebrow">
               Welcome back
             </span>
 
-            <h2>Sign in to STAX</h2>
+            <h2>
+              Sign in to STAX
+            </h2>
 
             <p>
-              Enter your account credentials to continue.
+              Enter your credentials
+              to continue.
             </p>
+
           </div>
+
 
           <form
             className="stax-login-form"
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
           >
+
             <label className="stax-login-field">
-              <span>Email or username</span>
+
+              <span>
+                Email
+              </span>
 
               <div className="stax-login-input">
-                <Mail size={18} />
+
+                <Mail
+                  size={18}
+                />
 
                 <input
-                  autoComplete="username"
                   name="email"
-                  placeholder="Enter your email or username"
+                  type="email"
                   required
-                  type="text"
-                  value={form.email}
-                  onChange={handleChange}
+                  autoComplete="username"
+                  placeholder="Enter your email"
+                  value={
+                    form.email
+                  }
+                  onChange={
+                    handleChange
+                  }
                 />
+
               </div>
+
             </label>
 
+
             <label className="stax-login-field">
-              <span>Password</span>
+
+              <span>
+                Password
+              </span>
 
               <div className="stax-login-input">
-                <LockKeyhole size={18} />
+
+                <LockKeyhole
+                  size={18}
+                />
 
                 <input
-                  autoComplete="current-password"
                   name="password"
-                  placeholder="Enter your password"
                   required
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
                   type={
                     showPassword
                       ? "text"
                       : "password"
                   }
-                  value={form.password}
-                  onChange={handleChange}
+                  value={
+                    form.password
+                  }
+                  onChange={
+                    handleChange
+                  }
                 />
 
+
                 <button
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                  className="stax-password-toggle"
                   type="button"
+                  className="stax-password-toggle"
                   onClick={() =>
                     setShowPassword(
-                      (current) => !current
+                      (value) =>
+                        !value
                     )
                   }
                 >
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showPassword
+                    ? (
+                      <EyeOff
+                        size={18}
+                      />
+                    )
+                    : (
+                      <Eye
+                        size={18}
+                      />
+                    )}
                 </button>
+
               </div>
+
             </label>
 
+
             {error && (
-              <div
-                className="stax-login-error"
-                role="alert"
-              >
+              <div className="stax-login-error">
                 {error}
               </div>
             )}
 
-            <button
-              className="stax-login-submit"
-              disabled={isSubmitting}
-              type="submit"
-            >
-              <span>
-                {isSubmitting
-                  ? "Signing in..."
-                  : "Sign in"}
-              </span>
 
-              <ArrowRight size={18} />
+            <button
+              type="submit"
+              disabled={
+                isSubmitting
+              }
+              className="stax-login-submit"
+            >
+              {isSubmitting
+                ? "Signing in..."
+                : "Sign in"}
+
+              <ArrowRight
+                size={18}
+              />
             </button>
+
           </form>
 
+
           <div className="stax-demo-divider">
-            <span>Demo accounts</span>
+            Demo accounts
           </div>
 
+
           <div className="stax-demo-accounts">
+
             <button
               type="button"
               onClick={() =>
-                fillDemoAccount("user")
+                fillDemoAccount(
+                  "user"
+                )
               }
             >
               <span className="stax-demo-icon">
@@ -267,15 +425,23 @@ function Login({ onLogin }) {
               </span>
 
               <span>
-                <strong>User account</strong>
-                <small>user / user</small>
+                <strong>
+                  User account
+                </strong>
+
+                <small>
+                  user@stax.com
+                </small>
               </span>
             </button>
+
 
             <button
               type="button"
               onClick={() =>
-                fillDemoAccount("admin")
+                fillDemoAccount(
+                  "admin"
+                )
               }
             >
               <span className="stax-demo-icon">
@@ -283,19 +449,25 @@ function Login({ onLogin }) {
               </span>
 
               <span>
-                <strong>Admin account</strong>
-                <small>admin / admin</small>
+                <strong>
+                  Admin account
+                </strong>
+
+                <small>
+                  admin@stax.com
+                </small>
               </span>
             </button>
+
           </div>
 
-          <p className="stax-login-note">
-            Select a demo account to automatically fill in its credentials.
-          </p>
         </div>
+
       </section>
+
     </main>
   );
 }
+
 
 export default Login;

@@ -1,4 +1,10 @@
-import { useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   BarChart3,
   CalendarDays,
@@ -25,9 +31,39 @@ import {
   X,
 } from "lucide-react";
 
+import { supabase } from "../lib/supabase";
+
+import {
+  createCard,
+  createEvent,
+  createRanking,
+  deleteCard,
+  deleteCardImage,
+  deleteEvent,
+  deleteOrder,
+  deleteQuestion,
+  deleteRanking,
+  getCards,
+  getEvents,
+  getOrders,
+  getQuestions,
+  getRankings,
+  updateCard,
+  updateEvent,
+  updateOrder,
+  updateQuestionStatus as updateQuestionStatusDB,
+  updateRanking,
+  uploadCardImage,
+} from "../lib/database";
+
 import "./admin.css";
 
-const RARITIES = ["Common", "Uncommon", "Rare", "Mythic Rare"];
+const RARITIES = [
+  "Common",
+  "Uncommon",
+  "Rare",
+  "Mythic Rare",
+];
 
 const COLOR_IDENTITIES = [
   "White",
@@ -47,7 +83,11 @@ const CONDITIONS = [
   "Damaged",
 ];
 
-const FINISHES = ["Nonfoil", "Foil", "Etched Foil"];
+const FINISHES = [
+  "Nonfoil",
+  "Foil",
+  "Etched Foil",
+];
 
 const FORMATS = [
   "Standard",
@@ -76,177 +116,6 @@ const COLOR_LETTER = {
   Colorless: "C",
 };
 
-const initialCards = [
-  {
-    id: 1,
-    name: "The One Ring",
-    set: "Lord of the Rings: Tales of Middle-earth",
-    setCode: "LTR",
-    rarity: "Mythic Rare",
-    colors: "Colorless",
-    condition: "Near Mint",
-    finish: "Foil",
-    seller: "STAX Card Shop",
-    price: 8500,
-    stock: 2,
-    featured: true,
-    status: "Available",
-  },
-  {
-    id: 2,
-    name: "Ragavan, Nimble Pilferer",
-    set: "Modern Horizons 2",
-    setCode: "MH2",
-    rarity: "Mythic Rare",
-    colors: "Red",
-    condition: "Near Mint",
-    finish: "Nonfoil",
-    seller: "STAX Card Shop",
-    price: 3600,
-    stock: 4,
-    featured: false,
-    status: "Available",
-  },
-  {
-    id: 3,
-    name: "Tarmogoyf",
-    set: "Modern Masters",
-    setCode: "MMA",
-    rarity: "Rare",
-    colors: "Green",
-    condition: "Lightly Played",
-    finish: "Nonfoil",
-    seller: "STAX Card Shop",
-    price: 2100,
-    stock: 3,
-    featured: true,
-    status: "Available",
-  },
-  {
-    id: 4,
-    name: "Jace, the Mind Sculptor",
-    set: "Worldwake",
-    setCode: "WWK",
-    rarity: "Mythic Rare",
-    colors: "Blue",
-    condition: "Moderately Played",
-    finish: "Nonfoil",
-    seller: "STAX Card Shop",
-    price: 2200,
-    stock: 0,
-    featured: false,
-    status: "Unavailable",
-  },
-];
-
-const initialEvents = [
-  {
-    id: 1,
-    title: "Saturday Standard Showdown",
-    format: "Standard",
-    date: "2026-08-03",
-    time: "14:00",
-    venue: "STAX Card Shop",
-    fee: 150,
-    slots: 24,
-    registered: 16,
-    bracket: "Division 1",
-    status: "Open",
-  },
-  {
-    id: 2,
-    title: "Commander Deckbuilders Night",
-    format: "Commander",
-    date: "2026-08-07",
-    time: "17:30",
-    venue: "STAX Card Shop",
-    fee: 250,
-    slots: 24,
-    registered: 12,
-    bracket: "Division 2",
-    status: "Open",
-  },
-  {
-    id: 3,
-    title: "Legacy Masters Qualifier",
-    format: "Legacy",
-    date: "2026-08-10",
-    time: "16:00",
-    venue: "STAX Card Shop",
-    fee: 200,
-    slots: 16,
-    registered: 16,
-    bracket: "Division 3",
-    status: "Full",
-  },
-];
-
-const initialRankings = [
-  {
-    id: 1,
-    name: "Marco Santos",
-    bracket: 1,
-    wins: 18,
-    losses: 2,
-    points: 56,
-    rank: 1,
-  },
-  {
-    id: 2,
-    name: "Jared Cruz",
-    bracket: 1,
-    wins: 16,
-    losses: 4,
-    points: 50,
-    rank: 2,
-  },
-  {
-    id: 3,
-    name: "Paolo Reyes",
-    bracket: 1,
-    wins: 14,
-    losses: 5,
-    points: 44,
-    rank: 3,
-  },
-  {
-    id: 4,
-    name: "Kevin Lim",
-    bracket: 2,
-    wins: 15,
-    losses: 3,
-    points: 48,
-    rank: 1,
-  },
-  {
-    id: 5,
-    name: "Joshua Tan",
-    bracket: 2,
-    wins: 13,
-    losses: 4,
-    points: 42,
-    rank: 2,
-  },
-  {
-    id: 6,
-    name: "Daniel Sy",
-    bracket: 3,
-    wins: 12,
-    losses: 4,
-    points: 40,
-    rank: 1,
-  },
-  {
-    id: 7,
-    name: "Ivan Guerrero",
-    bracket: 4,
-    wins: 10,
-    losses: 5,
-    points: 34,
-    rank: 1,
-  },
-];
-
 const BRACKET_FORMAT = {
   1: "Standard",
   2: "Commander",
@@ -254,41 +123,11 @@ const BRACKET_FORMAT = {
   4: "Modern",
 };
 
-const initialQuestions = [
-  {
-    id: 1,
-    user: "Paolo Reyes",
-    category: "Card Rules",
-    question: "Can foreign-language Magic cards be used in local tournaments?",
-    replies: 8,
-    status: "Open",
-    date: "2026-07-22",
-  },
-  {
-    id: 2,
-    user: "Marco Santos",
-    category: "Deck Building",
-    question: "What's a good beginner deck for Commander?",
-    replies: 12,
-    status: "Answered",
-    date: "2026-07-21",
-  },
-  {
-    id: 3,
-    user: "Jared Cruz",
-    category: "Events",
-    question: "Can I register for an event directly at the shop?",
-    replies: 4,
-    status: "Open",
-    date: "2026-07-20",
-  },
-];
-
 const initialUsers = [
   {
     id: 1,
     name: "Ivan Guerrero",
-    email: "ivan@example.com",
+    email: "user@stax.com",
     role: "Player",
     bracket: 4,
     status: "Active",
@@ -296,24 +135,6 @@ const initialUsers = [
   },
   {
     id: 2,
-    name: "Marco Santos",
-    email: "marco@example.com",
-    role: "Player",
-    bracket: 1,
-    status: "Active",
-    joined: "2026-02-14",
-  },
-  {
-    id: 3,
-    name: "Paolo Reyes",
-    email: "paolo@example.com",
-    role: "Player",
-    bracket: 1,
-    status: "Suspended",
-    joined: "2026-03-02",
-  },
-  {
-    id: 4,
     name: "Admin User",
     email: "admin@stax.com",
     role: "Admin",
@@ -323,52 +144,52 @@ const initialUsers = [
   },
 ];
 
-const initialOrders = [
-  {
-    id: "STX-1001",
-    customer: "Ivan Guerrero",
-    item: "The One Ring",
-    quantity: 1,
-    total: 8500,
-    payment: "Paid",
-    delivery: "Processing",
-    date: "2026-07-22",
-  },
-  {
-    id: "STX-1002",
-    customer: "Marco Santos",
-    item: "Ragavan, Nimble Pilferer",
-    quantity: 2,
-    total: 7200,
-    payment: "Pending",
-    delivery: "Pending",
-    date: "2026-07-21",
-  },
-  {
-    id: "STX-1003",
-    customer: "Paolo Reyes",
-    item: "Tarmogoyf",
-    quantity: 1,
-    total: 2100,
-    payment: "Paid",
-    delivery: "Shipped",
-    date: "2026-07-20",
-  },
-];
-
 const navigationItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "cards", label: "Cards", icon: Package },
-  { id: "events", label: "Events", icon: CalendarDays },
-  { id: "rankings", label: "Rankings", icon: Trophy },
-  { id: "community", label: "Community", icon: MessageCircle },
-  { id: "users", label: "Users", icon: Users },
-  { id: "orders", label: "Orders", icon: ShoppingBag },
-  { id: "settings", label: "Settings", icon: Settings },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    id: "cards",
+    label: "Cards",
+    icon: Package,
+  },
+  {
+    id: "events",
+    label: "Events",
+    icon: CalendarDays,
+  },
+  {
+    id: "rankings",
+    label: "Rankings",
+    icon: Trophy,
+  },
+  {
+    id: "community",
+    label: "Community",
+    icon: MessageCircle,
+  },
+  {
+    id: "users",
+    label: "Users",
+    icon: Users,
+  },
+  {
+    id: "orders",
+    label: "Orders",
+    icon: ShoppingBag,
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+  },
 ];
 
 const emptyCardForm = {
   name: "",
+  game: "Magic",
   set: "",
   setCode: "",
   rarity: "Rare",
@@ -380,6 +201,8 @@ const emptyCardForm = {
   stock: "",
   featured: false,
   status: "Available",
+  imageUrl: "",
+  imagePath: "",
 };
 
 const emptyEventForm = {
@@ -432,13 +255,18 @@ function getInitials(name = "") {
 }
 
 function RarityBadge({ value }) {
-  const className = String(value).toLowerCase().replaceAll(" ", "-");
+  const className = String(value)
+    .toLowerCase()
+    .replaceAll(" ", "-");
 
   return (
-    <span className={`admin-rarity admin-rarity--${className}`}>
+    <span
+      className={`admin-rarity admin-rarity--${className}`}
+    >
       <span className="admin-rarity-dot">
         {RARITY_LETTER[value] || "?"}
       </span>
+
       {value}
     </span>
   );
@@ -448,105 +276,444 @@ function ColorPip({ value }) {
   const className = String(value).toLowerCase();
 
   return (
-    <span className={`admin-color-pip admin-color-pip--${className}`}>
+    <span
+      className={`admin-color-pip admin-color-pip--${className}`}
+    >
       <span className="admin-color-pip-dot">
         {COLOR_LETTER[value] || "?"}
       </span>
+
       {value}
     </span>
   );
 }
 
-function AdminApp({ onLogout }) {
-  const [activePage, setActivePage] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [globalSearch, setGlobalSearch] = useState("");
-  const [rarityFilter, setRarityFilter] = useState("All");
+function AdminApp({
+  onLogout,
+  profile,
+}) {
+  const [activePage, setActivePage] =
+    useState("dashboard");
 
-  const [cards, setCards] = useState(initialCards);
-  const [events, setEvents] = useState(initialEvents);
-  const [rankings, setRankings] = useState(initialRankings);
-  const [questions, setQuestions] = useState(initialQuestions);
-  const [users, setUsers] = useState(initialUsers);
-  const [orders, setOrders] = useState(initialOrders);
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
+
+  const [globalSearch, setGlobalSearch] =
+    useState("");
+
+  const [rarityFilter, setRarityFilter] =
+    useState("All");
+
+  const [cards, setCards] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [rankings, setRankings] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [orders, setOrders] = useState([]);
+
+  const [users, setUsers] =
+    useState(initialUsers);
 
   const [modal, setModal] = useState(null);
-  const [editingItem, setEditingItem] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editingItem, setEditingItem] =
+    useState(null);
 
-  const [cardForm, setCardForm] = useState(emptyCardForm);
-  const [eventForm, setEventForm] = useState(emptyEventForm);
-  const [rankingForm, setRankingForm] = useState(emptyRankingForm);
-  const [userForm, setUserForm] = useState(emptyUserForm);
+  const [deleteTarget, setDeleteTarget] =
+    useState(null);
+
+  const [cardForm, setCardForm] =
+    useState(emptyCardForm);
+
+  const [eventForm, setEventForm] =
+    useState(emptyEventForm);
+
+  const [rankingForm, setRankingForm] =
+    useState(emptyRankingForm);
+
+  const [userForm, setUserForm] =
+    useState(emptyUserForm);
+
+  const [
+    cardImageFile,
+    setCardImageFile,
+  ] = useState(null);
+
+  const [
+    cardImagePreview,
+    setCardImagePreview,
+  ] = useState("");
+
+  const [cardSaving, setCardSaving] =
+    useState(false);
+
+  const loadCards =
+    useCallback(async () => {
+      try {
+        const data =
+          await getCards();
+
+        setCards(
+          data.map((card) => ({
+            id: card.id,
+            name: card.name,
+            game: card.game,
+            set: card.set_name,
+            setCode: card.set_code,
+            rarity: card.rarity,
+            colors: card.colors,
+            condition: card.condition,
+            finish: card.finish,
+            seller: card.seller,
+            price: Number(card.price),
+            stock: Number(card.stock),
+            featured: card.featured,
+            status: card.status,
+            imageUrl:
+              card.image_url || "",
+            imagePath:
+              card.image_path || "",
+          }))
+        );
+      } catch (error) {
+        console.error(
+          "Could not load cards:",
+          error
+        );
+      }
+    }, []);
+
+  const loadEvents =
+    useCallback(async () => {
+      try {
+        const data =
+          await getEvents();
+
+        setEvents(
+          data.map((item) => ({
+            id: item.id,
+            title: item.title,
+            format: item.format,
+            date: item.event_date,
+            time: item.event_time,
+            venue: item.venue,
+            fee: Number(item.fee),
+            slots: Number(item.slots),
+            registered: Number(
+              item.registered
+            ),
+            bracket: item.bracket,
+            status: item.status,
+          }))
+        );
+      } catch (error) {
+        console.error(
+          "Could not load events:",
+          error
+        );
+      }
+    }, []);
+
+  const loadRankings =
+    useCallback(async () => {
+      try {
+        const data =
+          await getRankings();
+
+        setRankings(data);
+      } catch (error) {
+        console.error(
+          "Could not load rankings:",
+          error
+        );
+      }
+    }, []);
+
+  const loadQuestions =
+    useCallback(async () => {
+      try {
+        const data =
+          await getQuestions();
+
+        setQuestions(
+          data.map((item) => ({
+            id: item.id,
+            user: item.user_name,
+            category: item.category,
+            question: item.question,
+            replies: item.replies,
+            status: item.status,
+            date: new Date(
+              item.created_at
+            )
+              .toISOString()
+              .slice(0, 10),
+          }))
+        );
+      } catch (error) {
+        console.error(
+          "Could not load questions:",
+          error
+        );
+      }
+    }, []);
+
+  const loadOrders =
+    useCallback(async () => {
+      try {
+        const data =
+          await getOrders();
+
+        setOrders(
+          data.map((item) => ({
+            id: item.id,
+            orderNumber:
+              item.order_number,
+            customer: item.customer,
+            item: item.item,
+            quantity: Number(
+              item.quantity
+            ),
+            total: Number(item.total),
+            payment: item.payment,
+            delivery: item.delivery,
+            date: new Date(
+              item.created_at
+            )
+              .toISOString()
+              .slice(0, 10),
+          }))
+        );
+      } catch (error) {
+        console.error(
+          "Could not load orders:",
+          error
+        );
+      }
+    }, []);
+
+  useEffect(() => {
+    async function loadEverything() {
+      await Promise.all([
+        loadCards(),
+        loadEvents(),
+        loadRankings(),
+        loadQuestions(),
+        loadOrders(),
+      ]);
+    }
+
+    loadEverything();
+  }, [
+    loadCards,
+    loadEvents,
+    loadRankings,
+    loadQuestions,
+    loadOrders,
+  ]);
+
+  useEffect(() => {
+    const channel =
+      supabase
+        .channel(
+          "stax-admin-realtime"
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "cards",
+          },
+          () => {
+            loadCards();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "events",
+          },
+          () => {
+            loadEvents();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "rankings",
+          },
+          () => {
+            loadRankings();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table:
+              "community_questions",
+          },
+          () => {
+            loadQuestions();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "orders",
+          },
+          () => {
+            loadOrders();
+          }
+        )
+
+        .subscribe();
+
+    return () => {
+      supabase.removeChannel(
+        channel
+      );
+    };
+  }, [
+    loadCards,
+    loadEvents,
+    loadRankings,
+    loadQuestions,
+    loadOrders,
+  ]);
 
   const totalRevenue = orders
-    .filter((order) => order.payment === "Paid")
-    .reduce((total, order) => total + order.total, 0);
-
-  const lowStockCards = cards.filter((card) => card.stock <= 2);
-
-  const mythicCount = cards.filter(
-    (card) => card.rarity === "Mythic Rare"
-  ).length;
-
-  const filteredCards = useMemo(() => {
-    const query = globalSearch.trim().toLowerCase();
-
-    return cards.filter((card) => {
-      const matchesQuery =
-        !query ||
-        `${card.name} ${card.set} ${card.setCode} ${card.rarity} ${card.colors}`
-          .toLowerCase()
-          .includes(query);
-
-      const matchesRarity =
-        rarityFilter === "All" || card.rarity === rarityFilter;
-
-      return matchesQuery && matchesRarity;
-    });
-  }, [cards, globalSearch, rarityFilter]);
-
-  const filteredEvents = useMemo(() => {
-    const query = globalSearch.trim().toLowerCase();
-
-    if (!query) {
-      return events;
-    }
-
-    return events.filter((event) =>
-      `${event.title} ${event.format} ${event.venue}`
-        .toLowerCase()
-        .includes(query)
+    .filter(
+      (order) =>
+        order.payment === "Paid"
+    )
+    .reduce(
+      (total, order) =>
+        total + order.total,
+      0
     );
-  }, [events, globalSearch]);
 
-  const filteredUsers = useMemo(() => {
-    const query = globalSearch.trim().toLowerCase();
-
-    if (!query) {
-      return users;
-    }
-
-    return users.filter((user) =>
-      `${user.name} ${user.email} ${user.role}`
-        .toLowerCase()
-        .includes(query)
+  const lowStockCards =
+    cards.filter(
+      (card) => card.stock <= 2
     );
-  }, [users, globalSearch]);
 
-  const filteredOrders = useMemo(() => {
-    const query = globalSearch.trim().toLowerCase();
+  const mythicCount =
+    cards.filter(
+      (card) =>
+        card.rarity ===
+        "Mythic Rare"
+    ).length;
 
-    if (!query) {
-      return orders;
-    }
+  const filteredCards =
+    useMemo(() => {
+      const query =
+        globalSearch
+          .trim()
+          .toLowerCase();
 
-    return orders.filter((order) =>
-      `${order.id} ${order.customer} ${order.item}`
-        .toLowerCase()
-        .includes(query)
-    );
-  }, [orders, globalSearch]);
+      return cards.filter(
+        (card) => {
+          const matchesQuery =
+            !query ||
+            `${card.name} ${card.game} ${card.set} ${card.setCode} ${card.rarity} ${card.colors}`
+              .toLowerCase()
+              .includes(query);
+
+          const matchesRarity =
+            rarityFilter ===
+              "All" ||
+            card.rarity ===
+              rarityFilter;
+
+          return (
+            matchesQuery &&
+            matchesRarity
+          );
+        }
+      );
+    }, [
+      cards,
+      globalSearch,
+      rarityFilter,
+    ]);
+
+  const filteredEvents =
+    useMemo(() => {
+      const query =
+        globalSearch
+          .trim()
+          .toLowerCase();
+
+      if (!query) {
+        return events;
+      }
+
+      return events.filter(
+        (event) =>
+          `${event.title} ${event.format} ${event.venue}`
+            .toLowerCase()
+            .includes(query)
+      );
+    }, [
+      events,
+      globalSearch,
+    ]);
+
+  const filteredUsers =
+    useMemo(() => {
+      const query =
+        globalSearch
+          .trim()
+          .toLowerCase();
+
+      if (!query) {
+        return users;
+      }
+
+      return users.filter(
+        (user) =>
+          `${user.name} ${user.email} ${user.role}`
+            .toLowerCase()
+            .includes(query)
+      );
+    }, [
+      users,
+      globalSearch,
+    ]);
+
+  const filteredOrders =
+    useMemo(() => {
+      const query =
+        globalSearch
+          .trim()
+          .toLowerCase();
+
+      if (!query) {
+        return orders;
+      }
+
+      return orders.filter(
+        (order) =>
+          `${order.orderNumber} ${order.customer} ${order.item}`
+            .toLowerCase()
+            .includes(query)
+      );
+    }, [
+      orders,
+      globalSearch,
+    ]);
 
   function navigate(page) {
     setActivePage(page);
@@ -559,34 +726,72 @@ function AdminApp({ onLogout }) {
     setEditingItem(null);
 
     if (type === "card") {
-      setCardForm(emptyCardForm);
+      setCardForm(
+        emptyCardForm
+      );
+
+      setCardImageFile(
+        null
+      );
+
+      setCardImagePreview(
+        ""
+      );
     }
 
     if (type === "event") {
-      setEventForm(emptyEventForm);
+      setEventForm(
+        emptyEventForm
+      );
     }
 
     if (type === "ranking") {
-      setRankingForm(emptyRankingForm);
+      setRankingForm(
+        emptyRankingForm
+      );
     }
 
     if (type === "user") {
       setUserForm({
         ...emptyUserForm,
-        joined: new Date().toISOString().slice(0, 10),
+        joined: new Date()
+          .toISOString()
+          .slice(0, 10),
       });
     }
 
     setModal(type);
   }
 
-  function openEditModal(type, item) {
+  function openEditModal(
+    type,
+    item
+  ) {
     setEditingItem(item);
 
-    if (type === "card") setCardForm(item);
-    if (type === "event") setEventForm(item);
-    if (type === "ranking") setRankingForm(item);
-    if (type === "user") setUserForm(item);
+    if (type === "card") {
+      setCardForm(item);
+
+      setCardImageFile(
+        null
+      );
+
+      setCardImagePreview(
+        item.imageUrl || ""
+      );
+    }
+
+    if (type === "event") {
+      setEventForm(item);
+    }
+
+    if (type === "ranking") {
+      setRankingForm(item);
+    }
+
+    if (type === "user") {
+      setUserForm(item);
+    }
 
     setModal(type);
   }
@@ -594,109 +799,333 @@ function AdminApp({ onLogout }) {
   function closeModal() {
     setModal(null);
     setEditingItem(null);
+
+    setCardImageFile(
+      null
+    );
+
+    setCardImagePreview(
+      ""
+    );
   }
 
-  function saveCard(event) {
-    event.preventDefault();
+  function handleCardImageChange(
+    event
+  ) {
+    const file =
+      event.target.files?.[0];
 
-    const normalizedCard = {
-      ...cardForm,
-      price: Number(cardForm.price),
-      stock: Number(cardForm.stock),
-    };
-
-    if (editingItem) {
-      setCards((current) =>
-        current.map((card) =>
-          card.id === editingItem.id
-            ? {
-                ...normalizedCard,
-                id: editingItem.id,
-              }
-            : card
-        )
-      );
-    } else {
-      setCards((current) => [
-        {
-          ...normalizedCard,
-          id: Date.now(),
-        },
-        ...current,
-      ]);
+    if (!file) {
+      return;
     }
 
-    closeModal();
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+      alert(
+        "Please choose an image file."
+      );
+      return;
+    }
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      alert(
+        "Image must be 5MB or smaller."
+      );
+      return;
+    }
+
+    setCardImageFile(file);
+
+    const preview =
+      URL.createObjectURL(
+        file
+      );
+
+    setCardImagePreview(
+      preview
+    );
   }
 
-  function saveEvent(event) {
+  async function saveCard(
+    event
+  ) {
     event.preventDefault();
 
-    const normalizedEvent = {
-      ...eventForm,
-      fee: Number(eventForm.fee),
-      slots: Number(eventForm.slots),
-      registered: Number(eventForm.registered || 0),
-    };
-
-    if (editingItem) {
-      setEvents((current) =>
-        current.map((item) =>
-          item.id === editingItem.id
-            ? {
-                ...normalizedEvent,
-                id: editingItem.id,
-              }
-            : item
-        )
-      );
-    } else {
-      setEvents((current) => [
-        {
-          ...normalizedEvent,
-          id: Date.now(),
-        },
-        ...current,
-      ]);
+    if (cardSaving) {
+      return;
     }
 
-    closeModal();
+    setCardSaving(true);
+
+    try {
+      let imageUrl =
+        cardForm.imageUrl ||
+        "";
+
+      let imagePath =
+        cardForm.imagePath ||
+        "";
+
+      let oldImagePath =
+        null;
+
+      if (cardImageFile) {
+        const uploaded =
+          await uploadCardImage(
+            cardImageFile
+          );
+
+        if (
+          editingItem?.imagePath
+        ) {
+          oldImagePath =
+            editingItem.imagePath;
+        }
+
+        imageUrl =
+          uploaded.url;
+
+        imagePath =
+          uploaded.path;
+      }
+
+      const cardData = {
+        name:
+          cardForm.name.trim(),
+
+        game:
+          cardForm.game ||
+          "Magic",
+
+        set_name:
+          cardForm.set.trim(),
+
+        set_code:
+          cardForm.setCode
+            .trim()
+            .toUpperCase(),
+
+        rarity:
+          cardForm.rarity,
+
+        colors:
+          cardForm.colors,
+
+        condition:
+          cardForm.condition,
+
+        finish:
+          cardForm.finish,
+
+        seller:
+          cardForm.seller.trim(),
+
+        price:
+          Number(
+            cardForm.price
+          ),
+
+        stock:
+          Number(
+            cardForm.stock
+          ),
+
+        featured:
+          Boolean(
+            cardForm.featured
+          ),
+
+        status:
+          Number(
+            cardForm.stock
+          ) <= 0
+            ? "Unavailable"
+            : cardForm.status,
+
+        image_url:
+          imageUrl || null,
+
+        image_path:
+          imagePath || null,
+      };
+
+      if (editingItem) {
+        await updateCard(
+          editingItem.id,
+          cardData
+        );
+      } else {
+        await createCard(
+          cardData
+        );
+      }
+
+      if (oldImagePath) {
+        try {
+          await deleteCardImage(
+            oldImagePath
+          );
+        } catch (error) {
+          console.warn(
+            "Old image cleanup failed:",
+            error
+          );
+        }
+      }
+
+      closeModal();
+
+      await loadCards();
+    } catch (error) {
+      console.error(
+        "Save card:",
+        error
+      );
+
+      alert(
+        error.message ||
+        "Could not save card."
+      );
+    } finally {
+      setCardSaving(false);
+    }
   }
 
-  function saveRanking(event) {
+  async function saveEvent(
+    event
+  ) {
     event.preventDefault();
 
-    const normalizedRanking = {
-      ...rankingForm,
-      bracket: Number(rankingForm.bracket),
-      wins: Number(rankingForm.wins),
-      losses: Number(rankingForm.losses),
-      points: Number(rankingForm.points),
-      rank: Number(rankingForm.rank),
+    const data = {
+      title:
+        eventForm.title.trim(),
+
+      format:
+        eventForm.format,
+
+      event_date:
+        eventForm.date,
+
+      event_time:
+        eventForm.time,
+
+      venue:
+        eventForm.venue.trim(),
+
+      fee:
+        Number(
+          eventForm.fee
+        ),
+
+      slots:
+        Number(
+          eventForm.slots
+        ),
+
+      registered:
+        Number(
+          eventForm.registered ||
+            0
+        ),
+
+      bracket:
+        eventForm.bracket,
+
+      status:
+        eventForm.status,
     };
 
-    if (editingItem) {
-      setRankings((current) =>
-        current.map((item) =>
-          item.id === editingItem.id
-            ? {
-                ...normalizedRanking,
-                id: editingItem.id,
-              }
-            : item
-        )
-      );
-    } else {
-      setRankings((current) => [
-        {
-          ...normalizedRanking,
-          id: Date.now(),
-        },
-        ...current,
-      ]);
-    }
+    try {
+      if (editingItem) {
+        await updateEvent(
+          editingItem.id,
+          data
+        );
+      } else {
+        await createEvent(
+          data
+        );
+      }
 
-    closeModal();
+      closeModal();
+
+      await loadEvents();
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      alert(
+        "Could not save event."
+      );
+    }
+  }
+
+  async function saveRanking(
+    event
+  ) {
+    event.preventDefault();
+
+    const data = {
+      name:
+        rankingForm.name.trim(),
+
+      bracket:
+        Number(
+          rankingForm.bracket
+        ),
+
+      wins:
+        Number(
+          rankingForm.wins
+        ),
+
+      losses:
+        Number(
+          rankingForm.losses
+        ),
+
+      points:
+        Number(
+          rankingForm.points
+        ),
+
+      rank:
+        Number(
+          rankingForm.rank
+        ),
+    };
+
+    try {
+      if (editingItem) {
+        await updateRanking(
+          editingItem.id,
+          data
+        );
+      } else {
+        await createRanking(
+          data
+        );
+      }
+
+      closeModal();
+
+      await loadRankings();
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      alert(
+        "Could not save ranking."
+      );
+    }
   }
 
   function saveUser(event) {
@@ -704,18 +1133,23 @@ function AdminApp({ onLogout }) {
 
     const normalizedUser = {
       ...userForm,
-      bracket: Number(userForm.bracket),
+      bracket: Number(
+        userForm.bracket
+      ),
     };
 
     if (editingItem) {
       setUsers((current) =>
-        current.map((item) =>
-          item.id === editingItem.id
-            ? {
-                ...normalizedUser,
-                id: editingItem.id,
-              }
-            : item
+        current.map(
+          (item) =>
+            item.id ===
+            editingItem.id
+              ? {
+                  ...normalizedUser,
+                  id:
+                    editingItem.id,
+                }
+              : item
         )
       );
     } else {
@@ -731,78 +1165,125 @@ function AdminApp({ onLogout }) {
     closeModal();
   }
 
-  function requestDelete(type, item) {
-    setDeleteTarget({ type, item });
+  function requestDelete(
+    type,
+    item
+  ) {
+    setDeleteTarget({
+      type,
+      item,
+    });
   }
 
-  function confirmDelete() {
-    if (!deleteTarget) return;
-
-    const { type, item } = deleteTarget;
-
-    if (type === "card") {
-      setCards((current) =>
-        current.filter((card) => card.id !== item.id)
-      );
+  async function confirmDelete() {
+    if (!deleteTarget) {
+      return;
     }
 
-    if (type === "event") {
-      setEvents((current) =>
-        current.filter((event) => event.id !== item.id)
+    const {
+      type,
+      item,
+    } = deleteTarget;
+
+    try {
+      if (type === "card") {
+        await deleteCard(
+          item.id,
+          item.imagePath
+        );
+      }
+
+      if (type === "event") {
+        await deleteEvent(
+          item.id
+        );
+      }
+
+      if (type === "ranking") {
+        await deleteRanking(
+          item.id
+        );
+      }
+
+      if (type === "question") {
+        await deleteQuestion(
+          item.id
+        );
+      }
+
+      if (type === "order") {
+        await deleteOrder(
+          item.id
+        );
+      }
+
+      if (type === "user") {
+        setUsers(
+          (current) =>
+            current.filter(
+              (user) =>
+                user.id !==
+                item.id
+            )
+        );
+      }
+
+      setDeleteTarget(
+        null
+      );
+    } catch (error) {
+      console.error(
+        "Delete error:",
+        error
+      );
+
+      alert(
+        "Could not delete item."
       );
     }
-
-    if (type === "ranking") {
-      setRankings((current) =>
-        current.filter((ranking) => ranking.id !== item.id)
-      );
-    }
-
-    if (type === "question") {
-      setQuestions((current) =>
-        current.filter((question) => question.id !== item.id)
-      );
-    }
-
-    if (type === "user") {
-      setUsers((current) =>
-        current.filter((user) => user.id !== item.id)
-      );
-    }
-
-    if (type === "order") {
-      setOrders((current) =>
-        current.filter((order) => order.id !== item.id)
-      );
-    }
-
-    setDeleteTarget(null);
   }
 
-  function updateQuestionStatus(id, status) {
-    setQuestions((current) =>
-      current.map((question) =>
-        question.id === id
-          ? {
-              ...question,
-              status,
-            }
-          : question
-      )
-    );
+  async function updateQuestionStatus(
+    id,
+    status
+  ) {
+    try {
+      await updateQuestionStatusDB(
+        id,
+        status
+      );
+
+      await loadQuestions();
+    } catch (error) {
+      console.error(
+        error
+      );
+    }
   }
 
-  function updateOrderField(id, field, value) {
-    setOrders((current) =>
-      current.map((order) =>
-        order.id === id
-          ? {
-              ...order,
-              [field]: value,
-            }
-          : order
-      )
-    );
+  async function updateOrderField(
+    id,
+    field,
+    value
+  ) {
+    try {
+      await updateOrder(
+        id,
+        {
+          [field]: value,
+        }
+      );
+
+      await loadOrders();
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      alert(
+        "Could not update order."
+      );
+    }
   }
 
   function renderDashboard() {
@@ -810,12 +1291,17 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Overview</span>
+            <span className="admin-eyebrow">
+              Overview
+            </span>
 
-            <h1>Admin Dashboard</h1>
+            <h1>
+              Admin Dashboard
+            </h1>
 
             <p>
-              Manage the entire STAX Magic: The Gathering vault from one
+              Manage the STAX
+              marketplace from one
               dashboard.
             </p>
           </div>
@@ -823,7 +1309,9 @@ function AdminApp({ onLogout }) {
           <button
             type="button"
             className="admin-primary-button"
-            onClick={() => openAddModal("card")}
+            onClick={() =>
+              openAddModal("card")
+            }
           >
             <Plus size={18} />
             Add new card
@@ -833,51 +1321,100 @@ function AdminApp({ onLogout }) {
         <section className="admin-stat-grid">
           <article className="admin-stat-card">
             <div className="admin-stat-icon">
-              <CircleDollarSign size={23} />
+              <CircleDollarSign
+                size={23}
+              />
             </div>
 
             <div>
-              <span>Total revenue</span>
-              <strong>{formatCurrency(totalRevenue)}</strong>
-              <small>Paid orders only</small>
-            </div>
-          </article>
+              <span>
+                Total revenue
+              </span>
 
-          <article className="admin-stat-card">
-            <div className="admin-stat-icon">
-              <Package size={23} />
-            </div>
-
-            <div>
-              <span>Cards listed</span>
-              <strong>{cards.length}</strong>
-              <small>{lowStockCards.length} low-stock cards</small>
-            </div>
-          </article>
-
-          <article className="admin-stat-card">
-            <div className="admin-stat-icon">
-              <Sparkles size={23} />
-            </div>
-
-            <div>
-              <span>Mythic rares</span>
-              <strong>{mythicCount}</strong>
-              <small>In current inventory</small>
-            </div>
-          </article>
-
-          <article className="admin-stat-card">
-            <div className="admin-stat-icon">
-              <Users size={23} />
-            </div>
-
-            <div>
-              <span>Registered users</span>
-              <strong>{users.length}</strong>
+              <strong>
+                {formatCurrency(
+                  totalRevenue
+                )}
+              </strong>
 
               <small>
-                {users.filter((user) => user.status === "Active").length} active
+                Paid orders only
+              </small>
+            </div>
+          </article>
+
+          <article className="admin-stat-card">
+            <div className="admin-stat-icon">
+              <Package
+                size={23}
+              />
+            </div>
+
+            <div>
+              <span>
+                Cards listed
+              </span>
+
+              <strong>
+                {cards.length}
+              </strong>
+
+              <small>
+                {
+                  lowStockCards.length
+                }{" "}
+                low-stock cards
+              </small>
+            </div>
+          </article>
+
+          <article className="admin-stat-card">
+            <div className="admin-stat-icon">
+              <Sparkles
+                size={23}
+              />
+            </div>
+
+            <div>
+              <span>
+                Mythic rares
+              </span>
+
+              <strong>
+                {mythicCount}
+              </strong>
+
+              <small>
+                In inventory
+              </small>
+            </div>
+          </article>
+
+          <article className="admin-stat-card">
+            <div className="admin-stat-icon">
+              <Users
+                size={23}
+              />
+            </div>
+
+            <div>
+              <span>
+                Registered users
+              </span>
+
+              <strong>
+                {users.length}
+              </strong>
+
+              <small>
+                {
+                  users.filter(
+                    (user) =>
+                      user.status ===
+                      "Active"
+                  ).length
+                }{" "}
+                active
               </small>
             </div>
           </article>
@@ -887,27 +1424,56 @@ function AdminApp({ onLogout }) {
           <article className="admin-panel admin-revenue-panel">
             <div className="admin-panel-heading">
               <div>
-                <span className="admin-eyebrow">Performance</span>
-                <h2>Sales overview</h2>
+                <span className="admin-eyebrow">
+                  Performance
+                </span>
+
+                <h2>
+                  Sales overview
+                </h2>
               </div>
 
-              <BarChart3 size={23} />
+              <BarChart3
+                size={23}
+              />
             </div>
 
             <div className="admin-chart">
-              {[35, 48, 40, 67, 56, 78, 88].map(
-                (height, index) => (
-                  <div className="admin-chart-column" key={index}>
+              {[
+                35,
+                48,
+                40,
+                67,
+                56,
+                78,
+                88,
+              ].map(
+                (
+                  height,
+                  index
+                ) => (
+                  <div
+                    className="admin-chart-column"
+                    key={index}
+                  >
                     <div
                       className="admin-chart-bar"
-                      style={{ height: `${height}%` }}
+                      style={{
+                        height: `${height}%`,
+                      }}
                     />
 
                     <span>
                       {
-                        ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
-                          index
-                        ]
+                        [
+                          "Mon",
+                          "Tue",
+                          "Wed",
+                          "Thu",
+                          "Fri",
+                          "Sat",
+                          "Sun",
+                        ][index]
                       }
                     </span>
                   </div>
@@ -919,39 +1485,68 @@ function AdminApp({ onLogout }) {
           <article className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <span className="admin-eyebrow">Inventory</span>
-                <h2>Low stock</h2>
+                <span className="admin-eyebrow">
+                  Inventory
+                </span>
+
+                <h2>
+                  Low stock
+                </h2>
               </div>
 
-              <Package size={23} />
+              <Package
+                size={23}
+              />
             </div>
 
             <div className="admin-compact-list">
-              {lowStockCards.map((card) => (
-                <div className="admin-compact-item" key={card.id}>
-                  <div className="admin-product-thumbnail">
-                    {card.name.slice(0, 1)}
-                  </div>
-
-                  <div>
-                    <strong>{card.name}</strong>
-                    <span>{card.set}</span>
-                  </div>
-
-                  <span
-                    className={`admin-stock-count ${
-                      card.stock === 0 ? "danger" : ""
-                    }`}
+              {lowStockCards.map(
+                (card) => (
+                  <div
+                    className="admin-compact-item"
+                    key={card.id}
                   >
-                    {card.stock} left
-                  </span>
-                </div>
-              ))}
+                    {card.imageUrl ? (
+                      <img
+                        src={
+                          card.imageUrl
+                        }
+                        alt={
+                          card.name
+                        }
+                        className="admin-card-photo"
+                      />
+                    ) : (
+                      <div className="admin-product-thumbnail">
+                        {card.name.slice(
+                          0,
+                          1
+                        )}
+                      </div>
+                    )}
 
-              {lowStockCards.length === 0 && (
-                <div className="admin-empty-small">
-                  No low-stock cards.
-                </div>
+                    <div>
+                      <strong>
+                        {card.name}
+                      </strong>
+
+                      <span>
+                        {card.set}
+                      </span>
+                    </div>
+
+                    <span
+                      className={`admin-stock-count ${
+                        card.stock ===
+                        0
+                          ? "danger"
+                          : ""
+                      }`}
+                    >
+                      {card.stock} left
+                    </span>
+                  </div>
+                )
               )}
             </div>
           </article>
@@ -961,73 +1556,125 @@ function AdminApp({ onLogout }) {
           <article className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <span className="admin-eyebrow">Recent</span>
-                <h2>Latest orders</h2>
+                <span className="admin-eyebrow">
+                  Recent
+                </span>
+
+                <h2>
+                  Latest orders
+                </h2>
               </div>
 
               <button
                 type="button"
                 className="admin-text-button"
-                onClick={() => navigate("orders")}
+                onClick={() =>
+                  navigate("orders")
+                }
               >
                 View all
               </button>
             </div>
 
             <div className="admin-compact-list">
-              {orders.slice(0, 4).map((order) => (
-                <div className="admin-compact-item" key={order.id}>
-                  <div className="admin-product-thumbnail">
-                    <ShoppingBag size={17} />
+              {orders
+                .slice(0, 4)
+                .map((order) => (
+                  <div
+                    className="admin-compact-item"
+                    key={order.id}
+                  >
+                    <div className="admin-product-thumbnail">
+                      <ShoppingBag
+                        size={17}
+                      />
+                    </div>
+
+                    <div>
+                      <strong>
+                        {
+                          order.customer
+                        }
+                      </strong>
+
+                      <span>
+                        {
+                          order.orderNumber
+                        }{" "}
+                        ·{" "}
+                        {order.item}
+                      </span>
+                    </div>
+
+                    <strong>
+                      {formatCurrency(
+                        order.total
+                      )}
+                    </strong>
                   </div>
-
-                  <div>
-                    <strong>{order.customer}</strong>
-
-                    <span>
-                      {order.id} · {order.item}
-                    </span>
-                  </div>
-
-                  <strong>{formatCurrency(order.total)}</strong>
-                </div>
-              ))}
+                ))}
             </div>
           </article>
 
           <article className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <span className="admin-eyebrow">Community</span>
-                <h2>Pending questions</h2>
+                <span className="admin-eyebrow">
+                  Community
+                </span>
+
+                <h2>
+                  Pending questions
+                </h2>
               </div>
 
-              <MessageCircle size={23} />
+              <MessageCircle
+                size={23}
+              />
             </div>
 
             <div className="admin-compact-list">
               {questions
-                .filter((question) => question.status === "Open")
+                .filter(
+                  (question) =>
+                    question.status ===
+                    "Open"
+                )
                 .slice(0, 4)
-                .map((question) => (
-                  <div
-                    className="admin-question-preview"
-                    key={question.id}
-                  >
-                    <strong>{question.user}</strong>
-
-                    <p>{question.question}</p>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateQuestionStatus(question.id, "Answered")
+                .map(
+                  (question) => (
+                    <div
+                      className="admin-question-preview"
+                      key={
+                        question.id
                       }
                     >
-                      Mark answered
-                    </button>
-                  </div>
-                ))}
+                      <strong>
+                        {
+                          question.user
+                        }
+                      </strong>
+
+                      <p>
+                        {
+                          question.question
+                        }
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateQuestionStatus(
+                            question.id,
+                            "Answered"
+                          )
+                        }
+                      >
+                        Mark answered
+                      </button>
+                    </div>
+                  )
+                )}
             </div>
           </article>
         </section>
@@ -1040,20 +1687,27 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Inventory</span>
+            <span className="admin-eyebrow">
+              Inventory
+            </span>
 
-            <h1>Manage Cards</h1>
+            <h1>
+              Manage Cards
+            </h1>
 
             <p>
-              Add, edit, delete, price, and update Magic: The Gathering
-              inventory.
+              Add, edit, delete,
+              price, stock, and
+              photos.
             </p>
           </div>
 
           <button
             type="button"
             className="admin-primary-button"
-            onClick={() => openAddModal("card")}
+            onClick={() =>
+              openAddModal("card")
+            }
           >
             <Plus size={18} />
             Add card
@@ -1063,22 +1717,39 @@ function AdminApp({ onLogout }) {
         <div className="admin-filter-row">
           <button
             type="button"
-            className={rarityFilter === "All" ? "active" : ""}
-            onClick={() => setRarityFilter("All")}
+            className={
+              rarityFilter === "All"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setRarityFilter("All")
+            }
           >
             All rarities
           </button>
 
-          {RARITIES.map((rarity) => (
-            <button
-              key={rarity}
-              type="button"
-              className={rarityFilter === rarity ? "active" : ""}
-              onClick={() => setRarityFilter(rarity)}
-            >
-              {rarity}
-            </button>
-          ))}
+          {RARITIES.map(
+            (rarity) => (
+              <button
+                key={rarity}
+                type="button"
+                className={
+                  rarityFilter ===
+                  rarity
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setRarityFilter(
+                    rarity
+                  )
+                }
+              >
+                {rarity}
+              </button>
+            )
+          )}
         </div>
 
         <AdminTableCard>
@@ -1094,89 +1765,143 @@ function AdminApp({ onLogout }) {
                   <th>Price</th>
                   <th>Stock</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th>
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredCards.map((card) => (
-                  <tr key={card.id}>
-                    <td>
-                      <div className="admin-name-cell">
-                        <div className="admin-product-thumbnail">
-                          {card.name.slice(0, 1)}
+                {filteredCards.map(
+                  (card) => (
+                    <tr key={card.id}>
+                      <td>
+                        <div className="admin-name-cell">
+                          {card.imageUrl ? (
+                            <img
+                              src={
+                                card.imageUrl
+                              }
+                              alt={
+                                card.name
+                              }
+                              className="admin-card-photo"
+                            />
+                          ) : (
+                            <div className="admin-product-thumbnail">
+                              {card.name.slice(
+                                0,
+                                1
+                              )}
+                            </div>
+                          )}
+
+                          <div>
+                            <strong>
+                              {
+                                card.name
+                              }
+
+                              {card.featured && (
+                                <Sparkles
+                                  size={
+                                    12
+                                  }
+                                  className="admin-featured-star"
+                                />
+                              )}
+                            </strong>
+
+                            <span>
+                              {
+                                card.condition
+                              }
+                            </span>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <strong>
-                            {card.name}
+                      <td>
+                        {card.set}
 
-                            {card.featured && (
-                              <Sparkles
-                                size={12}
-                                className="admin-featured-star"
-                              />
-                            )}
-                          </strong>
+                        <span className="admin-set-code">
+                          {
+                            card.setCode
+                          }
+                        </span>
+                      </td>
 
-                          <span>{card.condition}</span>
-                        </div>
-                      </div>
-                    </td>
+                      <td>
+                        <ColorPip
+                          value={
+                            card.colors
+                          }
+                        />
+                      </td>
 
-                    <td>
-                      {card.set}
-                      <span className="admin-set-code">
-                        {card.setCode}
-                      </span>
-                    </td>
+                      <td>
+                        <RarityBadge
+                          value={
+                            card.rarity
+                          }
+                        />
+                      </td>
 
-                    <td>
-                      <ColorPip value={card.colors} />
-                    </td>
+                      <td>
+                        {
+                          card.finish
+                        }
+                      </td>
 
-                    <td>
-                      <RarityBadge value={card.rarity} />
-                    </td>
+                      <td>
+                        <strong>
+                          {formatCurrency(
+                            card.price
+                          )}
+                        </strong>
+                      </td>
 
-                    <td>{card.finish}</td>
+                      <td>
+                        <span
+                          className={`admin-stock-count ${
+                            card.stock ===
+                            0
+                              ? "danger"
+                              : ""
+                          }`}
+                        >
+                          {
+                            card.stock
+                          }
+                        </span>
+                      </td>
 
-                    <td>
-                      <strong>{formatCurrency(card.price)}</strong>
-                    </td>
+                      <td>
+                        <StatusBadge
+                          value={
+                            card.status
+                          }
+                        />
+                      </td>
 
-                    <td>
-                      <span
-                        className={`admin-stock-count ${
-                          card.stock === 0 ? "danger" : ""
-                        }`}
-                      >
-                        {card.stock}
-                      </span>
-                    </td>
-
-                    <td>
-                      <StatusBadge value={card.status} />
-                    </td>
-
-                    <td>
-                      <ActionButtons
-                        onEdit={() => openEditModal("card", card)}
-                        onDelete={() => requestDelete("card", card)}
-                      />
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredCards.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan="9"
-                      className="admin-empty-table"
-                    >
-                      No cards match this filter.
-                    </td>
-                  </tr>
+                      <td>
+                        <ActionButtons
+                          onEdit={() =>
+                            openEditModal(
+                              "card",
+                              card
+                            )
+                          }
+                          onDelete={() =>
+                            requestDelete(
+                              "card",
+                              card
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  )
                 )}
               </tbody>
             </table>
@@ -1191,19 +1916,26 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Tournaments</span>
-            <h1>Manage Events</h1>
+            <span className="admin-eyebrow">
+              Tournaments
+            </span>
+
+            <h1>
+              Manage Events
+            </h1>
 
             <p>
-              Create Magic: The Gathering tournaments and manage schedules
-              and slots.
+              Create and manage
+              tournaments.
             </p>
           </div>
 
           <button
             type="button"
             className="admin-primary-button"
-            onClick={() => openAddModal("event")}
+            onClick={() =>
+              openAddModal("event")
+            }
           >
             <Plus size={18} />
             Create event
@@ -1211,80 +1943,137 @@ function AdminApp({ onLogout }) {
         </section>
 
         <div className="admin-event-grid">
-          {filteredEvents.map((event) => (
-            <article
-              className="admin-event-card"
-              key={event.id}
-            >
-              <div className="admin-event-card__header">
-                <span>{event.format}</span>
-                <StatusBadge value={event.status} />
-              </div>
+          {filteredEvents.map(
+            (event) => (
+              <article
+                className="admin-event-card"
+                key={event.id}
+              >
+                <div className="admin-event-card__header">
+                  <span>
+                    {event.format}
+                  </span>
 
-              <h2>{event.title}</h2>
-
-              <div className="admin-event-details">
-                <p>
-                  <strong>Date:</strong> {event.date}
-                </p>
-
-                <p>
-                  <strong>Time:</strong> {event.time}
-                </p>
-
-                <p>
-                  <strong>Venue:</strong> {event.venue}
-                </p>
-
-                <p>
-                  <strong>Division:</strong> {event.bracket}
-                </p>
-
-                <p>
-                  <strong>Fee:</strong> {formatCurrency(event.fee)}
-                </p>
-              </div>
-
-              <div className="admin-registration-progress">
-                <div>
-                  <span>Registrations</span>
-                  <strong>
-                    {event.registered}/{event.slots}
-                  </strong>
-                </div>
-
-                <div className="admin-progress-track">
-                  <span
-                    style={{
-                      width: `${Math.min(
-                        (event.registered / event.slots) * 100,
-                        100
-                      )}%`,
-                    }}
+                  <StatusBadge
+                    value={
+                      event.status
+                    }
                   />
                 </div>
-              </div>
 
-              <div className="admin-card-actions">
-                <button
-                  type="button"
-                  onClick={() => openEditModal("event", event)}
-                >
-                  <Edit3 size={16} />
-                  Edit
-                </button>
+                <h2>
+                  {event.title}
+                </h2>
 
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={() => requestDelete("event", event)}
-                >
-                  <Trash2 size={16} />
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="admin-event-details">
+                  <p>
+                    <strong>
+                      Date:
+                    </strong>{" "}
+                    {event.date}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Time:
+                    </strong>{" "}
+                    {event.time}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Venue:
+                    </strong>{" "}
+                    {event.venue}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Division:
+                    </strong>{" "}
+                    {
+                      event.bracket
+                    }
+                  </p>
+
+                  <p>
+                    <strong>
+                      Fee:
+                    </strong>{" "}
+                    {formatCurrency(
+                      event.fee
+                    )}
+                  </p>
+                </div>
+
+                <div className="admin-registration-progress">
+                  <div>
+                    <span>
+                      Registrations
+                    </span>
+
+                    <strong>
+                      {
+                        event.registered
+                      }
+                      /{event.slots}
+                    </strong>
+                  </div>
+
+                  <div className="admin-progress-track">
+                    <span
+                      style={{
+                        width: `${
+                          event.slots >
+                          0
+                            ? Math.min(
+                                (event.registered /
+                                  event.slots) *
+                                  100,
+                                100
+                              )
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="admin-card-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openEditModal(
+                        "event",
+                        event
+                      )
+                    }
+                  >
+                    <Edit3
+                      size={16}
+                    />
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    className="danger"
+                    onClick={() =>
+                      requestDelete(
+                        "event",
+                        event
+                      )
+                    }
+                  >
+                    <Trash2
+                      size={16}
+                    />
+                    Delete
+                  </button>
+                </div>
+              </article>
+            )
+          )}
         </div>
       </>
     );
@@ -1295,102 +2084,173 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Leaderboards</span>
-            <h1>Manage Rankings</h1>
+            <span className="admin-eyebrow">
+              Leaderboards
+            </span>
+
+            <h1>
+              Manage Rankings
+            </h1>
 
             <p>
-              Update player divisions, ranks, wins, losses, and points.
+              Update divisions,
+              wins, losses,
+              points and rank.
             </p>
           </div>
 
           <button
             type="button"
             className="admin-primary-button"
-            onClick={() => openAddModal("ranking")}
+            onClick={() =>
+              openAddModal(
+                "ranking"
+              )
+            }
           >
             <Plus size={18} />
             Add player
           </button>
         </section>
 
-        {[1, 2, 3, 4].map((bracket) => (
-          <AdminTableCard
-            key={bracket}
-            title={`Division ${bracket} · ${BRACKET_FORMAT[bracket]}`}
-            icon={<Trophy size={20} />}
-          >
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Wins</th>
-                    <th>Losses</th>
-                    <th>Points</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {rankings
-                    .filter((player) => player.bracket === bracket)
-                    .sort((a, b) => a.rank - b.rank)
-                    .map((player) => (
-                      <tr key={player.id}>
-                        <td>
-                          <span className="admin-rank-badge">
-                            #{player.rank}
-                          </span>
-                        </td>
-
-                        <td>
-                          <div className="admin-name-cell">
-                            <div className="admin-user-avatar">
-                              {getInitials(player.name)}
-                            </div>
-
-                            <strong>{player.name}</strong>
-                          </div>
-                        </td>
-
-                        <td>{player.wins}</td>
-                        <td>{player.losses}</td>
-
-                        <td>
-                          <strong>{player.points}</strong>
-                        </td>
-
-                        <td>
-                          <ActionButtons
-                            onEdit={() =>
-                              openEditModal("ranking", player)
-                            }
-                            onDelete={() =>
-                              requestDelete("ranking", player)
-                            }
-                          />
-                        </td>
-                      </tr>
-                    ))}
-
-                  {rankings.filter(
-                    (player) => player.bracket === bracket
-                  ).length === 0 && (
+        {[1, 2, 3, 4].map(
+          (bracket) => (
+            <AdminTableCard
+              key={bracket}
+              title={`Division ${bracket} · ${BRACKET_FORMAT[bracket]}`}
+              icon={
+                <Trophy
+                  size={20}
+                />
+              }
+            >
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
                     <tr>
-                      <td
-                        colSpan="6"
-                        className="admin-empty-table"
-                      >
-                        No players in this division.
-                      </td>
+                      <th>
+                        Rank
+                      </th>
+                      <th>
+                        Player
+                      </th>
+                      <th>
+                        Wins
+                      </th>
+                      <th>
+                        Losses
+                      </th>
+                      <th>
+                        Points
+                      </th>
+                      <th>
+                        Actions
+                      </th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </AdminTableCard>
-        ))}
+                  </thead>
+
+                  <tbody>
+                    {rankings
+                      .filter(
+                        (
+                          player
+                        ) =>
+                          Number(
+                            player.bracket
+                          ) ===
+                          bracket
+                      )
+                      .sort(
+                        (
+                          a,
+                          b
+                        ) =>
+                          Number(
+                            a.rank
+                          ) -
+                          Number(
+                            b.rank
+                          )
+                      )
+                      .map(
+                        (
+                          player
+                        ) => (
+                          <tr
+                            key={
+                              player.id
+                            }
+                          >
+                            <td>
+                              <span className="admin-rank-badge">
+                                #
+                                {
+                                  player.rank
+                                }
+                              </span>
+                            </td>
+
+                            <td>
+                              <div className="admin-name-cell">
+                                <div className="admin-user-avatar">
+                                  {getInitials(
+                                    player.name
+                                  )}
+                                </div>
+
+                                <strong>
+                                  {
+                                    player.name
+                                  }
+                                </strong>
+                              </div>
+                            </td>
+
+                            <td>
+                              {
+                                player.wins
+                              }
+                            </td>
+
+                            <td>
+                              {
+                                player.losses
+                              }
+                            </td>
+
+                            <td>
+                              <strong>
+                                {
+                                  player.points
+                                }
+                              </strong>
+                            </td>
+
+                            <td>
+                              <ActionButtons
+                                onEdit={() =>
+                                  openEditModal(
+                                    "ranking",
+                                    player
+                                  )
+                                }
+                                onDelete={() =>
+                                  requestDelete(
+                                    "ranking",
+                                    player
+                                  )
+                                }
+                              />
+                            </td>
+                          </tr>
+                        )
+                      )}
+                  </tbody>
+                </table>
+              </div>
+            </AdminTableCard>
+          )
+        )}
       </>
     );
   }
@@ -1400,76 +2260,125 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Moderation</span>
-            <h1>Manage Community</h1>
+            <span className="admin-eyebrow">
+              Moderation
+            </span>
+
+            <h1>
+              Manage Community
+            </h1>
 
             <p>
-              Review, answer, close, or remove community questions.
+              Review and moderate
+              community questions.
             </p>
           </div>
         </section>
 
         <div className="admin-question-list">
-          {questions.map((question) => (
-            <article
-              className="admin-question-card"
-              key={question.id}
-            >
-              <div className="admin-question-card__top">
-                <div className="admin-name-cell">
-                  <div className="admin-user-avatar">
-                    {getInitials(question.user)}
+          {questions.map(
+            (question) => (
+              <article
+                className="admin-question-card"
+                key={question.id}
+              >
+                <div className="admin-question-card__top">
+                  <div className="admin-name-cell">
+                    <div className="admin-user-avatar">
+                      {getInitials(
+                        question.user
+                      )}
+                    </div>
+
+                    <div>
+                      <strong>
+                        {
+                          question.user
+                        }
+                      </strong>
+
+                      <span>
+                        {
+                          question.category
+                        }{" "}
+                        ·{" "}
+                        {
+                          question.date
+                        }
+                      </span>
+                    </div>
                   </div>
 
-                  <div>
-                    <strong>{question.user}</strong>
-
-                    <span>
-                      {question.category} · {question.date}
-                    </span>
-                  </div>
+                  <StatusBadge
+                    value={
+                      question.status
+                    }
+                  />
                 </div>
 
-                <StatusBadge value={question.status} />
-              </div>
-
-              <h3>{question.question}</h3>
-              <p>{question.replies} replies</p>
-
-              <div className="admin-card-actions">
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateQuestionStatus(question.id, "Answered")
+                <h3>
+                  {
+                    question.question
                   }
-                >
-                  <Check size={16} />
-                  Mark answered
-                </button>
+                </h3>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateQuestionStatus(question.id, "Closed")
-                  }
-                >
-                  <ShieldCheck size={16} />
-                  Close
-                </button>
+                <p>
+                  {
+                    question.replies
+                  }{" "}
+                  replies
+                </p>
 
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={() =>
-                    requestDelete("question", question)
-                  }
-                >
-                  <Trash2 size={16} />
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="admin-card-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateQuestionStatus(
+                        question.id,
+                        "Answered"
+                      )
+                    }
+                  >
+                    <Check
+                      size={16}
+                    />
+                    Mark answered
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateQuestionStatus(
+                        question.id,
+                        "Closed"
+                      )
+                    }
+                  >
+                    <ShieldCheck
+                      size={16}
+                    />
+                    Close
+                  </button>
+
+                  <button
+                    type="button"
+                    className="danger"
+                    onClick={() =>
+                      requestDelete(
+                        "question",
+                        question
+                      )
+                    }
+                  >
+                    <Trash2
+                      size={16}
+                    />
+                    Delete
+                  </button>
+                </div>
+              </article>
+            )
+          )}
         </div>
       </>
     );
@@ -1480,18 +2389,26 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Accounts</span>
-            <h1>Manage Users</h1>
+            <span className="admin-eyebrow">
+              Accounts
+            </span>
+
+            <h1>
+              Manage Users
+            </h1>
 
             <p>
-              Add, edit, suspend, or remove player and admin accounts.
+              This page is still
+              local in this version.
             </p>
           </div>
 
           <button
             type="button"
             className="admin-primary-button"
-            onClick={() => openAddModal("user")}
+            onClick={() =>
+              openAddModal("user")
+            }
           >
             <Plus size={18} />
             Add user
@@ -1505,54 +2422,95 @@ function AdminApp({ onLogout }) {
                 <tr>
                   <th>User</th>
                   <th>Role</th>
-                  <th>Division</th>
+                  <th>
+                    Division
+                  </th>
                   <th>Status</th>
                   <th>Joined</th>
-                  <th>Actions</th>
+                  <th>
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className="admin-name-cell">
-                        <div className="admin-user-avatar">
-                          {getInitials(user.name)}
+                {filteredUsers.map(
+                  (user) => (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="admin-name-cell">
+                          <div className="admin-user-avatar">
+                            {getInitials(
+                              user.name
+                            )}
+                          </div>
+
+                          <div>
+                            <strong>
+                              {
+                                user.name
+                              }
+                            </strong>
+
+                            <span>
+                              {
+                                user.email
+                              }
+                            </span>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <strong>{user.name}</strong>
-                          <span>{user.email}</span>
-                        </div>
-                      </div>
-                    </td>
+                      <td>
+                        {user.role}
+                      </td>
 
-                    <td>{user.role}</td>
-
-                    <td>
-                      Division {user.bracket} ·{" "}
-                      {BRACKET_FORMAT[user.bracket]}
-                    </td>
-
-                    <td>
-                      <StatusBadge value={user.status} />
-                    </td>
-
-                    <td>{user.joined}</td>
-
-                    <td>
-                      <ActionButtons
-                        onEdit={() =>
-                          openEditModal("user", user)
+                      <td>
+                        Division{" "}
+                        {
+                          user.bracket
+                        }{" "}
+                        ·{" "}
+                        {
+                          BRACKET_FORMAT[
+                            user.bracket
+                          ]
                         }
-                        onDelete={() =>
-                          requestDelete("user", user)
+                      </td>
+
+                      <td>
+                        <StatusBadge
+                          value={
+                            user.status
+                          }
+                        />
+                      </td>
+
+                      <td>
+                        {
+                          user.joined
                         }
-                      />
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      <td>
+                        <ActionButtons
+                          onEdit={() =>
+                            openEditModal(
+                              "user",
+                              user
+                            )
+                          }
+                          onDelete={() =>
+                            requestDelete(
+                              "user",
+                              user
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -1566,11 +2524,17 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Sales</span>
-            <h1>Manage Orders</h1>
+            <span className="admin-eyebrow">
+              Sales
+            </span>
+
+            <h1>
+              Manage Orders
+            </h1>
 
             <p>
-              Manage payments, deliveries, cancellations, and order status.
+              Update payment and
+              delivery status.
             </p>
           </div>
         </section>
@@ -1581,104 +2545,163 @@ function AdminApp({ onLogout }) {
               <thead>
                 <tr>
                   <th>Order</th>
-                  <th>Customer</th>
+                  <th>
+                    Customer
+                  </th>
                   <th>Item</th>
                   <th>Total</th>
-                  <th>Payment</th>
-                  <th>Delivery</th>
+                  <th>
+                    Payment
+                  </th>
+                  <th>
+                    Delivery
+                  </th>
                   <th>Date</th>
-                  <th>Actions</th>
+                  <th>
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td>
-                      <strong>{order.id}</strong>
-                    </td>
+                {filteredOrders.map(
+                  (order) => (
+                    <tr key={order.id}>
+                      <td>
+                        <strong>
+                          {
+                            order.orderNumber
+                          }
+                        </strong>
+                      </td>
 
-                    <td>{order.customer}</td>
-
-                    <td>
-                      {order.item} × {order.quantity}
-                    </td>
-
-                    <td>
-                      <strong>
-                        {formatCurrency(order.total)}
-                      </strong>
-                    </td>
-
-                    <td>
-                      <select
-                        className="admin-inline-select"
-                        value={order.payment}
-                        onChange={(event) =>
-                          updateOrderField(
-                            order.id,
-                            "payment",
-                            event.target.value
-                          )
+                      <td>
+                        {
+                          order.customer
                         }
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Paid">Paid</option>
-                        <option value="Refunded">Refunded</option>
-                      </select>
-                    </td>
+                      </td>
 
-                    <td>
-                      <select
-                        className="admin-inline-select"
-                        value={order.delivery}
-                        onChange={(event) =>
-                          updateOrderField(
-                            order.id,
-                            "delivery",
-                            event.target.value
-                          )
+                      <td>
+                        {order.item} ×{" "}
+                        {
+                          order.quantity
                         }
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Processing">
-                          Processing
-                        </option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">
-                          Delivered
-                        </option>
-                        <option value="Cancelled">
-                          Cancelled
-                        </option>
-                      </select>
-                    </td>
+                      </td>
 
-                    <td>{order.date}</td>
+                      <td>
+                        <strong>
+                          {formatCurrency(
+                            order.total
+                          )}
+                        </strong>
+                      </td>
 
-                    <td>
-                      <div className="admin-action-buttons">
-                        <button
-                          type="button"
-                          title="View order"
-                        >
-                          <Eye size={16} />
-                        </button>
-
-                        <button
-                          type="button"
-                          className="danger"
-                          title="Delete order"
-                          onClick={() =>
-                            requestDelete("order", order)
+                      <td>
+                        <select
+                          className="admin-inline-select"
+                          value={
+                            order.payment
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            updateOrderField(
+                              order.id,
+                              "payment",
+                              event
+                                .target
+                                .value
+                            )
                           }
                         >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          <option value="Pending">
+                            Pending
+                          </option>
+
+                          <option value="Paid">
+                            Paid
+                          </option>
+
+                          <option value="Refunded">
+                            Refunded
+                          </option>
+                        </select>
+                      </td>
+
+                      <td>
+                        <select
+                          className="admin-inline-select"
+                          value={
+                            order.delivery
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            updateOrderField(
+                              order.id,
+                              "delivery",
+                              event
+                                .target
+                                .value
+                            )
+                          }
+                        >
+                          <option value="Pending">
+                            Pending
+                          </option>
+
+                          <option value="Processing">
+                            Processing
+                          </option>
+
+                          <option value="Shipped">
+                            Shipped
+                          </option>
+
+                          <option value="Delivered">
+                            Delivered
+                          </option>
+
+                          <option value="Cancelled">
+                            Cancelled
+                          </option>
+                        </select>
+                      </td>
+
+                      <td>
+                        {order.date}
+                      </td>
+
+                      <td>
+                        <div className="admin-action-buttons">
+                          <button
+                            type="button"
+                            title="View order"
+                          >
+                            <Eye
+                              size={16}
+                            />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="danger"
+                            onClick={() =>
+                              requestDelete(
+                                "order",
+                                order
+                              )
+                            }
+                          >
+                            <Trash2
+                              size={16}
+                            />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -1692,13 +2715,17 @@ function AdminApp({ onLogout }) {
       <>
         <section className="admin-page-heading">
           <div>
-            <span className="admin-eyebrow">Configuration</span>
+            <span className="admin-eyebrow">
+              Configuration
+            </span>
 
-            <h1>Shop Settings</h1>
+            <h1>
+              Shop Settings
+            </h1>
 
             <p>
-              Update the public information and preferences of your Magic:
-              The Gathering shop.
+              Update shop
+              preferences.
             </p>
           </div>
         </section>
@@ -1706,12 +2733,19 @@ function AdminApp({ onLogout }) {
         <div className="admin-settings-grid">
           <form
             className="admin-settings-card"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={(event) =>
+              event.preventDefault()
+            }
           >
             <div className="admin-panel-heading">
               <div>
-                <span className="admin-eyebrow">General</span>
-                <h2>Shop information</h2>
+                <span className="admin-eyebrow">
+                  General
+                </span>
+
+                <h2>
+                  Shop information
+                </h2>
               </div>
             </div>
 
@@ -1747,7 +2781,9 @@ function AdminApp({ onLogout }) {
 
           <form
             className="admin-settings-card"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={(event) =>
+              event.preventDefault()
+            }
           >
             <div className="admin-panel-heading">
               <div>
@@ -1755,7 +2791,9 @@ function AdminApp({ onLogout }) {
                   Marketplace
                 </span>
 
-                <h2>Order settings</h2>
+                <h2>
+                  Order settings
+                </h2>
               </div>
             </div>
 
@@ -1773,22 +2811,37 @@ function AdminApp({ onLogout }) {
 
             <AdminField label="Order pickup">
               <select defaultValue="Enabled">
-                <option>Enabled</option>
-                <option>Disabled</option>
+                <option>
+                  Enabled
+                </option>
+
+                <option>
+                  Disabled
+                </option>
               </select>
             </AdminField>
 
             <AdminField label="Delivery">
               <select defaultValue="Enabled">
-                <option>Enabled</option>
-                <option>Disabled</option>
+                <option>
+                  Enabled
+                </option>
+
+                <option>
+                  Disabled
+                </option>
               </select>
             </AdminField>
 
             <AdminField label="Community questions">
               <select defaultValue="Enabled">
-                <option>Enabled</option>
-                <option>Disabled</option>
+                <option>
+                  Enabled
+                </option>
+
+                <option>
+                  Disabled
+                </option>
               </select>
             </AdminField>
 
@@ -1832,36 +2885,60 @@ function AdminApp({ onLogout }) {
     }
   }
 
+  const adminName =
+    profile?.full_name ||
+    "Admin User";
+
   return (
     <div className="admin-app">
       <aside
         className={`admin-sidebar ${
-          sidebarOpen ? "is-mobile-open" : ""
+          sidebarOpen
+            ? "is-mobile-open"
+            : ""
         }`}
       >
         <div className="admin-brand">
-          <div className="admin-brand__logo">S</div>
+          <div className="admin-brand__logo">
+            S
+          </div>
 
           <div>
-            <strong>STAX</strong>
-            <span>Magic: The Gathering Vault</span>
+            <strong>
+              STAX
+            </strong>
+
+            <span>
+              Card Marketplace
+            </span>
           </div>
 
           <button
             type="button"
             className="admin-sidebar-close"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() =>
+              setSidebarOpen(false)
+            }
           >
             <X size={20} />
           </button>
         </div>
 
         <div className="admin-account-card">
-          <div className="admin-user-avatar">AU</div>
+          <div className="admin-user-avatar">
+            {getInitials(
+              adminName
+            )}
+          </div>
 
           <div>
-            <strong>Admin User</strong>
-            <span>Super administrator</span>
+            <strong>
+              {adminName}
+            </strong>
+
+            <span>
+              Administrator
+            </span>
           </div>
         </div>
 
@@ -1870,35 +2947,49 @@ function AdminApp({ onLogout }) {
             Main menu
           </span>
 
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
+          {navigationItems.map(
+            (item) => {
+              const Icon =
+                item.icon;
 
-            return (
-              <button
-                type="button"
-                key={item.id}
-                className={
-                  activePage === item.id ? "active" : ""
-                }
-                onClick={() => navigate(item.id)}
-              >
-                <Icon size={19} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={
+                    activePage ===
+                    item.id
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() =>
+                    navigate(
+                      item.id
+                    )
+                  }
+                >
+                  <Icon
+                    size={19}
+                  />
+
+                  <span>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            }
+          )}
         </nav>
 
         <button
           type="button"
           className="admin-logout"
-          onClick={() => {
-            localStorage.removeItem("staxAccountRole");
-            onLogout();
-          }}
+          onClick={onLogout}
         >
           <LogOut size={19} />
-          <span>Log out</span>
+          <span>
+            Log out
+          </span>
         </button>
       </aside>
 
@@ -1906,8 +2997,9 @@ function AdminApp({ onLogout }) {
         <button
           type="button"
           className="admin-overlay"
-          aria-label="Close menu"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() =>
+            setSidebarOpen(false)
+          }
         />
       )}
 
@@ -1916,7 +3008,9 @@ function AdminApp({ onLogout }) {
           <button
             type="button"
             className="admin-mobile-menu"
-            onClick={() => setSidebarOpen(true)}
+            onClick={() =>
+              setSidebarOpen(true)
+            }
           >
             <Menu size={22} />
           </button>
@@ -1927,9 +3021,14 @@ function AdminApp({ onLogout }) {
             <input
               type="search"
               placeholder="Search current section..."
-              value={globalSearch}
+              value={
+                globalSearch
+              }
               onChange={(event) =>
-                setGlobalSearch(event.target.value)
+                setGlobalSearch(
+                  event.target
+                    .value
+                )
               }
             />
           </label>
@@ -1939,21 +3038,34 @@ function AdminApp({ onLogout }) {
               type="button"
               className="admin-header-icon"
             >
-              <ClipboardList size={19} />
+              <ClipboardList
+                size={19}
+              />
             </button>
 
             <button
               type="button"
               className="admin-profile-button"
             >
-              <div className="admin-user-avatar">AU</div>
-
-              <div>
-                <strong>Admin User</strong>
-                <span>Administrator</span>
+              <div className="admin-user-avatar">
+                {getInitials(
+                  adminName
+                )}
               </div>
 
-              <ChevronDown size={16} />
+              <div>
+                <strong>
+                  {adminName}
+                </strong>
+
+                <span>
+                  Administrator
+                </span>
+              </div>
+
+              <ChevronDown
+                size={16}
+              />
             </button>
           </div>
         </header>
@@ -1965,7 +3077,11 @@ function AdminApp({ onLogout }) {
 
       {modal === "card" && (
         <Modal
-          title={editingItem ? "Edit card" : "Add new card"}
+          title={
+            editingItem
+              ? "Edit card"
+              : "Add new card"
+          }
           onClose={closeModal}
         >
           <form
@@ -1979,24 +3095,67 @@ function AdminApp({ onLogout }) {
               >
                 <input
                   required
-                  value={cardForm.name}
-                  onChange={(event) =>
+                  value={
+                    cardForm.name
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      name: event.target.value,
+                      name:
+                        event.target
+                          .value,
                     })
                   }
                 />
               </AdminField>
 
+              <AdminField label="Game">
+                <select
+                  value={
+                    cardForm.game
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setCardForm({
+                      ...cardForm,
+                      game:
+                        event.target
+                          .value,
+                    })
+                  }
+                >
+                  <option>
+                    Magic
+                  </option>
+                  <option>
+                    Pokemon
+                  </option>
+                  <option>
+                    Yu-Gi-Oh!
+                  </option>
+                  <option>
+                    One Piece
+                  </option>
+                </select>
+              </AdminField>
+
               <AdminField label="Set name">
                 <input
                   required
-                  value={cardForm.set}
-                  onChange={(event) =>
+                  value={
+                    cardForm.set
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      set: event.target.value,
+                      set:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2005,12 +3164,17 @@ function AdminApp({ onLogout }) {
               <AdminField label="Set code">
                 <input
                   required
-                  placeholder="e.g. MH2"
-                  value={cardForm.setCode}
-                  onChange={(event) =>
+                  value={
+                    cardForm.setCode
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      setCode: event.target.value,
+                      setCode:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2018,83 +3182,139 @@ function AdminApp({ onLogout }) {
 
               <AdminField label="Color identity">
                 <select
-                  value={cardForm.colors}
-                  onChange={(event) =>
+                  value={
+                    cardForm.colors
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      colors: event.target.value,
+                      colors:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  {COLOR_IDENTITIES.map((color) => (
-                    <option key={color}>
-                      {color}
-                    </option>
-                  ))}
+                  {COLOR_IDENTITIES.map(
+                    (color) => (
+                      <option
+                        key={color}
+                      >
+                        {color}
+                      </option>
+                    )
+                  )}
                 </select>
               </AdminField>
 
               <AdminField label="Rarity">
                 <select
-                  value={cardForm.rarity}
-                  onChange={(event) =>
+                  value={
+                    cardForm.rarity
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      rarity: event.target.value,
+                      rarity:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  {RARITIES.map((rarity) => (
-                    <option key={rarity}>
-                      {rarity}
-                    </option>
-                  ))}
+                  {RARITIES.map(
+                    (rarity) => (
+                      <option
+                        key={
+                          rarity
+                        }
+                      >
+                        {rarity}
+                      </option>
+                    )
+                  )}
                 </select>
               </AdminField>
 
               <AdminField label="Finish">
                 <select
-                  value={cardForm.finish}
-                  onChange={(event) =>
+                  value={
+                    cardForm.finish
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      finish: event.target.value,
+                      finish:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  {FINISHES.map((finish) => (
-                    <option key={finish}>
-                      {finish}
-                    </option>
-                  ))}
+                  {FINISHES.map(
+                    (finish) => (
+                      <option
+                        key={
+                          finish
+                        }
+                      >
+                        {finish}
+                      </option>
+                    )
+                  )}
                 </select>
               </AdminField>
 
               <AdminField label="Condition">
                 <select
-                  value={cardForm.condition}
-                  onChange={(event) =>
+                  value={
+                    cardForm.condition
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      condition: event.target.value,
+                      condition:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  {CONDITIONS.map((condition) => (
-                    <option key={condition}>
-                      {condition}
-                    </option>
-                  ))}
+                  {CONDITIONS.map(
+                    (
+                      condition
+                    ) => (
+                      <option
+                        key={
+                          condition
+                        }
+                      >
+                        {
+                          condition
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
               </AdminField>
 
               <AdminField label="Seller">
                 <input
-                  value={cardForm.seller}
-                  onChange={(event) =>
+                  value={
+                    cardForm.seller
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      seller: event.target.value,
+                      seller:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2105,11 +3325,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="0"
-                  value={cardForm.price}
-                  onChange={(event) =>
+                  value={
+                    cardForm.price
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      price: event.target.value,
+                      price:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2120,11 +3346,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="0"
-                  value={cardForm.stock}
-                  onChange={(event) =>
+                  value={
+                    cardForm.stock
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      stock: event.target.value,
+                      stock:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2132,16 +3364,27 @@ function AdminApp({ onLogout }) {
 
               <AdminField label="Status">
                 <select
-                  value={cardForm.status}
-                  onChange={(event) =>
+                  value={
+                    cardForm.status
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setCardForm({
                       ...cardForm,
-                      status: event.target.value,
+                      status:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  <option>Available</option>
-                  <option>Unavailable</option>
+                  <option>
+                    Available
+                  </option>
+
+                  <option>
+                    Unavailable
+                  </option>
                 </select>
               </AdminField>
 
@@ -2149,21 +3392,59 @@ function AdminApp({ onLogout }) {
                 <label className="admin-checkbox">
                   <input
                     type="checkbox"
-                    checked={cardForm.featured}
-                    onChange={(event) =>
+                    checked={
+                      cardForm.featured
+                    }
+                    onChange={(
+                      event
+                    ) =>
                       setCardForm({
                         ...cardForm,
-                        featured: event.target.checked,
+                        featured:
+                          event.target
+                            .checked,
                       })
                     }
                   />
 
-                  Show this card as featured
+                  Show this card as
+                  featured
                 </label>
+              </AdminField>
+
+              <AdminField
+                label="Card photo"
+                full
+              >
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={
+                    handleCardImageChange
+                  }
+                />
+
+                {cardImagePreview && (
+                  <div className="admin-card-image-preview">
+                    <img
+                      src={
+                        cardImagePreview
+                      }
+                      alt="Card preview"
+                    />
+                  </div>
+                )}
               </AdminField>
             </div>
 
-            <ModalFooter onCancel={closeModal} />
+            <ModalFooter
+              onCancel={
+                closeModal
+              }
+              saving={
+                cardSaving
+              }
+            />
           </form>
         </Modal>
       )}
@@ -2171,7 +3452,9 @@ function AdminApp({ onLogout }) {
       {modal === "event" && (
         <Modal
           title={
-            editingItem ? "Edit event" : "Create event"
+            editingItem
+              ? "Edit event"
+              : "Create event"
           }
           onClose={closeModal}
         >
@@ -2186,11 +3469,17 @@ function AdminApp({ onLogout }) {
               >
                 <input
                   required
-                  value={eventForm.title}
-                  onChange={(event) =>
+                  value={
+                    eventForm.title
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      title: event.target.value,
+                      title:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2198,36 +3487,62 @@ function AdminApp({ onLogout }) {
 
               <AdminField label="Format">
                 <select
-                  value={eventForm.format}
-                  onChange={(event) =>
+                  value={
+                    eventForm.format
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      format: event.target.value,
+                      format:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  {FORMATS.map((format) => (
-                    <option key={format}>
-                      {format}
-                    </option>
-                  ))}
+                  {FORMATS.map(
+                    (format) => (
+                      <option
+                        key={
+                          format
+                        }
+                      >
+                        {format}
+                      </option>
+                    )
+                  )}
                 </select>
               </AdminField>
 
               <AdminField label="Division">
                 <select
-                  value={eventForm.bracket}
-                  onChange={(event) =>
+                  value={
+                    eventForm.bracket
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      bracket: event.target.value,
+                      bracket:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  <option>Division 1</option>
-                  <option>Division 2</option>
-                  <option>Division 3</option>
-                  <option>Division 4</option>
+                  <option>
+                    Division 1
+                  </option>
+                  <option>
+                    Division 2
+                  </option>
+                  <option>
+                    Division 3
+                  </option>
+                  <option>
+                    Division 4
+                  </option>
                 </select>
               </AdminField>
 
@@ -2235,11 +3550,17 @@ function AdminApp({ onLogout }) {
                 <input
                   required
                   type="date"
-                  value={eventForm.date}
-                  onChange={(event) =>
+                  value={
+                    eventForm.date
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      date: event.target.value,
+                      date:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2249,11 +3570,17 @@ function AdminApp({ onLogout }) {
                 <input
                   required
                   type="time"
-                  value={eventForm.time}
-                  onChange={(event) =>
+                  value={
+                    eventForm.time
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      time: event.target.value,
+                      time:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2265,11 +3592,17 @@ function AdminApp({ onLogout }) {
               >
                 <input
                   required
-                  value={eventForm.venue}
-                  onChange={(event) =>
+                  value={
+                    eventForm.venue
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      venue: event.target.value,
+                      venue:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2280,11 +3613,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="0"
-                  value={eventForm.fee}
-                  onChange={(event) =>
+                  value={
+                    eventForm.fee
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      fee: event.target.value,
+                      fee:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2295,11 +3634,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="1"
-                  value={eventForm.slots}
-                  onChange={(event) =>
+                  value={
+                    eventForm.slots
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      slots: event.target.value,
+                      slots:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2309,11 +3654,17 @@ function AdminApp({ onLogout }) {
                 <input
                   type="number"
                   min="0"
-                  value={eventForm.registered}
-                  onChange={(event) =>
+                  value={
+                    eventForm.registered
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      registered: event.target.value,
+                      registered:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2321,22 +3672,38 @@ function AdminApp({ onLogout }) {
 
               <AdminField label="Registration status">
                 <select
-                  value={eventForm.status}
-                  onChange={(event) =>
+                  value={
+                    eventForm.status
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setEventForm({
                       ...eventForm,
-                      status: event.target.value,
+                      status:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  <option>Open</option>
-                  <option>Full</option>
-                  <option>Closed</option>
+                  <option>
+                    Open
+                  </option>
+                  <option>
+                    Full
+                  </option>
+                  <option>
+                    Closed
+                  </option>
                 </select>
               </AdminField>
             </div>
 
-            <ModalFooter onCancel={closeModal} />
+            <ModalFooter
+              onCancel={
+                closeModal
+              }
+            />
           </form>
         </Modal>
       )}
@@ -2361,11 +3728,17 @@ function AdminApp({ onLogout }) {
               >
                 <input
                   required
-                  value={rankingForm.name}
-                  onChange={(event) =>
+                  value={
+                    rankingForm.name
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRankingForm({
                       ...rankingForm,
-                      name: event.target.value,
+                      name:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2373,28 +3746,35 @@ function AdminApp({ onLogout }) {
 
               <AdminField label="Division">
                 <select
-                  value={rankingForm.bracket}
-                  onChange={(event) =>
+                  value={
+                    rankingForm.bracket
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRankingForm({
                       ...rankingForm,
-                      bracket: event.target.value,
+                      bracket:
+                        event.target
+                          .value,
                     })
                   }
                 >
                   <option value="1">
-                    Division 1 · Standard
+                    Division 1 ·
+                    Standard
                   </option>
-
                   <option value="2">
-                    Division 2 · Commander
+                    Division 2 ·
+                    Commander
                   </option>
-
                   <option value="3">
-                    Division 3 · Legacy
+                    Division 3 ·
+                    Legacy
                   </option>
-
                   <option value="4">
-                    Division 4 · Modern
+                    Division 4 ·
+                    Modern
                   </option>
                 </select>
               </AdminField>
@@ -2404,11 +3784,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="1"
-                  value={rankingForm.rank}
-                  onChange={(event) =>
+                  value={
+                    rankingForm.rank
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRankingForm({
                       ...rankingForm,
-                      rank: event.target.value,
+                      rank:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2419,11 +3805,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="0"
-                  value={rankingForm.wins}
-                  onChange={(event) =>
+                  value={
+                    rankingForm.wins
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRankingForm({
                       ...rankingForm,
-                      wins: event.target.value,
+                      wins:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2434,11 +3826,17 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="0"
-                  value={rankingForm.losses}
-                  onChange={(event) =>
+                  value={
+                    rankingForm.losses
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRankingForm({
                       ...rankingForm,
-                      losses: event.target.value,
+                      losses:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2452,18 +3850,28 @@ function AdminApp({ onLogout }) {
                   required
                   type="number"
                   min="0"
-                  value={rankingForm.points}
-                  onChange={(event) =>
+                  value={
+                    rankingForm.points
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRankingForm({
                       ...rankingForm,
-                      points: event.target.value,
+                      points:
+                        event.target
+                          .value,
                     })
                   }
                 />
               </AdminField>
             </div>
 
-            <ModalFooter onCancel={closeModal} />
+            <ModalFooter
+              onCancel={
+                closeModal
+              }
+            />
           </form>
         </Modal>
       )}
@@ -2471,7 +3879,9 @@ function AdminApp({ onLogout }) {
       {modal === "user" && (
         <Modal
           title={
-            editingItem ? "Edit user" : "Add new user"
+            editingItem
+              ? "Edit user"
+              : "Add new user"
           }
           onClose={closeModal}
         >
@@ -2483,11 +3893,17 @@ function AdminApp({ onLogout }) {
               <AdminField label="Full name">
                 <input
                   required
-                  value={userForm.name}
-                  onChange={(event) =>
+                  value={
+                    userForm.name
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setUserForm({
                       ...userForm,
-                      name: event.target.value,
+                      name:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2497,11 +3913,17 @@ function AdminApp({ onLogout }) {
                 <input
                   required
                   type="email"
-                  value={userForm.email}
-                  onChange={(event) =>
+                  value={
+                    userForm.email
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setUserForm({
                       ...userForm,
-                      email: event.target.value,
+                      email:
+                        event.target
+                          .value,
                     })
                   }
                 />
@@ -2509,60 +3931,95 @@ function AdminApp({ onLogout }) {
 
               <AdminField label="Role">
                 <select
-                  value={userForm.role}
-                  onChange={(event) =>
+                  value={
+                    userForm.role
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setUserForm({
                       ...userForm,
-                      role: event.target.value,
+                      role:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  <option>Player</option>
-                  <option>Admin</option>
+                  <option>
+                    Player
+                  </option>
+
+                  <option>
+                    Admin
+                  </option>
                 </select>
               </AdminField>
 
               <AdminField label="Division">
                 <select
-                  value={userForm.bracket}
-                  onChange={(event) =>
+                  value={
+                    userForm.bracket
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setUserForm({
                       ...userForm,
-                      bracket: event.target.value,
+                      bracket:
+                        event.target
+                          .value,
                     })
                   }
                 >
                   <option value="1">
-                    Division 1 · Standard
+                    Division 1 ·
+                    Standard
                   </option>
 
                   <option value="2">
-                    Division 2 · Commander
+                    Division 2 ·
+                    Commander
                   </option>
 
                   <option value="3">
-                    Division 3 · Legacy
+                    Division 3 ·
+                    Legacy
                   </option>
 
                   <option value="4">
-                    Division 4 · Modern
+                    Division 4 ·
+                    Modern
                   </option>
                 </select>
               </AdminField>
 
               <AdminField label="Status">
                 <select
-                  value={userForm.status}
-                  onChange={(event) =>
+                  value={
+                    userForm.status
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setUserForm({
                       ...userForm,
-                      status: event.target.value,
+                      status:
+                        event.target
+                          .value,
                     })
                   }
                 >
-                  <option>Active</option>
-                  <option>Suspended</option>
-                  <option>Inactive</option>
+                  <option>
+                    Active
+                  </option>
+
+                  <option>
+                    Suspended
+                  </option>
+
+                  <option>
+                    Inactive
+                  </option>
                 </select>
               </AdminField>
 
@@ -2570,18 +4027,28 @@ function AdminApp({ onLogout }) {
                 <input
                   required
                   type="date"
-                  value={userForm.joined}
-                  onChange={(event) =>
+                  value={
+                    userForm.joined
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setUserForm({
                       ...userForm,
-                      joined: event.target.value,
+                      joined:
+                        event.target
+                          .value,
                     })
                   }
                 />
               </AdminField>
             </div>
 
-            <ModalFooter onCancel={closeModal} />
+            <ModalFooter
+              onCancel={
+                closeModal
+              }
+            />
           </form>
         </Modal>
       )}
@@ -2590,18 +4057,28 @@ function AdminApp({ onLogout }) {
         <div className="admin-modal-backdrop">
           <div className="admin-confirm-dialog">
             <div className="admin-confirm-icon">
-              <Trash2 size={23} />
+              <Trash2
+                size={23}
+              />
             </div>
 
-            <h2>Delete item?</h2>
+            <h2>
+              Delete item?
+            </h2>
 
             <p>
               This will remove{" "}
               <strong>
-                {deleteTarget.item.name ||
-                  deleteTarget.item.title ||
-                  deleteTarget.item.question ||
-                  deleteTarget.item.id}
+                {deleteTarget.item
+                  .name ||
+                  deleteTarget.item
+                    .title ||
+                  deleteTarget.item
+                    .question ||
+                  deleteTarget.item
+                    .orderNumber ||
+                  deleteTarget.item
+                    .id}
               </strong>
               .
             </p>
@@ -2610,7 +4087,11 @@ function AdminApp({ onLogout }) {
               <button
                 type="button"
                 className="admin-secondary-button"
-                onClick={() => setDeleteTarget(null)}
+                onClick={() =>
+                  setDeleteTarget(
+                    null
+                  )
+                }
               >
                 Cancel
               </button>
@@ -2618,7 +4099,9 @@ function AdminApp({ onLogout }) {
               <button
                 type="button"
                 className="admin-danger-button"
-                onClick={confirmDelete}
+                onClick={
+                  confirmDelete
+                }
               >
                 Delete
               </button>
@@ -2639,7 +4122,10 @@ function AdminTableCard({
     <section className="admin-table-card">
       {title && (
         <div className="admin-panel-heading admin-table-card-heading">
-          <h2>{title}</h2>
+          <h2>
+            {title}
+          </h2>
+
           {icon}
         </div>
       )}
@@ -2649,13 +4135,21 @@ function AdminTableCard({
   );
 }
 
-function StatusBadge({ value }) {
-  const className = String(value)
-    .toLowerCase()
-    .replaceAll(" ", "-");
+function StatusBadge({
+  value,
+}) {
+  const className =
+    String(value)
+      .toLowerCase()
+      .replaceAll(
+        " ",
+        "-"
+      );
 
   return (
-    <span className={`admin-status admin-status--${className}`}>
+    <span
+      className={`admin-status admin-status--${className}`}
+    >
       {value}
     </span>
   );
@@ -2669,19 +4163,21 @@ function ActionButtons({
     <div className="admin-action-buttons">
       <button
         type="button"
-        title="Edit"
         onClick={onEdit}
       >
-        <Edit3 size={16} />
+        <Edit3
+          size={16}
+        />
       </button>
 
       <button
         type="button"
         className="danger"
-        title="Delete"
         onClick={onDelete}
       >
-        <Trash2 size={16} />
+        <Trash2
+          size={16}
+        />
       </button>
     </div>
   );
@@ -2695,10 +4191,15 @@ function AdminField({
   return (
     <label
       className={`admin-field ${
-        full ? "admin-field--full" : ""
+        full
+          ? "admin-field--full"
+          : ""
       }`}
     >
-      <span>{label}</span>
+      <span>
+        {label}
+      </span>
+
       {children}
     </label>
   );
@@ -2718,14 +4219,18 @@ function Modal({
               STAX Administration
             </span>
 
-            <h2>{title}</h2>
+            <h2>
+              {title}
+            </h2>
           </div>
 
           <button
             type="button"
             onClick={onClose}
           >
-            <X size={20} />
+            <X
+              size={20}
+            />
           </button>
         </div>
 
@@ -2737,13 +4242,17 @@ function Modal({
   );
 }
 
-function ModalFooter({ onCancel }) {
+function ModalFooter({
+  onCancel,
+  saving = false,
+}) {
   return (
     <div className="admin-modal-footer">
       <button
         type="button"
         className="admin-secondary-button"
         onClick={onCancel}
+        disabled={saving}
       >
         Cancel
       </button>
@@ -2751,8 +4260,11 @@ function ModalFooter({ onCancel }) {
       <button
         type="submit"
         className="admin-primary-button"
+        disabled={saving}
       >
-        Save changes
+        {saving
+          ? "Saving..."
+          : "Save changes"}
       </button>
     </div>
   );

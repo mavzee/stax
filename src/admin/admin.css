@@ -79,6 +79,10 @@ button {
     var(--admin-bg);
 }
 
+/* =========================================
+   SIDEBAR
+========================================= */
+
 .admin-sidebar {
   position: fixed;
   z-index: 100;
@@ -272,6 +276,10 @@ button {
   color: #f2a4b1;
 }
 
+/* =========================================
+   MAIN / HEADER
+========================================= */
+
 .admin-main {
   display: flex;
   width: calc(100% - var(--admin-sidebar-width));
@@ -386,6 +394,10 @@ button {
   padding: 30px;
 }
 
+/* =========================================
+   PAGE HEADINGS
+========================================= */
+
 .admin-page-heading {
   display: flex;
   align-items: flex-end;
@@ -417,6 +429,10 @@ button {
   text-transform: uppercase;
 }
 
+/* =========================================
+   BUTTONS
+========================================= */
+
 .admin-primary-button,
 .admin-secondary-button,
 .admin-danger-button {
@@ -437,6 +453,10 @@ button {
   color: white;
 }
 
+.admin-primary-button:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
 .admin-secondary-button {
   border: 1px solid var(--admin-border);
   background: white;
@@ -448,6 +468,17 @@ button {
   background: #fff1f3;
   color: #b63b51;
 }
+
+.admin-primary-button:disabled,
+.admin-secondary-button:disabled,
+.admin-danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* =========================================
+   STATS
+========================================= */
 
 .admin-stat-grid {
   display: grid;
@@ -501,6 +532,10 @@ button {
   color: #879aae;
   font-size: 10px;
 }
+
+/* =========================================
+   DASHBOARD
+========================================= */
 
 .admin-dashboard-grid {
   display: grid;
@@ -578,6 +613,10 @@ button {
   font-size: 10px;
 }
 
+/* =========================================
+   COMPACT LISTS
+========================================= */
+
 .admin-compact-list {
   display: grid;
   gap: 10px;
@@ -614,6 +653,10 @@ button {
   font-size: 10px;
 }
 
+/* =========================================
+   FALLBACK THUMBNAIL
+========================================= */
+
 .admin-product-thumbnail {
   display: grid;
   width: 40px;
@@ -626,6 +669,62 @@ button {
   color: #174a85;
   font-weight: 800;
 }
+
+/* =========================================
+   REAL CARD IMAGES
+========================================= */
+
+.admin-card-photo {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  object-position: center;
+  border: 1px solid var(--admin-border);
+  background: #0f1f33;
+}
+
+.admin-name-cell .admin-card-photo {
+  width: 48px !important;
+  height: 68px !important;
+
+  min-width: 48px;
+  max-width: 48px;
+
+  min-height: 68px;
+  max-height: 68px;
+
+  border-radius: 7px;
+}
+
+.admin-compact-item .admin-card-photo {
+  width: 42px !important;
+  height: 58px !important;
+
+  min-width: 42px;
+  max-width: 42px;
+
+  min-height: 58px;
+  max-height: 58px;
+
+  border-radius: 7px;
+}
+
+.admin-name-cell .admin-product-thumbnail {
+  width: 48px;
+  height: 68px;
+
+  min-width: 48px;
+  max-width: 48px;
+
+  min-height: 68px;
+  max-height: 68px;
+
+  border-radius: 7px;
+}
+
+/* =========================================
+   STOCK BADGES
+========================================= */
 
 .admin-stock-count {
   display: inline-flex;
@@ -643,6 +742,10 @@ button {
   background: #fff0f3;
   color: #c94b61 !important;
 }
+
+/* =========================================
+   COMMUNITY PREVIEW
+========================================= */
 
 .admin-question-preview {
   padding: 13px;
@@ -678,6 +781,10 @@ button {
   font-size: 12px;
 }
 
+/* =========================================
+   FILTERS
+========================================= */
+
 .admin-filter-row {
   display: flex;
   flex-wrap: wrap;
@@ -706,6 +813,10 @@ button {
   color: #174a85;
 }
 
+/* =========================================
+   TABLES
+========================================= */
+
 .admin-table-card {
   overflow: hidden;
   margin-bottom: 20px;
@@ -733,6 +844,7 @@ button {
   padding: 15px 18px;
   border-bottom: 1px solid var(--admin-border);
   text-align: left;
+  vertical-align: middle;
 }
 
 .admin-table th {
@@ -750,6 +862,12 @@ button {
 
 .admin-table tbody tr:hover {
   background: #f8fbff;
+}
+
+.admin-table td:first-child {
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
 }
 
 .admin-set-code {
@@ -770,7 +888,7 @@ button {
 .admin-name-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
 }
 
 .admin-name-cell > div:last-child {
@@ -789,6 +907,10 @@ button {
   color: var(--admin-muted);
   font-size: 9px;
 }
+
+/* =========================================
+   STATUS BADGES
+========================================= */
 
 .admin-status {
   display: inline-flex;
@@ -826,6 +948,10 @@ button {
   background: #fff0f3;
   color: #c94b61;
 }
+
+/* =========================================
+   RARITY
+========================================= */
 
 .admin-rarity {
   display: inline-flex;
@@ -866,6 +992,10 @@ button {
   background: linear-gradient(145deg, #60a5e8, #174a85);
   color: white;
 }
+
+/* =========================================
+   COLOR PIPS
+========================================= */
 
 .admin-color-pip {
   display: inline-flex;
@@ -923,6 +1053,10 @@ button {
   color: #314255;
 }
 
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
 .admin-action-buttons {
   display: flex;
   gap: 6px;
@@ -964,6 +1098,10 @@ button {
   color: var(--admin-muted) !important;
   text-align: center !important;
 }
+
+/* =========================================
+   EVENTS
+========================================= */
 
 .admin-event-grid {
   display: grid;
@@ -1082,6 +1220,10 @@ button {
   color: #c94b61;
 }
 
+/* =========================================
+   COMMUNITY
+========================================= */
+
 .admin-question-list {
   display: grid;
   gap: 13px;
@@ -1113,6 +1255,10 @@ button {
   font-size: 10px;
 }
 
+/* =========================================
+   ORDERS
+========================================= */
+
 .admin-inline-select {
   max-width: 120px;
   padding: 7px 9px;
@@ -1128,6 +1274,10 @@ button {
   background: white;
 }
 
+/* =========================================
+   SETTINGS
+========================================= */
+
 .admin-settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1137,6 +1287,10 @@ button {
 .admin-settings-card {
   padding: 22px;
 }
+
+/* =========================================
+   FORMS
+========================================= */
 
 .admin-form {
   width: 100%;
@@ -1212,6 +1366,37 @@ button {
   accent-color: var(--admin-blue);
 }
 
+/* =========================================
+   CARD IMAGE PREVIEW
+========================================= */
+
+.admin-card-image-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface-soft);
+}
+
+.admin-card-image-preview img {
+  display: block;
+  width: 170px;
+  max-width: 100%;
+  height: 240px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #0f1f33;
+  box-shadow: 0 10px 25px rgba(15, 31, 51, 0.14);
+}
+
+/* =========================================
+   MODALS
+========================================= */
+
 .admin-modal-backdrop {
   position: fixed;
   z-index: 300;
@@ -1278,6 +1463,10 @@ button {
   border-top: 1px solid var(--admin-border);
 }
 
+/* =========================================
+   DELETE CONFIRM
+========================================= */
+
 .admin-confirm-dialog {
   width: min(420px, 100%);
   padding: 26px;
@@ -1320,6 +1509,10 @@ button {
   display: none;
 }
 
+/* =========================================
+   SCROLLBAR
+========================================= */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -1337,6 +1530,10 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: #6d98c3;
 }
+
+/* =========================================
+   RESPONSIVE
+========================================= */
 
 @media (max-width: 1250px) {
   .admin-stat-grid {
@@ -1467,6 +1664,12 @@ button {
   .admin-modal-body,
   .admin-modal-header {
     padding: 17px;
+  }
+
+  .admin-table td:first-child {
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
   }
 }
 

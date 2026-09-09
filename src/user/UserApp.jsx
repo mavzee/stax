@@ -1,4 +1,10 @@
-import { useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   CalendarDays,
   ChevronRight,
@@ -21,268 +27,20 @@ import {
   X,
 } from "lucide-react";
 
+import { supabase } from "../lib/supabase";
+
+import {
+  checkoutCart,
+  createQuestion,
+  getCards,
+  getEvents,
+  getMyProfile,
+  getQuestions,
+  getRankings,
+  registerForEvent,
+} from "../lib/database";
+
 import "./user.css";
-
-const cardItems = [
-  {
-    id: 1,
-    name: "Charizard ex",
-    game: "Pokemon",
-    set: "Obsidian Flames",
-    rarity: "Special Illustration Rare",
-    condition: "Near Mint",
-    price: 4250,
-    stock: 2,
-    seller: "Dragon Vault",
-    rating: 4.9,
-  },
-  {
-    id: 2,
-    name: "Blue-Eyes White Dragon",
-    game: "Yu-Gi-Oh!",
-    set: "Legend of Blue Eyes",
-    rarity: "Ultra Rare",
-    condition: "Excellent",
-    price: 1950,
-    stock: 4,
-    seller: "Duelist Corner",
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: "Monkey D. Luffy",
-    game: "One Piece",
-    set: "Romance Dawn",
-    rarity: "Leader Parallel",
-    condition: "Near Mint",
-    price: 3200,
-    stock: 1,
-    seller: "Grand Line Cards",
-    rating: 5,
-  },
-  {
-    id: 4,
-    name: "Jace, the Mind Sculptor",
-    game: "Magic",
-    set: "Worldwake",
-    rarity: "Mythic Rare",
-    condition: "Excellent",
-    price: 2200,
-    stock: 3,
-    seller: "Mana Market",
-    rating: 4.7,
-  },
-  {
-    id: 5,
-    name: "Pikachu VMAX",
-    game: "Pokemon",
-    set: "Vivid Voltage",
-    rarity: "Rainbow Rare",
-    condition: "Near Mint",
-    price: 5400,
-    stock: 2,
-    seller: "Pika Shop",
-    rating: 4.9,
-  },
-  {
-    id: 6,
-    name: "Red-Eyes Black Dragon",
-    game: "Yu-Gi-Oh!",
-    set: "Metal Raiders",
-    rarity: "Ultra Rare",
-    condition: "Lightly Played",
-    price: 1350,
-    stock: 5,
-    seller: "Duelist Corner",
-    rating: 4.6,
-  },
-];
-
-const shopEvents = [
-  {
-    id: 1,
-    title: "Saturday Pokemon League",
-    game: "Pokemon",
-    date: "August 3, 2026",
-    time: "2:00 PM",
-    venue: "STAX Card Shop",
-    fee: 150,
-    slots: 8,
-  },
-  {
-    id: 2,
-    title: "One Piece Weekly Tournament",
-    game: "One Piece",
-    date: "August 7, 2026",
-    time: "5:30 PM",
-    venue: "STAX Card Shop",
-    fee: 250,
-    slots: 12,
-  },
-  {
-    id: 3,
-    title: "Yu-Gi-Oh! Duel Night",
-    game: "Yu-Gi-Oh!",
-    date: "August 10, 2026",
-    time: "4:00 PM",
-    venue: "STAX Card Shop",
-    fee: 200,
-    slots: 6,
-  },
-];
-
-const rankings = {
-  1: [
-    {
-      rank: 1,
-      name: "Marco Santos",
-      wins: 18,
-      losses: 2,
-      points: 56,
-    },
-    {
-      rank: 2,
-      name: "Jared Cruz",
-      wins: 16,
-      losses: 4,
-      points: 50,
-    },
-    {
-      rank: 3,
-      name: "Paolo Reyes",
-      wins: 14,
-      losses: 5,
-      points: 44,
-    },
-    {
-      rank: 4,
-      name: "Luis Mendoza",
-      wins: 12,
-      losses: 7,
-      points: 38,
-    },
-  ],
-
-  2: [
-    {
-      rank: 1,
-      name: "Kevin Lim",
-      wins: 15,
-      losses: 3,
-      points: 48,
-    },
-    {
-      rank: 2,
-      name: "Joshua Tan",
-      wins: 13,
-      losses: 4,
-      points: 42,
-    },
-    {
-      rank: 3,
-      name: "Miguel Ramos",
-      wins: 11,
-      losses: 6,
-      points: 36,
-    },
-    {
-      rank: 4,
-      name: "Aaron Flores",
-      wins: 10,
-      losses: 8,
-      points: 32,
-    },
-  ],
-
-  3: [
-    {
-      rank: 1,
-      name: "Daniel Sy",
-      wins: 12,
-      losses: 4,
-      points: 40,
-    },
-    {
-      rank: 2,
-      name: "Ken Garcia",
-      wins: 11,
-      losses: 5,
-      points: 36,
-    },
-    {
-      rank: 3,
-      name: "Ralph Ong",
-      wins: 9,
-      losses: 7,
-      points: 30,
-    },
-    {
-      rank: 4,
-      name: "John Velasco",
-      wins: 8,
-      losses: 8,
-      points: 27,
-    },
-  ],
-
-  4: [
-    {
-      rank: 1,
-      name: "Ivan Guerrero",
-      wins: 10,
-      losses: 5,
-      points: 34,
-    },
-    {
-      rank: 2,
-      name: "Chris Dela Cruz",
-      wins: 9,
-      losses: 6,
-      points: 31,
-    },
-    {
-      rank: 3,
-      name: "Nathan Lee",
-      wins: 8,
-      losses: 7,
-      points: 28,
-    },
-    {
-      rank: 4,
-      name: "Sam Bautista",
-      wins: 7,
-      losses: 8,
-      points: 25,
-    },
-  ],
-};
-
-const initialQuestions = [
-  {
-    id: 1,
-    user: "Paolo R.",
-    category: "Card Rules",
-    question: "Can I use Japanese cards in local Pokemon tournaments?",
-    replies: 8,
-    time: "2 hours ago",
-  },
-  {
-    id: 2,
-    user: "Marco S.",
-    category: "Deck Building",
-    question: "What is a good beginner deck for One Piece?",
-    replies: 12,
-    time: "5 hours ago",
-  },
-  {
-    id: 3,
-    user: "Jared C.",
-    category: "Events",
-    question: "Can I register for an event directly at the shop?",
-    replies: 4,
-    time: "Yesterday",
-  },
-];
 
 const menuItems = [
   {
@@ -323,66 +81,624 @@ const menuItems = [
 ];
 
 function formatPrice(price) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(price);
+  return new Intl.NumberFormat(
+    "en-PH",
+    {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0,
+    }
+  ).format(
+    Number(price || 0)
+  );
 }
 
-function UserApp({ onLogout }) {
-  const [activePage, setActivePage] = useState("home");
+function formatEventDate(
+  date
+) {
+  if (!date) {
+    return "";
+  }
 
-  const [mobileSidebarOpen, setMobileSidebarOpen] =
-    useState(false);
+  const [
+    year,
+    month,
+    day,
+  ] = date
+    .split("-")
+    .map(Number);
 
-  const [searchText, setSearchText] = useState("");
-  const [gameFilter, setGameFilter] = useState("All");
-  const [selectedBracket, setSelectedBracket] = useState(1);
-  const [favorites, setFavorites] = useState([]);
-  const [cart, setCart] = useState([]);
+  const parsed =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
 
-  const [questions, setQuestions] =
-    useState(initialQuestions);
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }
+  ).format(parsed);
+}
 
-  const [questionText, setQuestionText] =
-    useState("");
+function formatEventTime(
+  time
+) {
+  if (!time) {
+    return "";
+  }
 
-  const filteredCards = useMemo(() => {
-    const search = searchText
-      .trim()
-      .toLowerCase();
+  const [
+    hours,
+    minutes,
+  ] = time
+    .slice(0, 5)
+    .split(":")
+    .map(Number);
 
-    return cardItems.filter((card) => {
-      const matchesSearch =
-        !search ||
-        card.name.toLowerCase().includes(search) ||
-        card.game.toLowerCase().includes(search) ||
-        card.set.toLowerCase().includes(search);
+  const parsed =
+    new Date();
 
-      const matchesGame =
-        gameFilter === "All" ||
-        card.game === gameFilter;
-
-      return matchesSearch && matchesGame;
-    });
-  }, [searchText, gameFilter]);
-
-  const cartCount = cart.reduce(
-    (total, item) =>
-      total + item.quantity,
+  parsed.setHours(
+    hours,
+    minutes,
+    0,
     0
   );
 
-  const cartTotal = cart.reduce(
-    (total, item) =>
-      total + item.price * item.quantity,
-    0
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+    }
+  ).format(parsed);
+}
+
+function getDateParts(
+  date
+) {
+  if (!date) {
+    return {
+      day: "",
+      month: "",
+    };
+  }
+
+  const [
+    year,
+    month,
+    day,
+  ] = date
+    .split("-")
+    .map(Number);
+
+  const parsed =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
+
+  return {
+    day,
+
+    month:
+      new Intl.DateTimeFormat(
+        "en-US",
+        {
+          month: "short",
+        }
+      ).format(parsed),
+  };
+}
+
+function getInitials(
+  name = ""
+) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map(
+      (part) => part[0]
+    )
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function UserApp({
+  onLogout,
+  profile,
+}) {
+  const [activePage, setActivePage] =
+    useState("home");
+
+  const [
+    mobileSidebarOpen,
+    setMobileSidebarOpen,
+  ] = useState(false);
+
+  const [
+    searchText,
+    setSearchText,
+  ] = useState("");
+
+  const [
+    gameFilter,
+    setGameFilter,
+  ] = useState("All");
+
+  const [
+    selectedBracket,
+    setSelectedBracket,
+  ] = useState(1);
+
+  const [
+    favorites,
+    setFavorites,
+  ] = useState([]);
+
+  const [
+    cart,
+    setCart,
+  ] = useState([]);
+
+  const [
+    questionText,
+    setQuestionText,
+  ] = useState("");
+
+  const [
+    cardItems,
+    setCardItems,
+  ] = useState([]);
+
+  const [
+    shopEvents,
+    setShopEvents,
+  ] = useState([]);
+
+  const [
+    rankingItems,
+    setRankingItems,
+  ] = useState([]);
+
+  const [
+    questions,
+    setQuestions,
+  ] = useState([]);
+
+  const [
+    profileData,
+    setProfileData,
+  ] = useState(
+    profile || null
   );
+
+  const [
+    checkoutLoading,
+    setCheckoutLoading,
+  ] = useState(false);
+
+  const [
+    registeringEvent,
+    setRegisteringEvent,
+  ] = useState(null);
+
+  const loadCards =
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getCards();
+
+          setCardItems(
+            data
+              .filter(
+                (card) =>
+                  card.status ===
+                    "Available" &&
+                  Number(
+                    card.stock
+                  ) > 0
+              )
+              .map(
+                (card) => ({
+                  id:
+                    card.id,
+
+                  name:
+                    card.name,
+
+                  game:
+                    card.game ||
+                    "Magic",
+
+                  set:
+                    card.set_name,
+
+                  rarity:
+                    card.rarity,
+
+                  condition:
+                    card.condition,
+
+                  price:
+                    Number(
+                      card.price
+                    ),
+
+                  stock:
+                    Number(
+                      card.stock
+                    ),
+
+                  seller:
+                    card.seller,
+
+                  rating:
+                    5,
+
+                  imageUrl:
+                    card.image_url ||
+                    "",
+                })
+              )
+          );
+        } catch (error) {
+          console.error(
+            "Could not load cards:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+  const loadEvents =
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getEvents();
+
+          setShopEvents(
+            data
+              .filter(
+                (item) =>
+                  item.status !==
+                  "Closed"
+              )
+              .map(
+                (item) => ({
+                  id:
+                    item.id,
+
+                  title:
+                    item.title,
+
+                  game:
+                    item.format,
+
+                  date:
+                    item.event_date,
+
+                  time:
+                    item.event_time,
+
+                  venue:
+                    item.venue,
+
+                  fee:
+                    Number(
+                      item.fee
+                    ),
+
+                  slots:
+                    Math.max(
+                      Number(
+                        item.slots
+                      ) -
+                        Number(
+                          item.registered
+                        ),
+                      0
+                    ),
+
+                  status:
+                    item.status,
+                })
+              )
+          );
+        } catch (error) {
+          console.error(
+            "Could not load events:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+  const loadRankings =
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getRankings();
+
+          setRankingItems(
+            data
+          );
+        } catch (error) {
+          console.error(
+            "Could not load rankings:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+  const loadQuestions =
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getQuestions();
+
+          setQuestions(
+            data.map(
+              (item) => ({
+                id:
+                  item.id,
+
+                user:
+                  item.user_name,
+
+                category:
+                  item.category,
+
+                question:
+                  item.question,
+
+                replies:
+                  item.replies,
+
+                status:
+                  item.status,
+
+                time:
+                  new Date(
+                    item.created_at
+                  ).toLocaleString(),
+              })
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Could not load questions:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+  useEffect(() => {
+    async function initialize() {
+      await Promise.all([
+        loadCards(),
+        loadEvents(),
+        loadRankings(),
+        loadQuestions(),
+      ]);
+
+      try {
+        const currentProfile =
+          await getMyProfile();
+
+        setProfileData(
+          currentProfile
+        );
+
+        if (
+          currentProfile?.bracket
+        ) {
+          setSelectedBracket(
+            Number(
+              currentProfile.bracket
+            )
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Could not load profile:",
+          error
+        );
+      }
+    }
+
+    initialize();
+  }, [
+    loadCards,
+    loadEvents,
+    loadRankings,
+    loadQuestions,
+  ]);
+
+  useEffect(() => {
+    const channel =
+      supabase
+        .channel(
+          "stax-user-realtime"
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "cards",
+          },
+          () => {
+            loadCards();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "events",
+          },
+          () => {
+            loadEvents();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "rankings",
+          },
+          () => {
+            loadRankings();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table:
+              "community_questions",
+          },
+          () => {
+            loadQuestions();
+          }
+        )
+
+        .subscribe();
+
+    return () => {
+      supabase.removeChannel(
+        channel
+      );
+    };
+  }, [
+    loadCards,
+    loadEvents,
+    loadRankings,
+    loadQuestions,
+  ]);
+
+  const filteredCards =
+    useMemo(() => {
+      const search =
+        searchText
+          .trim()
+          .toLowerCase();
+
+      return cardItems.filter(
+        (card) => {
+          const matchesSearch =
+            !search ||
+            card.name
+              .toLowerCase()
+              .includes(search) ||
+            card.game
+              .toLowerCase()
+              .includes(search) ||
+            card.set
+              .toLowerCase()
+              .includes(search) ||
+            card.rarity
+              .toLowerCase()
+              .includes(search) ||
+            card.seller
+              .toLowerCase()
+              .includes(search);
+
+          const matchesGame =
+            gameFilter ===
+              "All" ||
+            card.game ===
+              gameFilter;
+
+          return (
+            matchesSearch &&
+            matchesGame
+          );
+        }
+      );
+    }, [
+      cardItems,
+      searchText,
+      gameFilter,
+    ]);
+
+  const cartCount =
+    cart.reduce(
+      (total, item) =>
+        total +
+        item.quantity,
+      0
+    );
+
+  const cartTotal =
+    cart.reduce(
+      (total, item) =>
+        total +
+        item.price *
+          item.quantity,
+      0
+    );
+
+  const playerName =
+    profileData?.full_name ||
+    "STAX Player";
+
+  const playerBracket =
+    Number(
+      profileData?.bracket ||
+        1
+    );
+
+  const currentPlayerRanking =
+    rankingItems.find(
+      (player) =>
+        player.name
+          .trim()
+          .toLowerCase() ===
+        playerName
+          .trim()
+          .toLowerCase()
+    );
+
+  const playerRank =
+    currentPlayerRanking?.rank ||
+    "-";
+
+  const playerPoints =
+    currentPlayerRanking?.points ||
+    0;
 
   function navigate(page) {
     setActivePage(page);
-    setMobileSidebarOpen(false);
+
+    setMobileSidebarOpen(
+      false
+    );
 
     window.scrollTo({
       top: 0,
@@ -390,32 +706,49 @@ function UserApp({ onLogout }) {
     });
   }
 
-  function toggleFavorite(cardId) {
-    setFavorites((current) =>
-      current.includes(cardId)
-        ? current.filter((id) => id !== cardId)
-        : [...current, cardId]
+  function toggleFavorite(
+    cardId
+  ) {
+    setFavorites(
+      (current) =>
+        current.includes(
+          cardId
+        )
+          ? current.filter(
+              (id) =>
+                id !== cardId
+            )
+          : [
+              ...current,
+              cardId,
+            ]
     );
   }
 
   function addToCart(card) {
     setCart((current) => {
-      const existingItem =
+      const existing =
         current.find(
-          (item) => item.id === card.id
+          (item) =>
+            item.id ===
+            card.id
         );
 
-      if (existingItem) {
-        return current.map((item) =>
-          item.id === card.id
-            ? {
-                ...item,
-                quantity: Math.min(
-                  item.quantity + 1,
-                  card.stock
-                ),
-              }
-            : item
+      if (existing) {
+        return current.map(
+          (item) =>
+            item.id ===
+            card.id
+              ? {
+                  ...item,
+                  quantity:
+                    Math.min(
+                      item.quantity +
+                        1,
+                      card.stock
+                    ),
+                }
+              : item
         );
       }
 
@@ -436,26 +769,32 @@ function UserApp({ onLogout }) {
     setCart((current) =>
       current
         .map((item) =>
-          item.id === cardId
+          item.id ===
+          cardId
             ? {
                 ...item,
-                quantity: Math.max(
-                  0,
-                  Math.min(
-                    item.quantity + amount,
-                    item.stock
-                  )
-                ),
+                quantity:
+                  Math.max(
+                    0,
+                    Math.min(
+                      item.quantity +
+                        amount,
+                      item.stock
+                    )
+                  ),
               }
             : item
         )
         .filter(
-          (item) => item.quantity > 0
+          (item) =>
+            item.quantity > 0
         )
     );
   }
 
-  function submitQuestion(event) {
+  async function submitQuestion(
+    event
+  ) {
     event.preventDefault();
 
     const cleanQuestion =
@@ -465,120 +804,277 @@ function UserApp({ onLogout }) {
       return;
     }
 
-    const newQuestion = {
-      id: Date.now(),
-      user: "Ivan G.",
-      category: "General",
-      question: cleanQuestion,
-      replies: 0,
-      time: "Just now",
-    };
+    try {
+      await createQuestion({
+        question:
+          cleanQuestion,
 
-    setQuestions((current) => [
-      newQuestion,
-      ...current,
-    ]);
+        category:
+          "General",
+      });
 
-    setQuestionText("");
+      setQuestionText(
+        ""
+      );
+
+      await loadQuestions();
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      alert(
+        "Could not post question."
+      );
+    }
   }
 
-  function renderCardGrid(limit) {
-    const displayedCards = limit
-      ? filteredCards.slice(0, limit)
-      : filteredCards;
+  async function handleCheckout() {
+    if (
+      cart.length === 0
+    ) {
+      return;
+    }
+
+    try {
+      setCheckoutLoading(
+        true
+      );
+
+      await checkoutCart(
+        cart
+      );
+
+      setCart([]);
+
+      await loadCards();
+
+      alert(
+        "Order submitted successfully."
+      );
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      alert(
+        error.message ||
+        "Checkout failed."
+      );
+    } finally {
+      setCheckoutLoading(
+        false
+      );
+    }
+  }
+
+  async function handleRegisterEvent(
+    eventId
+  ) {
+    if (
+      registeringEvent
+    ) {
+      return;
+    }
+
+    try {
+      setRegisteringEvent(
+        eventId
+      );
+
+      await registerForEvent(
+        eventId
+      );
+
+      await loadEvents();
+
+      alert(
+        "Registration successful."
+      );
+    } catch (error) {
+      console.error(
+        error
+      );
+
+      alert(
+        error.message ||
+        "Could not register."
+      );
+    } finally {
+      setRegisteringEvent(
+        null
+      );
+    }
+  }
+
+  function renderCardGrid(
+    limit
+  ) {
+    const displayedCards =
+      limit
+        ? filteredCards.slice(
+            0,
+            limit
+          )
+        : filteredCards;
 
     return (
       <div className="card-market-grid">
-        {displayedCards.map((card) => (
-          <article
-            className="market-card"
-            key={card.id}
-          >
-            <div
-              className={`market-card__image game-image-${card.id}`}
+        {displayedCards.map(
+          (
+            card,
+            index
+          ) => (
+            <article
+              className="market-card"
+              key={card.id}
             >
-              <span>{card.game}</span>
-
-              <button
-                type="button"
-                className={`favorite-button ${
-                  favorites.includes(card.id)
-                    ? "is-favorite"
-                    : ""
+              <div
+                className={`market-card__image ${
+                  card.imageUrl
+                    ? "has-real-image"
+                    : `game-image-${
+                        (index %
+                          6) +
+                        1
+                      }`
                 }`}
-                onClick={() =>
-                  toggleFavorite(card.id)
-                }
-                aria-label="Add card to favorites"
               >
-                <Heart size={19} />
-              </button>
-            </div>
-
-            <div className="market-card__body">
-              <div className="market-card__game-row">
-                <span>{card.set}</span>
-
-                <span className="rating">
-                  <Star
-                    size={14}
-                    fill="currentColor"
+                {card.imageUrl ? (
+                  <img
+                    src={
+                      card.imageUrl
+                    }
+                    alt={
+                      card.name
+                    }
+                    className="market-card__actual-image"
                   />
-                  {card.rating}
-                </span>
-              </div>
-
-              <h3>{card.name}</h3>
-
-              <p className="card-rarity">
-                {card.rarity}
-              </p>
-
-              <div className="card-condition-row">
-                <span>
-                  {card.condition}
-                </span>
-
-                <span>
-                  {card.stock} available
-                </span>
-              </div>
-
-              <div className="market-card__seller">
-                Sold by{" "}
-                <strong>
-                  {card.seller}
-                </strong>
-              </div>
-
-              <div className="market-card__footer">
-                <strong>
-                  {formatPrice(card.price)}
-                </strong>
+                ) : (
+                  <span>
+                    {
+                      card.game
+                    }
+                  </span>
+                )}
 
                 <button
                   type="button"
+                  className={`favorite-button ${
+                    favorites.includes(
+                      card.id
+                    )
+                      ? "is-favorite"
+                      : ""
+                  }`}
                   onClick={() =>
-                    addToCart(card)
+                    toggleFavorite(
+                      card.id
+                    )
                   }
                 >
-                  <ShoppingBag size={17} />
-                  Add
+                  <Heart
+                    size={19}
+                  />
                 </button>
               </div>
-            </div>
-          </article>
-        ))}
 
-        {displayedCards.length === 0 && (
+              <div className="market-card__body">
+                <div className="market-card__game-row">
+                  <span>
+                    {
+                      card.set
+                    }
+                  </span>
+
+                  <span className="rating">
+                    <Star
+                      size={14}
+                      fill="currentColor"
+                    />
+
+                    {
+                      card.rating
+                    }
+                  </span>
+                </div>
+
+                <h3>
+                  {
+                    card.name
+                  }
+                </h3>
+
+                <p className="card-rarity">
+                  {
+                    card.rarity
+                  }
+                </p>
+
+                <div className="card-condition-row">
+                  <span>
+                    {
+                      card.condition
+                    }
+                  </span>
+
+                  <span>
+                    {
+                      card.stock
+                    }{" "}
+                    available
+                  </span>
+                </div>
+
+                <div className="market-card__seller">
+                  Sold by{" "}
+                  <strong>
+                    {
+                      card.seller
+                    }
+                  </strong>
+                </div>
+
+                <div className="market-card__footer">
+                  <strong>
+                    {formatPrice(
+                      card.price
+                    )}
+                  </strong>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addToCart(
+                        card
+                      )
+                    }
+                  >
+                    <ShoppingBag
+                      size={17}
+                    />
+                    Add
+                  </button>
+                </div>
+              </div>
+            </article>
+          )
+        )}
+
+        {displayedCards.length ===
+          0 && (
           <div className="empty-state full-grid-item">
-            <Search size={38} />
+            <Search
+              size={38}
+            />
 
-            <h3>No cards found</h3>
+            <h3>
+              No cards found
+            </h3>
 
             <p>
-              Try changing your search or game
-              filter.
+              Try another search
+              or filter.
             </p>
           </div>
         )}
@@ -592,38 +1088,48 @@ function UserApp({ onLogout }) {
         <section className="hero-section">
           <div className="hero-section__content">
             <span className="eyebrow">
-              The home of local card players
+              The home of local
+              card players
             </span>
 
             <h1>
-              Find cards. Join events.
-              Become the top player.
+              Find cards. Join
+              events. Become the
+              top player.
             </h1>
 
             <p>
-              Browse cards from trusted
-              sellers, register for local
-              events, check your bracket
-              ranking, and connect with other
-              players.
+              Browse cards,
+              register for
+              events, check
+              rankings and
+              connect with the
+              community.
             </p>
 
             <div className="hero-actions">
               <button
                 type="button"
                 onClick={() =>
-                  navigate("shop")
+                  navigate(
+                    "shop"
+                  )
                 }
               >
                 Browse cards
-                <ChevronRight size={18} />
+
+                <ChevronRight
+                  size={18}
+                />
               </button>
 
               <button
                 type="button"
                 className="secondary"
                 onClick={() =>
-                  navigate("events")
+                  navigate(
+                    "events"
+                  )
                 }
               >
                 View events
@@ -633,21 +1139,51 @@ function UserApp({ onLogout }) {
 
           <div className="hero-stat-panel">
             <div>
-              <ShoppingBag size={24} />
-              <strong>1,280+</strong>
-              <span>Cards listed</span>
+              <ShoppingBag
+                size={24}
+              />
+
+              <strong>
+                {
+                  cardItems.length
+                }
+              </strong>
+
+              <span>
+                Cards listed
+              </span>
             </div>
 
             <div>
-              <Users size={24} />
-              <strong>420</strong>
-              <span>Active players</span>
+              <Users
+                size={24}
+              />
+
+              <strong>
+                {
+                  rankingItems.length
+                }
+              </strong>
+
+              <span>
+                Ranked players
+              </span>
             </div>
 
             <div>
-              <Trophy size={24} />
-              <strong>24</strong>
-              <span>Monthly events</span>
+              <Trophy
+                size={24}
+              />
+
+              <strong>
+                {
+                  shopEvents.length
+                }
+              </strong>
+
+              <span>
+                Upcoming events
+              </span>
             </div>
           </div>
         </section>
@@ -659,11 +1195,14 @@ function UserApp({ onLogout }) {
                 Marketplace
               </span>
 
-              <h2>Popular cards</h2>
+              <h2>
+                Popular cards
+              </h2>
 
               <p>
-                Discover cards currently
-                trending in the community.
+                Discover cards
+                currently
+                available.
               </p>
             </div>
 
@@ -671,11 +1210,16 @@ function UserApp({ onLogout }) {
               type="button"
               className="text-button"
               onClick={() =>
-                navigate("shop")
+                navigate(
+                  "shop"
+                )
               }
             >
               View all cards
-              <ChevronRight size={17} />
+
+              <ChevronRight
+                size={17}
+              />
             </button>
           </div>
 
@@ -690,44 +1234,67 @@ function UserApp({ onLogout }) {
                   Upcoming
                 </span>
 
-                <h2>Shop events</h2>
+                <h2>
+                  Shop events
+                </h2>
               </div>
 
-              <CalendarDays size={25} />
+              <CalendarDays
+                size={25}
+              />
             </div>
 
             <div className="mini-event-list">
               {shopEvents
                 .slice(0, 3)
-                .map((event) => (
-                  <div
-                    className="mini-event-item"
-                    key={event.id}
-                  >
-                    <div className="event-date-box">
-                      <strong>
-                        {event.date
-                          .split(" ")[1]
-                          .replace(",", "")}
-                      </strong>
+                .map((event) => {
+                  const dateParts =
+                    getDateParts(
+                      event.date
+                    );
 
-                      <span>
-                        {event.date
-                          .split(" ")[0]
-                          .slice(0, 3)}
-                      </span>
+                  return (
+                    <div
+                      className="mini-event-item"
+                      key={
+                        event.id
+                      }
+                    >
+                      <div className="event-date-box">
+                        <strong>
+                          {
+                            dateParts.day
+                          }
+                        </strong>
+
+                        <span>
+                          {
+                            dateParts.month
+                          }
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3>
+                          {
+                            event.title
+                          }
+                        </h3>
+
+                        <p>
+                          {formatEventTime(
+                            event.time
+                          )}{" "}
+                          ·{" "}
+                          {
+                            event.slots
+                          }{" "}
+                          slots left
+                        </p>
+                      </div>
                     </div>
-
-                    <div>
-                      <h3>{event.title}</h3>
-
-                      <p>
-                        {event.time} ·{" "}
-                        {event.slots} slots left
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </article>
 
@@ -739,51 +1306,82 @@ function UserApp({ onLogout }) {
                 </span>
 
                 <h2>
-                  Bracket 1 leaders
+                  Bracket 1
+                  leaders
                 </h2>
               </div>
 
-              <Trophy size={25} />
+              <Trophy
+                size={25}
+              />
             </div>
 
             <div className="leader-preview-list">
-              {rankings[1]
+              {rankingItems
+                .filter(
+                  (player) =>
+                    Number(
+                      player.bracket
+                    ) === 1
+                )
+                .sort(
+                  (a, b) =>
+                    Number(
+                      a.rank
+                    ) -
+                    Number(
+                      b.rank
+                    )
+                )
                 .slice(0, 3)
-                .map((player) => (
-                  <div
-                    className="leader-preview-item"
-                    key={player.name}
-                  >
-                    <span className="rank-number">
-                      {player.rank}
-                    </span>
-
-                    <div className="player-avatar">
-                      {player.name
-                        .split(" ")
-                        .map(
-                          (part) => part[0]
-                        )
-                        .join("")
-                        .slice(0, 2)}
-                    </div>
-
-                    <div>
-                      <strong>
-                        {player.name}
-                      </strong>
-
-                      <span>
-                        {player.wins}W ·{" "}
-                        {player.losses}L
+                .map(
+                  (player) => (
+                    <div
+                      className="leader-preview-item"
+                      key={
+                        player.id
+                      }
+                    >
+                      <span className="rank-number">
+                        {
+                          player.rank
+                        }
                       </span>
-                    </div>
 
-                    <strong className="player-points">
-                      {player.points} pts
-                    </strong>
-                  </div>
-                ))}
+                      <div className="player-avatar">
+                        {getInitials(
+                          player.name
+                        )}
+                      </div>
+
+                      <div>
+                        <strong>
+                          {
+                            player.name
+                          }
+                        </strong>
+
+                        <span>
+                          {
+                            player.wins
+                          }
+                          W ·{" "}
+                          {
+                            player.losses
+                          }
+                          L
+                        </span>
+                      </div>
+
+                      <strong className="player-points">
+                        {
+                          player.points
+                        }{" "}
+                        pts
+                      </strong>
+                    </div>
+                  )
+                )}
             </div>
           </article>
         </section>
@@ -792,6 +1390,16 @@ function UserApp({ onLogout }) {
   }
 
   function renderShop() {
+    const gameOptions = [
+      "All",
+      ...new Set(
+        cardItems.map(
+          (card) =>
+            card.game
+        )
+      ),
+    ];
+
     return (
       <section className="content-section page-section">
         <div className="page-title-row">
@@ -800,11 +1408,14 @@ function UserApp({ onLogout }) {
               Marketplace
             </span>
 
-            <h1>Card Shop</h1>
+            <h1>
+              Card Shop
+            </h1>
 
             <p>
-              Search cards by name, game,
-              set, rarity, or seller.
+              Search by card,
+              game, set,
+              rarity or seller.
             </p>
           </div>
 
@@ -815,61 +1426,73 @@ function UserApp({ onLogout }) {
               navigate("cart")
             }
           >
-            <ShoppingCart size={20} />
+            <ShoppingCart
+              size={20}
+            />
+
             Cart
-            <span>{cartCount}</span>
+
+            <span>
+              {
+                cartCount
+              }
+            </span>
           </button>
         </div>
 
         <div className="shop-toolbar">
           <label className="search-field">
-            <Search size={19} />
+            <Search
+              size={19}
+            />
 
             <input
               type="search"
               placeholder="Search for a card..."
-              value={searchText}
+              value={
+                searchText
+              }
               onChange={(event) =>
                 setSearchText(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
             />
           </label>
 
           <select
-            value={gameFilter}
+            value={
+              gameFilter
+            }
             onChange={(event) =>
               setGameFilter(
-                event.target.value
+                event.target
+                  .value
               )
             }
           >
-            <option value="All">
-              All games
-            </option>
-
-            <option value="Pokemon">
-              Pokemon
-            </option>
-
-            <option value="Yu-Gi-Oh!">
-              Yu-Gi-Oh!
-            </option>
-
-            <option value="One Piece">
-              One Piece
-            </option>
-
-            <option value="Magic">
-              Magic
-            </option>
+            {gameOptions.map(
+              (game) => (
+                <option
+                  key={game}
+                  value={game}
+                >
+                  {game ===
+                  "All"
+                    ? "All games"
+                    : game}
+                </option>
+              )
+            )}
           </select>
         </div>
 
         <div className="results-line">
           <strong>
-            {filteredCards.length}
+            {
+              filteredCards.length
+            }
           </strong>{" "}
           cards found
         </div>
@@ -885,73 +1508,132 @@ function UserApp({ onLogout }) {
         <div className="page-title-row">
           <div>
             <span className="eyebrow">
-              Compete and connect
+              Compete and
+              connect
             </span>
 
-            <h1>Upcoming Events</h1>
+            <h1>
+              Upcoming Events
+            </h1>
 
             <p>
-              Register for tournaments,
-              leagues, and community meetups.
+              Register for
+              tournaments and
+              community events.
             </p>
           </div>
         </div>
 
         <div className="event-grid">
-          {shopEvents.map((event) => (
-            <article
-              className="event-card"
-              key={event.id}
-            >
-              <div className="event-card__banner">
-                <span>{event.game}</span>
-                <CalendarDays size={34} />
-              </div>
-
-              <div className="event-card__body">
-                <span className="event-status">
-                  Registration open
-                </span>
-
-                <h2>{event.title}</h2>
-
-                <div className="event-detail-list">
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {event.date}
-                  </p>
-
-                  <p>
-                    <strong>Time:</strong>{" "}
-                    {event.time}
-                  </p>
-
-                  <p>
-                    <strong>Venue:</strong>{" "}
-                    {event.venue}
-                  </p>
-
-                  <p>
-                    <strong>
-                      Entry fee:
-                    </strong>{" "}
-                    {formatPrice(event.fee)}
-                  </p>
-                </div>
-
-                <div className="event-card__footer">
+          {shopEvents.map(
+            (event) => (
+              <article
+                className="event-card"
+                key={event.id}
+              >
+                <div className="event-card__banner">
                   <span>
-                    {event.slots} slots
-                    remaining
+                    {
+                      event.game
+                    }
                   </span>
 
-                  <button type="button">
-                    Register now
-                  </button>
+                  <CalendarDays
+                    size={34}
+                  />
                 </div>
-              </div>
-            </article>
-          ))}
+
+                <div className="event-card__body">
+                  <span className="event-status">
+                    {event.status ===
+                    "Full"
+                      ? "Registration full"
+                      : "Registration open"}
+                  </span>
+
+                  <h2>
+                    {
+                      event.title
+                    }
+                  </h2>
+
+                  <div className="event-detail-list">
+                    <p>
+                      <strong>
+                        Date:
+                      </strong>{" "}
+                      {formatEventDate(
+                        event.date
+                      )}
+                    </p>
+
+                    <p>
+                      <strong>
+                        Time:
+                      </strong>{" "}
+                      {formatEventTime(
+                        event.time
+                      )}
+                    </p>
+
+                    <p>
+                      <strong>
+                        Venue:
+                      </strong>{" "}
+                      {
+                        event.venue
+                      }
+                    </p>
+
+                    <p>
+                      <strong>
+                        Entry fee:
+                      </strong>{" "}
+                      {formatPrice(
+                        event.fee
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="event-card__footer">
+                    <span>
+                      {
+                        event.slots
+                      }{" "}
+                      slots remaining
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={
+                        event.status ===
+                          "Full" ||
+                        event.slots <=
+                          0 ||
+                        registeringEvent ===
+                          event.id
+                      }
+                      onClick={() =>
+                        handleRegisterEvent(
+                          event.id
+                        )
+                      }
+                    >
+                      {registeringEvent ===
+                      event.id
+                        ? "Registering..."
+                        : event.status ===
+                            "Full" ||
+                          event.slots <=
+                            0
+                        ? "Full"
+                        : "Register now"}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            )
+          )}
         </div>
       </section>
     );
@@ -959,7 +1641,21 @@ function UserApp({ onLogout }) {
 
   function renderRankings() {
     const selectedPlayers =
-      rankings[selectedBracket];
+      rankingItems
+        .filter(
+          (player) =>
+            Number(
+              player.bracket
+            ) ===
+            Number(
+              selectedBracket
+            )
+        )
+        .sort(
+          (a, b) =>
+            Number(a.rank) -
+            Number(b.rank)
+        );
 
     return (
       <section className="content-section page-section">
@@ -969,32 +1665,41 @@ function UserApp({ onLogout }) {
               Player standings
             </span>
 
-            <h1>Bracket Rankings</h1>
+            <h1>
+              Bracket Rankings
+            </h1>
 
             <p>
-              View wins, losses, points, and
-              current player positions.
+              View current
+              positions and
+              points.
             </p>
           </div>
         </div>
 
         <div className="bracket-tabs">
-          {[1, 2, 3, 4].map((bracket) => (
-            <button
-              type="button"
-              key={bracket}
-              className={
-                selectedBracket === bracket
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setSelectedBracket(bracket)
-              }
-            >
-              Bracket {bracket}
-            </button>
-          ))}
+          {[1, 2, 3, 4].map(
+            (bracket) => (
+              <button
+                type="button"
+                key={bracket}
+                className={
+                  selectedBracket ===
+                  bracket
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setSelectedBracket(
+                    bracket
+                  )
+                }
+              >
+                Bracket{" "}
+                {bracket}
+              </button>
+            )
+          )}
         </div>
 
         <div className="ranking-card">
@@ -1005,67 +1710,91 @@ function UserApp({ onLogout }) {
               </span>
 
               <h2>
-                Bracket {selectedBracket}
+                Bracket{" "}
+                {
+                  selectedBracket
+                }
               </h2>
             </div>
 
-            <Trophy size={33} />
+            <Trophy
+              size={33}
+            />
           </div>
 
           <div className="ranking-table-wrapper">
             <table className="ranking-table">
               <thead>
                 <tr>
-                  <th>Rank</th>
-                  <th>Player</th>
-                  <th>Wins</th>
-                  <th>Losses</th>
-                  <th>Points</th>
+                  <th>
+                    Rank
+                  </th>
+                  <th>
+                    Player
+                  </th>
+                  <th>
+                    Wins
+                  </th>
+                  <th>
+                    Losses
+                  </th>
+                  <th>
+                    Points
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
                 {selectedPlayers.map(
                   (player) => (
-                    <tr key={player.name}>
+                    <tr
+                      key={
+                        player.id
+                      }
+                    >
                       <td>
                         <span
                           className={`rank-badge rank-badge-${player.rank}`}
                         >
-                          {player.rank}
+                          {
+                            player.rank
+                          }
                         </span>
                       </td>
 
                       <td>
                         <div className="ranking-player">
                           <div className="player-avatar">
-                            {player.name
-                              .split(" ")
-                              .map(
-                                (part) =>
-                                  part[0]
-                              )
-                              .join("")
-                              .slice(0, 2)}
+                            {getInitials(
+                              player.name
+                            )}
                           </div>
 
                           <strong>
-                            {player.name}
+                            {
+                              player.name
+                            }
                           </strong>
                         </div>
                       </td>
 
                       <td>
-                        {player.wins}
+                        {
+                          player.wins
+                        }
                       </td>
 
                       <td>
-                        {player.losses}
+                        {
+                          player.losses
+                        }
                       </td>
 
                       <td>
                         <strong>
-                          {player.points}
+                          {
+                            player.points
+                          }
                         </strong>
                       </td>
                     </tr>
@@ -1089,12 +1818,14 @@ function UserApp({ onLogout }) {
             </span>
 
             <h1>
-              Questions and Discussions
+              Questions and
+              Discussions
             </h1>
 
             <p>
-              Ask about card rules, events,
-              card values, or deck building.
+              Ask about cards,
+              events, values or
+              decks.
             </p>
           </div>
         </div>
@@ -1103,20 +1834,31 @@ function UserApp({ onLogout }) {
           <div>
             <form
               className="question-form"
-              onSubmit={submitQuestion}
+              onSubmit={
+                submitQuestion
+              }
             >
               <div className="question-form__icon">
-                <CircleHelp size={25} />
+                <CircleHelp
+                  size={25}
+                />
               </div>
 
               <div className="question-form__content">
-                <h2>Ask a question</h2>
+                <h2>
+                  Ask a question
+                </h2>
 
                 <textarea
-                  value={questionText}
-                  onChange={(event) =>
+                  value={
+                    questionText
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setQuestionText(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   placeholder="What would you like to ask?"
@@ -1125,11 +1867,14 @@ function UserApp({ onLogout }) {
 
                 <div className="question-form__footer">
                   <span>
-                    Be respectful and provide
-                    enough details.
+                    Be respectful
+                    and provide
+                    details.
                   </span>
 
-                  <button type="submit">
+                  <button
+                    type="submit"
+                  >
                     Post question
                   </button>
                 </div>
@@ -1141,42 +1886,53 @@ function UserApp({ onLogout }) {
                 (question) => (
                   <article
                     className="question-card"
-                    key={question.id}
+                    key={
+                      question.id
+                    }
                   >
                     <div className="question-avatar">
-                      {question.user
-                        .split(" ")
-                        .map(
-                          (part) => part[0]
-                        )
-                        .join("")
-                        .slice(0, 2)}
+                      {getInitials(
+                        question.user
+                      )}
                     </div>
 
                     <div className="question-card__content">
                       <div className="question-meta">
                         <strong>
-                          {question.user}
+                          {
+                            question.user
+                          }
                         </strong>
 
                         <span>
-                          {question.time}
+                          {
+                            question.time
+                          }
                         </span>
                       </div>
 
                       <span className="question-category">
-                        {question.category}
+                        {
+                          question.category
+                        }
                       </span>
 
                       <h3>
-                        {question.question}
+                        {
+                          question.question
+                        }
                       </h3>
 
-                      <button type="button">
+                      <button
+                        type="button"
+                      >
                         <MessageCircle
                           size={17}
                         />
-                        {question.replies}{" "}
+
+                        {
+                          question.replies
+                        }{" "}
                         replies
                       </button>
                     </div>
@@ -1193,23 +1949,20 @@ function UserApp({ onLogout }) {
 
             <ul>
               <li>
-                Use a clear and descriptive
+                Use a clear
                 question.
               </li>
-
               <li>
-                Respect other players and
-                their opinions.
+                Respect other
+                players.
               </li>
-
               <li>
-                Do not post fake card
-                listings.
+                Do not post
+                fake listings.
               </li>
-
               <li>
-                Report suspicious sellers to
-                shop staff.
+                Report suspicious
+                activity.
               </li>
             </ul>
           </aside>
@@ -1227,26 +1980,31 @@ function UserApp({ onLogout }) {
               Your order
             </span>
 
-            <h1>Shopping Cart</h1>
+            <h1>
+              Shopping Cart
+            </h1>
 
             <p>
-              Review your selected cards
-              before checkout.
+              Review selected
+              cards before
+              checkout.
             </p>
           </div>
         </div>
 
         {cart.length === 0 ? (
           <div className="empty-state large">
-            <ShoppingCart size={47} />
+            <ShoppingCart
+              size={47}
+            />
 
             <h2>
               Your cart is empty
             </h2>
 
             <p>
-              Browse the marketplace and add
-              cards to your cart.
+              Browse the shop
+              and add cards.
             </p>
 
             <button
@@ -1261,86 +2019,139 @@ function UserApp({ onLogout }) {
         ) : (
           <div className="cart-layout">
             <div className="cart-list">
-              {cart.map((item) => (
-                <article
-                  className="cart-item"
-                  key={item.id}
-                >
-                  <div
-                    className={`cart-item__image game-image-${item.id}`}
+              {cart.map(
+                (
+                  item,
+                  index
+                ) => (
+                  <article
+                    className="cart-item"
+                    key={
+                      item.id
+                    }
                   >
-                    <span>
-                      {item.game}
-                    </span>
-                  </div>
-
-                  <div className="cart-item__details">
-                    <span>
-                      {item.set}
-                    </span>
-
-                    <h3>
-                      {item.name}
-                    </h3>
-
-                    <p>
-                      {item.condition} ·{" "}
-                      {item.seller}
-                    </p>
-                  </div>
-
-                  <div className="quantity-control">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        changeQuantity(
-                          item.id,
-                          -1
-                        )
-                      }
+                    <div
+                      className={`cart-item__image ${
+                        item.imageUrl
+                          ? "has-real-image"
+                          : `game-image-${
+                              (index %
+                                6) +
+                              1
+                            }`
+                      }`}
                     >
-                      <Minus size={16} />
-                    </button>
+                      {item.imageUrl ? (
+                        <img
+                          src={
+                            item.imageUrl
+                          }
+                          alt={
+                            item.name
+                          }
+                          className="cart-item__actual-image"
+                        />
+                      ) : (
+                        <span>
+                          {
+                            item.game
+                          }
+                        </span>
+                      )}
+                    </div>
 
-                    <span>
-                      {item.quantity}
-                    </span>
+                    <div className="cart-item__details">
+                      <span>
+                        {
+                          item.set
+                        }
+                      </span>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        changeQuantity(
-                          item.id,
-                          1
-                        )
-                      }
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
+                      <h3>
+                        {
+                          item.name
+                        }
+                      </h3>
 
-                  <strong>
-                    {formatPrice(
-                      item.price *
-                        item.quantity
-                    )}
-                  </strong>
-                </article>
-              ))}
+                      <p>
+                        {
+                          item.condition
+                        }{" "}
+                        ·{" "}
+                        {
+                          item.seller
+                        }
+                      </p>
+                    </div>
+
+                    <div className="quantity-control">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          changeQuantity(
+                            item.id,
+                            -1
+                          )
+                        }
+                      >
+                        <Minus
+                          size={16}
+                        />
+                      </button>
+
+                      <span>
+                        {
+                          item.quantity
+                        }
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          changeQuantity(
+                            item.id,
+                            1
+                          )
+                        }
+                      >
+                        <Plus
+                          size={16}
+                        />
+                      </button>
+                    </div>
+
+                    <strong>
+                      {formatPrice(
+                        item.price *
+                          item.quantity
+                      )}
+                    </strong>
+                  </article>
+                )
+              )}
             </div>
 
             <aside className="order-summary">
-              <h2>Order summary</h2>
+              <h2>
+                Order summary
+              </h2>
 
               <div>
-                <span>Items</span>
+                <span>
+                  Items
+                </span>
+
                 <strong>
-                  {cartCount}
+                  {
+                    cartCount
+                  }
                 </strong>
               </div>
 
               <div>
-                <span>Subtotal</span>
+                <span>
+                  Subtotal
+                </span>
 
                 <strong>
                   {formatPrice(
@@ -1350,7 +2161,9 @@ function UserApp({ onLogout }) {
               </div>
 
               <div>
-                <span>Shipping</span>
+                <span>
+                  Shipping
+                </span>
 
                 <strong>
                   Calculated later
@@ -1358,7 +2171,9 @@ function UserApp({ onLogout }) {
               </div>
 
               <div className="order-total">
-                <span>Total</span>
+                <span>
+                  Total
+                </span>
 
                 <strong>
                   {formatPrice(
@@ -1367,8 +2182,18 @@ function UserApp({ onLogout }) {
                 </strong>
               </div>
 
-              <button type="button">
-                Proceed to checkout
+              <button
+                type="button"
+                disabled={
+                  checkoutLoading
+                }
+                onClick={
+                  handleCheckout
+                }
+              >
+                {checkoutLoading
+                  ? "Processing..."
+                  : "Proceed to checkout"}
               </button>
             </aside>
           </div>
@@ -1382,7 +2207,9 @@ function UserApp({ onLogout }) {
       <section className="content-section page-section">
         <div className="profile-header-card">
           <div className="profile-avatar">
-            IG
+            {getInitials(
+              playerName
+            )}
           </div>
 
           <div>
@@ -1390,15 +2217,20 @@ function UserApp({ onLogout }) {
               Player account
             </span>
 
-            <h1>Ivan Guerrero</h1>
+            <h1>
+              {playerName}
+            </h1>
 
             <p>
-              Card collector and tournament
+              Card collector
+              and tournament
               player
             </p>
           </div>
 
-          <button type="button">
+          <button
+            type="button"
+          >
             Edit profile
           </button>
         </div>
@@ -1415,7 +2247,10 @@ function UserApp({ onLogout }) {
               </span>
 
               <strong>
-                Bracket 4
+                Bracket{" "}
+                {
+                  playerBracket
+                }
               </strong>
             </div>
 
@@ -1424,7 +2259,12 @@ function UserApp({ onLogout }) {
                 Current rank
               </span>
 
-              <strong>#1</strong>
+              <strong>
+                #
+                {
+                  playerRank
+                }
+              </strong>
             </div>
 
             <div className="profile-info-row">
@@ -1433,7 +2273,10 @@ function UserApp({ onLogout }) {
               </span>
 
               <strong>
-                34 points
+                {
+                  playerPoints
+                }{" "}
+                points
               </strong>
             </div>
 
@@ -1443,7 +2286,19 @@ function UserApp({ onLogout }) {
               </span>
 
               <strong>
-                January 2026
+                {profileData?.joined
+                  ? new Date(
+                      profileData.joined
+                    ).toLocaleDateString(
+                      "en-US",
+                      {
+                        month:
+                          "long",
+                        year:
+                          "numeric",
+                      }
+                    )
+                  : "-"}
               </strong>
             </div>
           </article>
@@ -1455,35 +2310,67 @@ function UserApp({ onLogout }) {
 
             <div className="profile-stat-grid">
               <div>
-                <ShoppingBag size={21} />
-                <strong>12</strong>
-                <span>Orders</span>
+                <ShoppingBag
+                  size={21}
+                />
+
+                <strong>
+                  {
+                    cartCount
+                  }
+                </strong>
+
+                <span>
+                  Cart items
+                </span>
               </div>
 
               <div>
                 <CalendarDays
                   size={21}
                 />
-                <strong>8</strong>
-                <span>Events</span>
+
+                <strong>
+                  {
+                    shopEvents.length
+                  }
+                </strong>
+
+                <span>
+                  Events
+                </span>
               </div>
 
               <div>
-                <Heart size={21} />
+                <Heart
+                  size={21}
+                />
+
                 <strong>
-                  {favorites.length}
+                  {
+                    favorites.length
+                  }
                 </strong>
-                <span>Favorites</span>
+
+                <span>
+                  Favorites
+                </span>
               </div>
 
               <div>
                 <MessageCircle
                   size={21}
                 />
+
                 <strong>
-                  {questions.length}
+                  {
+                    questions.length
+                  }
                 </strong>
-                <span>Questions</span>
+
+                <span>
+                  Questions
+                </span>
               </div>
             </div>
           </article>
@@ -1532,7 +2419,10 @@ function UserApp({ onLogout }) {
           </div>
 
           <div>
-            <strong>STAX</strong>
+            <strong>
+              STAX
+            </strong>
+
             <span>
               Card Marketplace
             </span>
@@ -1542,59 +2432,86 @@ function UserApp({ onLogout }) {
             type="button"
             className="sidebar-close-button"
             onClick={() =>
-              setMobileSidebarOpen(false)
+              setMobileSidebarOpen(
+                false
+              )
             }
           >
-            <X size={21} />
+            <X
+              size={21}
+            />
           </button>
         </div>
 
         <nav className="sidebar-navigation">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
+          {menuItems.map(
+            (item) => {
+              const Icon =
+                item.icon;
 
-            return (
-              <button
-                type="button"
-                key={item.id}
-                className={
-                  activePage === item.id
-                    ? "active"
-                    : ""
-                }
-                onClick={() =>
-                  navigate(item.id)
-                }
-              >
-                <Icon size={20} />
+              return (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={
+                    activePage ===
+                    item.id
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() =>
+                    navigate(
+                      item.id
+                    )
+                  }
+                >
+                  <Icon
+                    size={20}
+                  />
 
-                <span>
-                  {item.label}
-                </span>
+                  <span>
+                    {
+                      item.label
+                    }
+                  </span>
 
-                {item.id === "cart" &&
-                  cartCount > 0 && (
-                    <span className="sidebar-count">
-                      {cartCount}
-                    </span>
-                  )}
-              </button>
-            );
-          })}
+                  {item.id ===
+                    "cart" &&
+                    cartCount >
+                      0 && (
+                      <span className="sidebar-count">
+                        {
+                          cartCount
+                        }
+                      </span>
+                    )}
+                </button>
+              );
+            }
+          )}
         </nav>
 
         <div className="sidebar-player-card">
           <div className="player-avatar">
-            IG
+            {getInitials(
+              playerName
+            )}
           </div>
 
           <div>
             <strong>
-              Ivan Guerrero
+              {playerName}
             </strong>
 
             <span>
-              Bracket 4 · Rank #1
+              Bracket{" "}
+              {
+                playerBracket
+              }
+
+              {playerRank !==
+                "-" &&
+                ` · Rank #${playerRank}`}
             </span>
           </div>
         </div>
@@ -1604,7 +2521,9 @@ function UserApp({ onLogout }) {
           className="sidebar-logout"
           onClick={onLogout}
         >
-          <LogOut size={19} />
+          <LogOut
+            size={19}
+          />
           Log out
         </button>
       </aside>
@@ -1613,9 +2532,10 @@ function UserApp({ onLogout }) {
         <button
           type="button"
           className="sidebar-overlay"
-          aria-label="Close sidebar"
           onClick={() =>
-            setMobileSidebarOpen(false)
+            setMobileSidebarOpen(
+              false
+            )
           }
         />
       )}
@@ -1626,26 +2546,37 @@ function UserApp({ onLogout }) {
             type="button"
             className="mobile-menu-button"
             onClick={() =>
-              setMobileSidebarOpen(true)
+              setMobileSidebarOpen(
+                true
+              )
             }
           >
-            <Menu size={23} />
+            <Menu
+              size={23}
+            />
           </button>
 
           <label className="header-search">
-            <Search size={18} />
+            <Search
+              size={18}
+            />
 
             <input
               type="search"
               placeholder="Search cards..."
-              value={searchText}
+              value={
+                searchText
+              }
               onChange={(event) =>
                 setSearchText(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
               onFocus={() =>
-                setActivePage("shop")
+                setActivePage(
+                  "shop"
+                )
               }
             />
           </label>
@@ -1658,24 +2589,43 @@ function UserApp({ onLogout }) {
                 navigate("cart")
               }
             >
-              <ShoppingCart size={20} />
-              <span>{cartCount}</span>
+              <ShoppingCart
+                size={20}
+              />
+
+              <span>
+                {
+                  cartCount
+                }
+              </span>
             </button>
 
             <button
               type="button"
               className="header-profile-button"
               onClick={() =>
-                navigate("profile")
+                navigate(
+                  "profile"
+                )
               }
             >
               <div className="player-avatar">
-                IG
+                {getInitials(
+                  playerName
+                )}
               </div>
 
               <div>
-                <strong>Ivan</strong>
-                <span>Bracket 4</span>
+                <strong>
+                  {playerName}
+                </strong>
+
+                <span>
+                  Bracket{" "}
+                  {
+                    playerBracket
+                  }
+                </span>
               </div>
             </button>
           </div>
