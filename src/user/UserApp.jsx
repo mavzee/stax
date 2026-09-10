@@ -42,6 +42,7 @@ import {
 
 import "./user.css";
 
+
 const menuItems = [
   {
     id: "home",
@@ -80,7 +81,10 @@ const menuItems = [
   },
 ];
 
-function formatPrice(price) {
+
+function formatPrice(
+  price
+) {
   return new Intl.NumberFormat(
     "en-PH",
     {
@@ -92,6 +96,7 @@ function formatPrice(price) {
     Number(price || 0)
   );
 }
+
 
 function formatEventDate(
   date
@@ -125,6 +130,7 @@ function formatEventDate(
   ).format(parsed);
 }
 
+
 function formatEventTime(
   time
 ) {
@@ -136,7 +142,10 @@ function formatEventTime(
     hours,
     minutes,
   ] = time
-    .slice(0, 5)
+    .slice(
+      0,
+      5
+    )
     .split(":")
     .map(Number);
 
@@ -158,6 +167,7 @@ function formatEventTime(
     }
   ).format(parsed);
 }
+
 
 function getDateParts(
   date
@@ -193,9 +203,12 @@ function getDateParts(
         {
           month: "short",
         }
-      ).format(parsed),
+      ).format(
+        parsed
+      ),
   };
 }
+
 
 function getInitials(
   name = ""
@@ -204,24 +217,35 @@ function getInitials(
     .split(" ")
     .filter(Boolean)
     .map(
-      (part) => part[0]
+      (part) =>
+        part[0]
     )
     .join("")
-    .slice(0, 2)
+    .slice(
+      0,
+      2
+    )
     .toUpperCase();
 }
+
 
 function UserApp({
   onLogout,
   profile,
 }) {
-  const [activePage, setActivePage] =
-    useState("home");
+  const [
+    activePage,
+    setActivePage,
+  ] = useState(
+    "home"
+  );
 
   const [
     mobileSidebarOpen,
     setMobileSidebarOpen,
-  ] = useState(false);
+  ] = useState(
+    false
+  );
 
   const [
     searchText,
@@ -277,7 +301,8 @@ function UserApp({
     profileData,
     setProfileData,
   ] = useState(
-    profile || null
+    profile ||
+    null
   );
 
   const [
@@ -289,6 +314,11 @@ function UserApp({
     registeringEvent,
     setRegisteringEvent,
   ] = useState(null);
+
+
+  /* =========================================================
+     LOAD CARDS
+  ========================================================= */
 
   const loadCards =
     useCallback(
@@ -360,6 +390,11 @@ function UserApp({
       []
     );
 
+
+  /* =========================================================
+     LOAD EVENTS
+  ========================================================= */
+
   const loadEvents =
     useCallback(
       async () => {
@@ -412,6 +447,10 @@ function UserApp({
 
                   status:
                     item.status,
+
+                  imageUrl:
+                    item.image_url ||
+                    "",
                 })
               )
           );
@@ -424,6 +463,11 @@ function UserApp({
       },
       []
     );
+
+
+  /* =========================================================
+     LOAD RANKINGS
+  ========================================================= */
 
   const loadRankings =
     useCallback(
@@ -444,6 +488,11 @@ function UserApp({
       },
       []
     );
+
+
+  /* =========================================================
+     LOAD QUESTIONS
+  ========================================================= */
 
   const loadQuestions =
     useCallback(
@@ -490,6 +539,11 @@ function UserApp({
       []
     );
 
+
+  /* =========================================================
+     INITIALIZE
+  ========================================================= */
+
   useEffect(() => {
     async function initialize() {
       await Promise.all([
@@ -508,7 +562,8 @@ function UserApp({
         );
 
         if (
-          currentProfile?.bracket
+          currentProfile
+            ?.bracket
         ) {
           setSelectedBracket(
             Number(
@@ -531,6 +586,11 @@ function UserApp({
     loadRankings,
     loadQuestions,
   ]);
+
+
+  /* =========================================================
+     REALTIME
+  ========================================================= */
 
   useEffect(() => {
     const channel =
@@ -602,77 +662,104 @@ function UserApp({
     loadQuestions,
   ]);
 
+
   const filteredCards =
-    useMemo(() => {
-      const search =
-        searchText
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const search =
+          searchText
+            .trim()
+            .toLowerCase();
 
-      return cardItems.filter(
-        (card) => {
-          const matchesSearch =
-            !search ||
-            card.name
-              .toLowerCase()
-              .includes(search) ||
-            card.game
-              .toLowerCase()
-              .includes(search) ||
-            card.set
-              .toLowerCase()
-              .includes(search) ||
-            card.rarity
-              .toLowerCase()
-              .includes(search) ||
-            card.seller
-              .toLowerCase()
-              .includes(search);
+        return cardItems.filter(
+          (card) => {
+            const matchesSearch =
+              !search ||
+              card.name
+                .toLowerCase()
+                .includes(
+                  search
+                ) ||
+              card.game
+                .toLowerCase()
+                .includes(
+                  search
+                ) ||
+              card.set
+                .toLowerCase()
+                .includes(
+                  search
+                ) ||
+              card.rarity
+                .toLowerCase()
+                .includes(
+                  search
+                ) ||
+              card.seller
+                .toLowerCase()
+                .includes(
+                  search
+                );
 
-          const matchesGame =
-            gameFilter ===
-              "All" ||
-            card.game ===
-              gameFilter;
+            const matchesGame =
+              gameFilter ===
+                "All" ||
+              card.game ===
+                gameFilter;
 
-          return (
-            matchesSearch &&
-            matchesGame
-          );
-        }
-      );
-    }, [
-      cardItems,
-      searchText,
-      gameFilter,
-    ]);
+            return (
+              matchesSearch &&
+              matchesGame
+            );
+          }
+        );
+      },
+      [
+        cardItems,
+        searchText,
+        gameFilter,
+      ]
+    );
+
 
   const cartCount =
     cart.reduce(
-      (total, item) =>
+      (
+        total,
+        item
+      ) =>
         total +
         item.quantity,
       0
     );
 
+
   const cartTotal =
     cart.reduce(
-      (total, item) =>
+      (
+        total,
+        item
+      ) =>
         total +
         item.price *
           item.quantity,
       0
     );
 
+
   const playerName =
-    profileData?.full_name ||
+    profileData
+      ?.full_name ||
     "STAX Player";
+
 
   const playerBracket =
     Number(
-      profileData?.bracket ||
-        1
+      profileData
+        ?.bracket ||
+      1
     );
+
 
   const currentPlayerRanking =
     rankingItems.find(
@@ -685,13 +772,18 @@ function UserApp({
           .toLowerCase()
     );
 
+
   const playerRank =
-    currentPlayerRanking?.rank ||
+    currentPlayerRanking
+      ?.rank ||
     "-";
 
+
   const playerPoints =
-    currentPlayerRanking?.points ||
+    currentPlayerRanking
+      ?.points ||
     0;
+
 
   function navigate(page) {
     setActivePage(page);
@@ -706,6 +798,7 @@ function UserApp({
     });
   }
 
+
   function toggleFavorite(
     cardId
   ) {
@@ -716,7 +809,8 @@ function UserApp({
         )
           ? current.filter(
               (id) =>
-                id !== cardId
+                id !==
+                cardId
             )
           : [
               ...current,
@@ -725,72 +819,85 @@ function UserApp({
     );
   }
 
-  function addToCart(card) {
-    setCart((current) => {
-      const existing =
-        current.find(
-          (item) =>
-            item.id ===
-            card.id
-        );
 
-      if (existing) {
-        return current.map(
-          (item) =>
-            item.id ===
-            card.id
-              ? {
-                  ...item,
-                  quantity:
-                    Math.min(
-                      item.quantity +
-                        1,
-                      card.stock
-                    ),
-                }
-              : item
-        );
+  function addToCart(
+    card
+  ) {
+    setCart(
+      (current) => {
+        const existing =
+          current.find(
+            (item) =>
+              item.id ===
+              card.id
+          );
+
+        if (existing) {
+          return current.map(
+            (item) =>
+              item.id ===
+              card.id
+                ? {
+                    ...item,
+
+                    quantity:
+                      Math.min(
+                        item.quantity +
+                          1,
+                        card.stock
+                      ),
+                  }
+                : item
+          );
+        }
+
+        return [
+          ...current,
+
+          {
+            ...card,
+            quantity: 1,
+          },
+        ];
       }
-
-      return [
-        ...current,
-        {
-          ...card,
-          quantity: 1,
-        },
-      ];
-    });
+    );
   }
+
 
   function changeQuantity(
     cardId,
     amount
   ) {
-    setCart((current) =>
-      current
-        .map((item) =>
-          item.id ===
-          cardId
-            ? {
-                ...item,
-                quantity:
-                  Math.max(
-                    0,
-                    Math.min(
-                      item.quantity +
-                        amount,
-                      item.stock
-                    )
-                  ),
-              }
-            : item
-        )
-        .filter(
-          (item) =>
-            item.quantity > 0
-        )
+    setCart(
+      (current) =>
+        current
+          .map(
+            (item) =>
+              item.id ===
+              cardId
+                ? {
+                    ...item,
+
+                    quantity:
+                      Math.max(
+                        0,
+                        Math.min(
+                          item.quantity +
+                            amount,
+                          item.stock
+                        )
+                      ),
+                  }
+                : item
+          )
+          .filter(
+            (item) =>
+              item.quantity >
+              0
+          )
     );
   }
+
 
   async function submitQuestion(
     event
@@ -829,9 +936,11 @@ function UserApp({
     }
   }
 
+
   async function handleCheckout() {
     if (
-      cart.length === 0
+      cart.length ===
+      0
     ) {
       return;
     }
@@ -867,6 +976,7 @@ function UserApp({
       );
     }
   }
+
 
   async function handleRegisterEvent(
     eventId
@@ -907,6 +1017,11 @@ function UserApp({
     }
   }
 
+
+  /* =========================================================
+     CARD GRID
+  ========================================================= */
+
   function renderCardGrid(
     limit
   ) {
@@ -918,8 +1033,10 @@ function UserApp({
           )
         : filteredCards;
 
+
     return (
       <div className="card-market-grid">
+
         {displayedCards.map(
           (
             card,
@@ -927,19 +1044,25 @@ function UserApp({
           ) => (
             <article
               className="market-card"
-              key={card.id}
+              key={
+                card.id
+              }
             >
+
               <div
                 className={`market-card__image ${
                   card.imageUrl
                     ? "has-real-image"
                     : `game-image-${
-                        (index %
-                          6) +
+                        (
+                          index %
+                          6
+                        ) +
                         1
                       }`
                 }`}
               >
+
                 {card.imageUrl ? (
                   <img
                     src={
@@ -957,6 +1080,7 @@ function UserApp({
                     }
                   </span>
                 )}
+
 
                 <button
                   type="button"
@@ -977,9 +1101,12 @@ function UserApp({
                     size={19}
                   />
                 </button>
+
               </div>
 
+
               <div className="market-card__body">
+
                 <div className="market-card__game-row">
                   <span>
                     {
@@ -999,17 +1126,20 @@ function UserApp({
                   </span>
                 </div>
 
+
                 <h3>
                   {
                     card.name
                   }
                 </h3>
 
+
                 <p className="card-rarity">
                   {
                     card.rarity
                   }
                 </p>
+
 
                 <div className="card-condition-row">
                   <span>
@@ -1026,14 +1156,17 @@ function UserApp({
                   </span>
                 </div>
 
+
                 <div className="market-card__seller">
                   Sold by{" "}
+
                   <strong>
                     {
                       card.seller
                     }
                   </strong>
                 </div>
+
 
                 <div className="market-card__footer">
                   <strong>
@@ -1053,17 +1186,22 @@ function UserApp({
                     <ShoppingBag
                       size={17}
                     />
+
                     Add
                   </button>
                 </div>
+
               </div>
+
             </article>
           )
         )}
 
+
         {displayedCards.length ===
           0 && (
           <div className="empty-state full-grid-item">
+
             <Search
               size={38}
             />
@@ -1076,27 +1214,38 @@ function UserApp({
               Try another search
               or filter.
             </p>
+
           </div>
         )}
+
       </div>
     );
   }
+
+
+  /* =========================================================
+     HOME
+  ========================================================= */
 
   function renderHome() {
     return (
       <>
         <section className="hero-section">
+
           <div className="hero-section__content">
+
             <span className="eyebrow">
               The home of local
               card players
             </span>
+
 
             <h1>
               Find cards. Join
               events. Become the
               top player.
             </h1>
+
 
             <p>
               Browse cards,
@@ -1107,7 +1256,9 @@ function UserApp({
               community.
             </p>
 
+
             <div className="hero-actions">
+
               <button
                 type="button"
                 onClick={() =>
@@ -1123,6 +1274,7 @@ function UserApp({
                 />
               </button>
 
+
               <button
                 type="button"
                 className="secondary"
@@ -1134,10 +1286,14 @@ function UserApp({
               >
                 View events
               </button>
+
             </div>
+
           </div>
 
+
           <div className="hero-stat-panel">
+
             <div>
               <ShoppingBag
                 size={24}
@@ -1153,6 +1309,7 @@ function UserApp({
                 Cards listed
               </span>
             </div>
+
 
             <div>
               <Users
@@ -1170,6 +1327,7 @@ function UserApp({
               </span>
             </div>
 
+
             <div>
               <Trophy
                 size={24}
@@ -1185,11 +1343,16 @@ function UserApp({
                 Upcoming events
               </span>
             </div>
+
           </div>
+
         </section>
 
+
         <section className="content-section">
+
           <div className="section-heading">
+
             <div>
               <span className="eyebrow">
                 Marketplace
@@ -1206,6 +1369,7 @@ function UserApp({
               </p>
             </div>
 
+
             <button
               type="button"
               className="text-button"
@@ -1221,14 +1385,23 @@ function UserApp({
                 size={17}
               />
             </button>
+
           </div>
 
-          {renderCardGrid(4)}
+
+          {renderCardGrid(
+            4
+          )}
+
         </section>
 
+
         <section className="dashboard-grid">
+
           <article className="dashboard-panel">
+
             <div className="section-heading compact">
+
               <div>
                 <span className="eyebrow">
                   Upcoming
@@ -1242,64 +1415,93 @@ function UserApp({
               <CalendarDays
                 size={25}
               />
+
             </div>
+
 
             <div className="mini-event-list">
+
               {shopEvents
-                .slice(0, 3)
-                .map((event) => {
-                  const dateParts =
-                    getDateParts(
-                      event.date
+                .slice(
+                  0,
+                  3
+                )
+                .map(
+                  (event) => {
+                    const dateParts =
+                      getDateParts(
+                        event.date
+                      );
+
+                    return (
+                      <div
+                        className="mini-event-item"
+                        key={
+                          event.id
+                        }
+                      >
+
+                        {event.imageUrl ? (
+                          <div className="mini-event-poster">
+                            <img
+                              src={
+                                event.imageUrl
+                              }
+                              alt={
+                                event.title
+                              }
+                            />
+                          </div>
+                        ) : (
+                          <div className="event-date-box">
+                            <strong>
+                              {
+                                dateParts.day
+                              }
+                            </strong>
+
+                            <span>
+                              {
+                                dateParts.month
+                              }
+                            </span>
+                          </div>
+                        )}
+
+
+                        <div>
+                          <h3>
+                            {
+                              event.title
+                            }
+                          </h3>
+
+                          <p>
+                            {formatEventTime(
+                              event.time
+                            )}{" "}
+                            ·{" "}
+                            {
+                              event.slots
+                            }{" "}
+                            slots left
+                          </p>
+                        </div>
+
+                      </div>
                     );
+                  }
+                )}
 
-                  return (
-                    <div
-                      className="mini-event-item"
-                      key={
-                        event.id
-                      }
-                    >
-                      <div className="event-date-box">
-                        <strong>
-                          {
-                            dateParts.day
-                          }
-                        </strong>
-
-                        <span>
-                          {
-                            dateParts.month
-                          }
-                        </span>
-                      </div>
-
-                      <div>
-                        <h3>
-                          {
-                            event.title
-                          }
-                        </h3>
-
-                        <p>
-                          {formatEventTime(
-                            event.time
-                          )}{" "}
-                          ·{" "}
-                          {
-                            event.slots
-                          }{" "}
-                          slots left
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
             </div>
+
           </article>
 
+
           <article className="dashboard-panel">
+
             <div className="section-heading compact">
+
               <div>
                 <span className="eyebrow">
                   Leaderboard
@@ -1314,18 +1516,25 @@ function UserApp({
               <Trophy
                 size={25}
               />
+
             </div>
 
+
             <div className="leader-preview-list">
+
               {rankingItems
                 .filter(
                   (player) =>
                     Number(
                       player.bracket
-                    ) === 1
+                    ) ===
+                    1
                 )
                 .sort(
-                  (a, b) =>
+                  (
+                    a,
+                    b
+                  ) =>
                     Number(
                       a.rank
                     ) -
@@ -1333,7 +1542,10 @@ function UserApp({
                       b.rank
                     )
                 )
-                .slice(0, 3)
+                .slice(
+                  0,
+                  3
+                )
                 .map(
                   (player) => (
                     <div
@@ -1342,17 +1554,20 @@ function UserApp({
                         player.id
                       }
                     >
+
                       <span className="rank-number">
                         {
                           player.rank
                         }
                       </span>
 
+
                       <div className="player-avatar">
                         {getInitials(
                           player.name
                         )}
                       </div>
+
 
                       <div>
                         <strong>
@@ -1373,25 +1588,36 @@ function UserApp({
                         </span>
                       </div>
 
+
                       <strong className="player-points">
                         {
                           player.points
                         }{" "}
                         pts
                       </strong>
+
                     </div>
                   )
                 )}
+
             </div>
+
           </article>
+
         </section>
       </>
     );
   }
 
+
+  /* =========================================================
+     SHOP
+  ========================================================= */
+
   function renderShop() {
     const gameOptions = [
       "All",
+
       ...new Set(
         cardItems.map(
           (card) =>
@@ -1400,9 +1626,12 @@ function UserApp({
       ),
     ];
 
+
     return (
       <section className="content-section page-section">
+
         <div className="page-title-row">
+
           <div>
             <span className="eyebrow">
               Marketplace
@@ -1419,11 +1648,14 @@ function UserApp({
             </p>
           </div>
 
+
           <button
             type="button"
             className="cart-summary-button"
             onClick={() =>
-              navigate("cart")
+              navigate(
+                "cart"
+              )
             }
           >
             <ShoppingCart
@@ -1438,10 +1670,14 @@ function UserApp({
               }
             </span>
           </button>
+
         </div>
 
+
         <div className="shop-toolbar">
+
           <label className="search-field">
+
             <Search
               size={19}
             />
@@ -1452,31 +1688,42 @@ function UserApp({
               value={
                 searchText
               }
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setSearchText(
                   event.target
                     .value
                 )
               }
             />
+
           </label>
+
 
           <select
             value={
               gameFilter
             }
-            onChange={(event) =>
+            onChange={(
+              event
+            ) =>
               setGameFilter(
                 event.target
                   .value
               )
             }
           >
+
             {gameOptions.map(
               (game) => (
                 <option
-                  key={game}
-                  value={game}
+                  key={
+                    game
+                  }
+                  value={
+                    game
+                  }
                 >
                   {game ===
                   "All"
@@ -1485,27 +1732,41 @@ function UserApp({
                 </option>
               )
             )}
+
           </select>
+
         </div>
 
+
         <div className="results-line">
+
           <strong>
             {
               filteredCards.length
             }
           </strong>{" "}
           cards found
+
         </div>
 
+
         {renderCardGrid()}
+
       </section>
     );
   }
 
+
+  /* =========================================================
+     EVENTS
+  ========================================================= */
+
   function renderEvents() {
     return (
       <section className="content-section page-section">
+
         <div className="page-title-row">
+
           <div>
             <span className="eyebrow">
               Compete and
@@ -1522,28 +1783,58 @@ function UserApp({
               community events.
             </p>
           </div>
+
         </div>
 
+
         <div className="event-grid">
+
           {shopEvents.map(
             (event) => (
               <article
                 className="event-card"
-                key={event.id}
+                key={
+                  event.id
+                }
               >
-                <div className="event-card__banner">
-                  <span>
-                    {
-                      event.game
-                    }
-                  </span>
 
-                  <CalendarDays
-                    size={34}
-                  />
+                <div
+                  className={`event-card__banner ${
+                    event.imageUrl
+                      ? "has-event-image"
+                      : ""
+                  }`}
+                >
+
+                  {event.imageUrl ? (
+                    <img
+                      src={
+                        event.imageUrl
+                      }
+                      alt={
+                        event.title
+                      }
+                      className="event-card__poster"
+                    />
+                  ) : (
+                    <>
+                      <span>
+                        {
+                          event.game
+                        }
+                      </span>
+
+                      <CalendarDays
+                        size={34}
+                      />
+                    </>
+                  )}
+
                 </div>
 
+
                 <div className="event-card__body">
+
                   <span className="event-status">
                     {event.status ===
                     "Full"
@@ -1551,57 +1842,71 @@ function UserApp({
                       : "Registration open"}
                   </span>
 
+
                   <h2>
                     {
                       event.title
                     }
                   </h2>
 
+
                   <div className="event-detail-list">
+
                     <p>
                       <strong>
                         Date:
                       </strong>{" "}
+
                       {formatEventDate(
                         event.date
                       )}
                     </p>
 
+
                     <p>
                       <strong>
                         Time:
                       </strong>{" "}
+
                       {formatEventTime(
                         event.time
                       )}
                     </p>
 
+
                     <p>
                       <strong>
                         Venue:
                       </strong>{" "}
+
                       {
                         event.venue
                       }
                     </p>
 
+
                     <p>
                       <strong>
                         Entry fee:
                       </strong>{" "}
+
                       {formatPrice(
                         event.fee
                       )}
                     </p>
+
                   </div>
 
+
                   <div className="event-card__footer">
+
                     <span>
                       {
                         event.slots
                       }{" "}
                       slots remaining
                     </span>
+
 
                     <button
                       type="button"
@@ -1629,15 +1934,46 @@ function UserApp({
                         ? "Full"
                         : "Register now"}
                     </button>
+
                   </div>
+
                 </div>
+
               </article>
             )
           )}
+
+
+          {shopEvents.length ===
+            0 && (
+            <div className="empty-state full-grid-item">
+
+              <CalendarDays
+                size={42}
+              />
+
+              <h3>
+                No upcoming events
+              </h3>
+
+              <p>
+                Check back later for
+                new tournaments.
+              </p>
+
+            </div>
+          )}
+
         </div>
+
       </section>
     );
   }
+
+
+  /* =========================================================
+     RANKINGS
+  ========================================================= */
 
   function renderRankings() {
     const selectedPlayers =
@@ -1652,14 +1988,24 @@ function UserApp({
             )
         )
         .sort(
-          (a, b) =>
-            Number(a.rank) -
-            Number(b.rank)
+          (
+            a,
+            b
+          ) =>
+            Number(
+              a.rank
+            ) -
+            Number(
+              b.rank
+            )
         );
+
 
     return (
       <section className="content-section page-section">
+
         <div className="page-title-row">
+
           <div>
             <span className="eyebrow">
               Player standings
@@ -1675,14 +2021,19 @@ function UserApp({
               points.
             </p>
           </div>
+
         </div>
 
+
         <div className="bracket-tabs">
+
           {[1, 2, 3, 4].map(
             (bracket) => (
               <button
                 type="button"
-                key={bracket}
+                key={
+                  bracket
+                }
                 className={
                   selectedBracket ===
                   bracket
@@ -1696,14 +2047,20 @@ function UserApp({
                 }
               >
                 Bracket{" "}
-                {bracket}
+                {
+                  bracket
+                }
               </button>
             )
           )}
+
         </div>
 
+
         <div className="ranking-card">
+
           <div className="ranking-card__header">
+
             <div>
               <span>
                 Current standings
@@ -1720,31 +2077,41 @@ function UserApp({
             <Trophy
               size={33}
             />
+
           </div>
 
+
           <div className="ranking-table-wrapper">
+
             <table className="ranking-table">
+
               <thead>
                 <tr>
                   <th>
                     Rank
                   </th>
+
                   <th>
                     Player
                   </th>
+
                   <th>
                     Wins
                   </th>
+
                   <th>
                     Losses
                   </th>
+
                   <th>
                     Points
                   </th>
                 </tr>
               </thead>
 
+
               <tbody>
+
                 {selectedPlayers.map(
                   (player) => (
                     <tr
@@ -1752,6 +2119,7 @@ function UserApp({
                         player.id
                       }
                     >
+
                       <td>
                         <span
                           className={`rank-badge rank-badge-${player.rank}`}
@@ -1762,8 +2130,10 @@ function UserApp({
                         </span>
                       </td>
 
+
                       <td>
                         <div className="ranking-player">
+
                           <div className="player-avatar">
                             {getInitials(
                               player.name
@@ -1775,8 +2145,10 @@ function UserApp({
                               player.name
                             }
                           </strong>
+
                         </div>
                       </td>
+
 
                       <td>
                         {
@@ -1784,11 +2156,13 @@ function UserApp({
                         }
                       </td>
 
+
                       <td>
                         {
                           player.losses
                         }
                       </td>
+
 
                       <td>
                         <strong>
@@ -1797,21 +2171,34 @@ function UserApp({
                           }
                         </strong>
                       </td>
+
                     </tr>
                   )
                 )}
+
               </tbody>
+
             </table>
+
           </div>
+
         </div>
+
       </section>
     );
   }
 
+
+  /* =========================================================
+     COMMUNITY
+  ========================================================= */
+
   function renderCommunity() {
     return (
       <section className="content-section page-section">
+
         <div className="page-title-row">
+
           <div>
             <span className="eyebrow">
               Ask the community
@@ -1828,26 +2215,34 @@ function UserApp({
               decks.
             </p>
           </div>
+
         </div>
 
+
         <div className="community-layout">
+
           <div>
+
             <form
               className="question-form"
               onSubmit={
                 submitQuestion
               }
             >
+
               <div className="question-form__icon">
                 <CircleHelp
                   size={25}
                 />
               </div>
 
+
               <div className="question-form__content">
+
                 <h2>
                   Ask a question
                 </h2>
+
 
                 <textarea
                   value={
@@ -1865,23 +2260,31 @@ function UserApp({
                   rows={4}
                 />
 
+
                 <div className="question-form__footer">
+
                   <span>
                     Be respectful
                     and provide
                     details.
                   </span>
 
+
                   <button
                     type="submit"
                   >
                     Post question
                   </button>
+
                 </div>
+
               </div>
+
             </form>
 
+
             <div className="question-list">
+
               {questions.map(
                 (question) => (
                   <article
@@ -1890,14 +2293,18 @@ function UserApp({
                       question.id
                     }
                   >
+
                     <div className="question-avatar">
                       {getInitials(
                         question.user
                       )}
                     </div>
 
+
                     <div className="question-card__content">
+
                       <div className="question-meta">
+
                         <strong>
                           {
                             question.user
@@ -1909,7 +2316,9 @@ function UserApp({
                             question.time
                           }
                         </span>
+
                       </div>
+
 
                       <span className="question-category">
                         {
@@ -1917,11 +2326,13 @@ function UserApp({
                         }
                       </span>
 
+
                       <h3>
                         {
                           question.question
                         }
                       </h3>
+
 
                       <button
                         type="button"
@@ -1935,46 +2346,66 @@ function UserApp({
                         }{" "}
                         replies
                       </button>
+
                     </div>
+
                   </article>
                 )
               )}
+
             </div>
+
           </div>
 
+
           <aside className="community-sidebar">
+
             <h3>
               Community guidelines
             </h3>
+
 
             <ul>
               <li>
                 Use a clear
                 question.
               </li>
+
               <li>
                 Respect other
                 players.
               </li>
+
               <li>
                 Do not post
                 fake listings.
               </li>
+
               <li>
                 Report suspicious
                 activity.
               </li>
             </ul>
+
           </aside>
+
         </div>
+
       </section>
     );
   }
 
+
+  /* =========================================================
+     CART
+  ========================================================= */
+
   function renderCart() {
     return (
       <section className="content-section page-section">
+
         <div className="page-title-row">
+
           <div>
             <span className="eyebrow">
               Your order
@@ -1990,10 +2421,15 @@ function UserApp({
               checkout.
             </p>
           </div>
+
         </div>
 
-        {cart.length === 0 ? (
+
+        {cart.length ===
+        0 ? (
+
           <div className="empty-state large">
+
             <ShoppingCart
               size={47}
             />
@@ -2010,15 +2446,22 @@ function UserApp({
             <button
               type="button"
               onClick={() =>
-                navigate("shop")
+                navigate(
+                  "shop"
+                )
               }
             >
               Browse cards
             </button>
+
           </div>
+
         ) : (
+
           <div className="cart-layout">
+
             <div className="cart-list">
+
               {cart.map(
                 (
                   item,
@@ -2030,17 +2473,21 @@ function UserApp({
                       item.id
                     }
                   >
+
                     <div
                       className={`cart-item__image ${
                         item.imageUrl
                           ? "has-real-image"
                           : `game-image-${
-                              (index %
-                                6) +
+                              (
+                                index %
+                                6
+                              ) +
                               1
                             }`
                       }`}
                     >
+
                       {item.imageUrl ? (
                         <img
                           src={
@@ -2058,9 +2505,12 @@ function UserApp({
                           }
                         </span>
                       )}
+
                     </div>
 
+
                     <div className="cart-item__details">
+
                       <span>
                         {
                           item.set
@@ -2082,9 +2532,12 @@ function UserApp({
                           item.seller
                         }
                       </p>
+
                     </div>
 
+
                     <div className="quantity-control">
+
                       <button
                         type="button"
                         onClick={() =>
@@ -2099,11 +2552,13 @@ function UserApp({
                         />
                       </button>
 
+
                       <span>
                         {
                           item.quantity
                         }
                       </span>
+
 
                       <button
                         type="button"
@@ -2118,7 +2573,9 @@ function UserApp({
                           size={16}
                         />
                       </button>
+
                     </div>
+
 
                     <strong>
                       {formatPrice(
@@ -2126,15 +2583,20 @@ function UserApp({
                           item.quantity
                       )}
                     </strong>
+
                   </article>
                 )
               )}
+
             </div>
 
+
             <aside className="order-summary">
+
               <h2>
                 Order summary
               </h2>
+
 
               <div>
                 <span>
@@ -2148,6 +2610,7 @@ function UserApp({
                 </strong>
               </div>
 
+
               <div>
                 <span>
                   Subtotal
@@ -2160,6 +2623,7 @@ function UserApp({
                 </strong>
               </div>
 
+
               <div>
                 <span>
                   Shipping
@@ -2169,6 +2633,7 @@ function UserApp({
                   Calculated later
                 </strong>
               </div>
+
 
               <div className="order-total">
                 <span>
@@ -2181,6 +2646,7 @@ function UserApp({
                   )}
                 </strong>
               </div>
+
 
               <button
                 type="button"
@@ -2195,22 +2661,33 @@ function UserApp({
                   ? "Processing..."
                   : "Proceed to checkout"}
               </button>
+
             </aside>
+
           </div>
         )}
+
       </section>
     );
   }
 
+
+  /* =========================================================
+     PROFILE
+  ========================================================= */
+
   function renderProfile() {
     return (
       <section className="content-section page-section">
+
         <div className="profile-header-card">
+
           <div className="profile-avatar">
             {getInitials(
               playerName
             )}
           </div>
+
 
           <div>
             <span className="eyebrow">
@@ -2218,7 +2695,9 @@ function UserApp({
             </span>
 
             <h1>
-              {playerName}
+              {
+                playerName
+              }
             </h1>
 
             <p>
@@ -2228,18 +2707,24 @@ function UserApp({
             </p>
           </div>
 
+
           <button
             type="button"
           >
             Edit profile
           </button>
+
         </div>
 
+
         <div className="profile-grid">
+
           <article className="profile-panel">
+
             <h2>
               Player information
             </h2>
+
 
             <div className="profile-info-row">
               <span>
@@ -2254,6 +2739,7 @@ function UserApp({
               </strong>
             </div>
 
+
             <div className="profile-info-row">
               <span>
                 Current rank
@@ -2266,6 +2752,7 @@ function UserApp({
                 }
               </strong>
             </div>
+
 
             <div className="profile-info-row">
               <span>
@@ -2280,13 +2767,15 @@ function UserApp({
               </strong>
             </div>
 
+
             <div className="profile-info-row">
               <span>
                 Member since
               </span>
 
               <strong>
-                {profileData?.joined
+                {profileData
+                  ?.joined
                   ? new Date(
                       profileData.joined
                     ).toLocaleDateString(
@@ -2294,6 +2783,7 @@ function UserApp({
                       {
                         month:
                           "long",
+
                         year:
                           "numeric",
                       }
@@ -2301,14 +2791,19 @@ function UserApp({
                   : "-"}
               </strong>
             </div>
+
           </article>
 
+
           <article className="profile-panel">
+
             <h2>
               Account activity
             </h2>
 
+
             <div className="profile-stat-grid">
+
               <div>
                 <ShoppingBag
                   size={21}
@@ -2324,6 +2819,7 @@ function UserApp({
                   Cart items
                 </span>
               </div>
+
 
               <div>
                 <CalendarDays
@@ -2341,6 +2837,7 @@ function UserApp({
                 </span>
               </div>
 
+
               <div>
                 <Heart
                   size={21}
@@ -2357,6 +2854,7 @@ function UserApp({
                 </span>
               </div>
 
+
               <div>
                 <MessageCircle
                   size={21}
@@ -2372,15 +2870,22 @@ function UserApp({
                   Questions
                 </span>
               </div>
+
             </div>
+
           </article>
+
         </div>
+
       </section>
     );
   }
 
+
   function renderPage() {
-    switch (activePage) {
+    switch (
+      activePage
+    ) {
       case "shop":
         return renderShop();
 
@@ -2404,8 +2909,10 @@ function UserApp({
     }
   }
 
+
   return (
     <div className="user-app">
+
       <aside
         className={`user-sidebar ${
           mobileSidebarOpen
@@ -2413,10 +2920,13 @@ function UserApp({
             : ""
         }`}
       >
+
         <div className="sidebar-brand">
+
           <div className="sidebar-brand__logo">
             S
           </div>
+
 
           <div>
             <strong>
@@ -2427,6 +2937,7 @@ function UserApp({
               Card Marketplace
             </span>
           </div>
+
 
           <button
             type="button"
@@ -2441,9 +2952,12 @@ function UserApp({
               size={21}
             />
           </button>
+
         </div>
 
+
         <nav className="sidebar-navigation">
+
           {menuItems.map(
             (item) => {
               const Icon =
@@ -2452,7 +2966,9 @@ function UserApp({
               return (
                 <button
                   type="button"
-                  key={item.id}
+                  key={
+                    item.id
+                  }
                   className={
                     activePage ===
                     item.id
@@ -2465,6 +2981,7 @@ function UserApp({
                     )
                   }
                 >
+
                   <Icon
                     size={20}
                   />
@@ -2474,6 +2991,7 @@ function UserApp({
                       item.label
                     }
                   </span>
+
 
                   {item.id ===
                     "cart" &&
@@ -2485,22 +3003,29 @@ function UserApp({
                         }
                       </span>
                     )}
+
                 </button>
               );
             }
           )}
+
         </nav>
 
+
         <div className="sidebar-player-card">
+
           <div className="player-avatar">
             {getInitials(
               playerName
             )}
           </div>
 
+
           <div>
             <strong>
-              {playerName}
+              {
+                playerName
+              }
             </strong>
 
             <span>
@@ -2514,19 +3039,26 @@ function UserApp({
                 ` · Rank #${playerRank}`}
             </span>
           </div>
+
         </div>
+
 
         <button
           type="button"
           className="sidebar-logout"
-          onClick={onLogout}
+          onClick={
+            onLogout
+          }
         >
           <LogOut
             size={19}
           />
+
           Log out
         </button>
+
       </aside>
+
 
       {mobileSidebarOpen && (
         <button
@@ -2540,8 +3072,11 @@ function UserApp({
         />
       )}
 
+
       <div className="user-main">
+
         <header className="user-header">
+
           <button
             type="button"
             className="mobile-menu-button"
@@ -2556,7 +3091,9 @@ function UserApp({
             />
           </button>
 
+
           <label className="header-search">
+
             <Search
               size={18}
             />
@@ -2567,7 +3104,9 @@ function UserApp({
               value={
                 searchText
               }
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setSearchText(
                   event.target
                     .value
@@ -2579,14 +3118,19 @@ function UserApp({
                 )
               }
             />
+
           </label>
 
+
           <div className="header-actions">
+
             <button
               type="button"
               className="header-cart-button"
               onClick={() =>
-                navigate("cart")
+                navigate(
+                  "cart"
+                )
               }
             >
               <ShoppingCart
@@ -2600,6 +3144,7 @@ function UserApp({
               </span>
             </button>
 
+
             <button
               type="button"
               className="header-profile-button"
@@ -2609,15 +3154,19 @@ function UserApp({
                 )
               }
             >
+
               <div className="player-avatar">
                 {getInitials(
                   playerName
                 )}
               </div>
 
+
               <div>
                 <strong>
-                  {playerName}
+                  {
+                    playerName
+                  }
                 </strong>
 
                 <span>
@@ -2627,16 +3176,23 @@ function UserApp({
                   }
                 </span>
               </div>
+
             </button>
+
           </div>
+
         </header>
+
 
         <main className="user-page-content">
           {renderPage()}
         </main>
+
       </div>
+
     </div>
   );
 }
+
 
 export default UserApp;

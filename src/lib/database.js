@@ -92,9 +92,7 @@ export async function getCards() {
 }
 
 
-export async function createCard(
-  card
-) {
+export async function createCard(card) {
   const { data, error } =
     await supabase
       .from("cards")
@@ -203,16 +201,11 @@ export async function uploadCardImage(
   } =
     supabase.storage
       .from("card-images")
-      .getPublicUrl(
-        filePath
-      );
+      .getPublicUrl(filePath);
 
   return {
-    url:
-      publicData.publicUrl,
-
-    path:
-      filePath,
+    url: publicData.publicUrl,
+    path: filePath,
   };
 }
 
@@ -295,13 +288,98 @@ export async function updateEvent(
 
 
 export async function deleteEvent(
-  id
+  id,
+  imagePath = null
 ) {
   const { error } =
     await supabase
       .from("events")
       .delete()
       .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+
+  if (imagePath) {
+    const { error: storageError } =
+      await supabase.storage
+        .from("event-images")
+        .remove([imagePath]);
+
+    if (storageError) {
+      console.warn(
+        "Event deleted, but image cleanup failed:",
+        storageError
+      );
+    }
+  }
+}
+
+
+export async function uploadEventImage(
+  file
+) {
+  if (!file) {
+    return null;
+  }
+
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      ?.toLowerCase() ||
+    "jpg";
+
+  const fileName =
+    `${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+  const filePath =
+    `events/${fileName}`;
+
+  const {
+    error: uploadError,
+  } =
+    await supabase.storage
+      .from("event-images")
+      .upload(
+        filePath,
+        file,
+        {
+          cacheControl: "3600",
+          upsert: false,
+        }
+      );
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const {
+    data: publicData,
+  } =
+    supabase.storage
+      .from("event-images")
+      .getPublicUrl(filePath);
+
+  return {
+    url: publicData.publicUrl,
+    path: filePath,
+  };
+}
+
+
+export async function deleteEventImage(
+  path
+) {
+  if (!path) {
+    return;
+  }
+
+  const { error } =
+    await supabase.storage
+      .from("event-images")
+      .remove([path]);
 
   if (error) {
     throw error;
@@ -316,8 +394,7 @@ export async function registerForEvent(
     await supabase.rpc(
       "register_for_event",
       {
-        p_event_id:
-          eventId,
+        p_event_id: eventId,
       }
     );
 
@@ -407,9 +484,7 @@ export async function deleteRanking(
 export async function getQuestions() {
   const { data, error } =
     await supabase
-      .from(
-        "community_questions"
-      )
+      .from("community_questions")
       .select("*")
       .order("created_at", {
         ascending: false,
@@ -448,24 +523,16 @@ export async function createQuestion({
 
   const { data, error } =
     await supabase
-      .from(
-        "community_questions"
-      )
+      .from("community_questions")
       .insert({
-        user_id:
-          user.id,
-
+        user_id: user.id,
         user_name:
           profile?.full_name ||
           user.email ||
           "User",
-
         category,
-
         question,
-
         replies: 0,
-
         status: "Open",
       })
       .select()
@@ -485,9 +552,7 @@ export async function updateQuestionStatus(
 ) {
   const { data, error } =
     await supabase
-      .from(
-        "community_questions"
-      )
+      .from("community_questions")
       .update({
         status,
       })
@@ -508,9 +573,7 @@ export async function deleteQuestion(
 ) {
   const { error } =
     await supabase
-      .from(
-        "community_questions"
-      )
+      .from("community_questions")
       .delete()
       .eq("id", id);
 
@@ -588,13 +651,10 @@ export async function checkoutCart(
   const items =
     cart.map(
       (item) => ({
-        card_id:
-          item.id,
-
-        quantity:
-          Number(
-            item.quantity
-          ),
+        card_id: item.id,
+        quantity: Number(
+          item.quantity
+        ),
       })
     );
 

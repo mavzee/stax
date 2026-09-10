@@ -40,6 +40,7 @@ import {
   deleteCard,
   deleteCardImage,
   deleteEvent,
+  deleteEventImage,
   deleteOrder,
   deleteQuestion,
   deleteRanking,
@@ -54,9 +55,11 @@ import {
   updateQuestionStatus as updateQuestionStatusDB,
   updateRanking,
   uploadCardImage,
+  uploadEventImage,
 } from "../lib/database";
 
 import "./admin.css";
+
 
 const RARITIES = [
   "Common",
@@ -89,15 +92,7 @@ const FINISHES = [
   "Etched Foil",
 ];
 
-const FORMATS = [
-  "Standard",
-  "Pioneer",
-  "Modern",
-  "Legacy",
-  "Vintage",
-  "Commander",
-  "Pauper",
-];
+ 
 
 const RARITY_LETTER = {
   Common: "C",
@@ -123,6 +118,7 @@ const BRACKET_FORMAT = {
   4: "Modern",
 };
 
+
 const initialUsers = [
   {
     id: 1,
@@ -143,6 +139,7 @@ const initialUsers = [
     joined: "2025-12-01",
   },
 ];
+
 
 const navigationItems = [
   {
@@ -187,6 +184,7 @@ const navigationItems = [
   },
 ];
 
+
 const emptyCardForm = {
   name: "",
   game: "Magic",
@@ -205,6 +203,7 @@ const emptyCardForm = {
   imagePath: "",
 };
 
+
 const emptyEventForm = {
   title: "",
   format: "Standard",
@@ -214,9 +213,12 @@ const emptyEventForm = {
   fee: "",
   slots: "",
   registered: 0,
-  bracket: "Division 1",
+  bracket: "BRACKET 1",
   status: "Open",
+  imageUrl: "",
+  imagePath: "",
 };
+
 
 const emptyRankingForm = {
   name: "",
@@ -227,6 +229,7 @@ const emptyRankingForm = {
   rank: 1,
 };
 
+
 const emptyUserForm = {
   name: "",
   email: "",
@@ -236,13 +239,20 @@ const emptyUserForm = {
   joined: "",
 };
 
+
 function formatCurrency(value) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0));
+  return new Intl.NumberFormat(
+    "en-PH",
+    {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0,
+    }
+  ).format(
+    Number(value || 0)
+  );
 }
+
 
 function getInitials(name = "") {
   return name
@@ -254,10 +264,17 @@ function getInitials(name = "") {
     .toUpperCase();
 }
 
-function RarityBadge({ value }) {
-  const className = String(value)
-    .toLowerCase()
-    .replaceAll(" ", "-");
+
+function RarityBadge({
+  value,
+}) {
+  const className =
+    String(value)
+      .toLowerCase()
+      .replaceAll(
+        " ",
+        "-"
+      );
 
   return (
     <span
@@ -272,8 +289,12 @@ function RarityBadge({ value }) {
   );
 }
 
-function ColorPip({ value }) {
-  const className = String(value).toLowerCase();
+
+function ColorPip({
+  value,
+}) {
+  const className =
+    String(value).toLowerCase();
 
   return (
     <span
@@ -288,49 +309,100 @@ function ColorPip({ value }) {
   );
 }
 
+
 function AdminApp({
   onLogout,
   profile,
 }) {
-  const [activePage, setActivePage] =
-    useState("dashboard");
+  const [
+    activePage,
+    setActivePage,
+  ] = useState("dashboard");
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+  const [
+    sidebarOpen,
+    setSidebarOpen,
+  ] = useState(false);
 
-  const [globalSearch, setGlobalSearch] =
-    useState("");
+  const [
+    globalSearch,
+    setGlobalSearch,
+  ] = useState("");
 
-  const [rarityFilter, setRarityFilter] =
-    useState("All");
+  const [
+    rarityFilter,
+    setRarityFilter,
+  ] = useState("All");
 
-  const [cards, setCards] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [rankings, setRankings] = useState([]);
-  const [questions, setQuestions] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [
+    cards,
+    setCards,
+  ] = useState([]);
 
-  const [users, setUsers] =
-    useState(initialUsers);
+  const [
+    events,
+    setEvents,
+  ] = useState([]);
 
-  const [modal, setModal] = useState(null);
-  const [editingItem, setEditingItem] =
-    useState(null);
+  const [
+    rankings,
+    setRankings,
+  ] = useState([]);
 
-  const [deleteTarget, setDeleteTarget] =
-    useState(null);
+  const [
+    questions,
+    setQuestions,
+  ] = useState([]);
 
-  const [cardForm, setCardForm] =
-    useState(emptyCardForm);
+  const [
+    orders,
+    setOrders,
+  ] = useState([]);
 
-  const [eventForm, setEventForm] =
-    useState(emptyEventForm);
+  const [
+    users,
+    setUsers,
+  ] = useState(initialUsers);
 
-  const [rankingForm, setRankingForm] =
-    useState(emptyRankingForm);
+  const [
+    modal,
+    setModal,
+  ] = useState(null);
 
-  const [userForm, setUserForm] =
-    useState(emptyUserForm);
+  const [
+    editingItem,
+    setEditingItem,
+  ] = useState(null);
+
+  const [
+    deleteTarget,
+    setDeleteTarget,
+  ] = useState(null);
+
+  const [
+    cardForm,
+    setCardForm,
+  ] = useState(emptyCardForm);
+
+  const [
+    eventForm,
+    setEventForm,
+  ] = useState(emptyEventForm);
+
+  const [
+    rankingForm,
+    setRankingForm,
+  ] = useState(emptyRankingForm);
+
+  const [
+    userForm,
+    setUserForm,
+  ] = useState(emptyUserForm);
+
+
+  /* =========================================================
+     CARD IMAGE
+  ========================================================= */
 
   const [
     cardImageFile,
@@ -342,153 +414,313 @@ function AdminApp({
     setCardImagePreview,
   ] = useState("");
 
-  const [cardSaving, setCardSaving] =
-    useState(false);
+  const [
+    cardSaving,
+    setCardSaving,
+  ] = useState(false);
+
+
+  /* =========================================================
+     EVENT IMAGE
+  ========================================================= */
+
+  const [
+    eventImageFile,
+    setEventImageFile,
+  ] = useState(null);
+
+  const [
+    eventImagePreview,
+    setEventImagePreview,
+  ] = useState("");
+
+  const [
+    eventSaving,
+    setEventSaving,
+  ] = useState(false);
+
+
+  /* =========================================================
+     LOAD CARDS
+  ========================================================= */
 
   const loadCards =
-    useCallback(async () => {
-      try {
-        const data =
-          await getCards();
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getCards();
 
-        setCards(
-          data.map((card) => ({
-            id: card.id,
-            name: card.name,
-            game: card.game,
-            set: card.set_name,
-            setCode: card.set_code,
-            rarity: card.rarity,
-            colors: card.colors,
-            condition: card.condition,
-            finish: card.finish,
-            seller: card.seller,
-            price: Number(card.price),
-            stock: Number(card.stock),
-            featured: card.featured,
-            status: card.status,
-            imageUrl:
-              card.image_url || "",
-            imagePath:
-              card.image_path || "",
-          }))
-        );
-      } catch (error) {
-        console.error(
-          "Could not load cards:",
-          error
-        );
-      }
-    }, []);
+          setCards(
+            data.map(
+              (card) => ({
+                id: card.id,
+                name: card.name,
+                game: card.game,
+                set: card.set_name,
+                setCode:
+                  card.set_code,
+                rarity:
+                  card.rarity,
+                colors:
+                  card.colors,
+                condition:
+                  card.condition,
+                finish:
+                  card.finish,
+                seller:
+                  card.seller,
+                price:
+                  Number(
+                    card.price
+                  ),
+                stock:
+                  Number(
+                    card.stock
+                  ),
+                featured:
+                  card.featured,
+                status:
+                  card.status,
+
+                imageUrl:
+                  card.image_url ||
+                  "",
+
+                imagePath:
+                  card.image_path ||
+                  "",
+              })
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Could not load cards:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+
+  /* =========================================================
+     LOAD EVENTS
+  ========================================================= */
 
   const loadEvents =
-    useCallback(async () => {
-      try {
-        const data =
-          await getEvents();
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getEvents();
 
-        setEvents(
-          data.map((item) => ({
-            id: item.id,
-            title: item.title,
-            format: item.format,
-            date: item.event_date,
-            time: item.event_time,
-            venue: item.venue,
-            fee: Number(item.fee),
-            slots: Number(item.slots),
-            registered: Number(
-              item.registered
-            ),
-            bracket: item.bracket,
-            status: item.status,
-          }))
-        );
-      } catch (error) {
-        console.error(
-          "Could not load events:",
-          error
-        );
-      }
-    }, []);
+          setEvents(
+            data.map(
+              (item) => ({
+                id: item.id,
+
+                title:
+                  item.title,
+
+                format:
+                  item.format,
+
+                date:
+                  item.event_date,
+
+                time:
+                  item.event_time,
+
+                venue:
+                  item.venue,
+
+                fee:
+                  Number(
+                    item.fee
+                  ),
+
+                slots:
+                  Number(
+                    item.slots
+                  ),
+
+                registered:
+                  Number(
+                    item.registered
+                  ),
+
+                bracket:
+                  item.bracket,
+
+                status:
+                  item.status,
+
+                imageUrl:
+                  item.image_url ||
+                  "",
+
+                imagePath:
+                  item.image_path ||
+                  "",
+              })
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Could not load events:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+
+  /* =========================================================
+     LOAD RANKINGS
+  ========================================================= */
 
   const loadRankings =
-    useCallback(async () => {
-      try {
-        const data =
-          await getRankings();
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getRankings();
 
-        setRankings(data);
-      } catch (error) {
-        console.error(
-          "Could not load rankings:",
-          error
-        );
-      }
-    }, []);
+          setRankings(data);
+        } catch (error) {
+          console.error(
+            "Could not load rankings:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+
+  /* =========================================================
+     LOAD QUESTIONS
+  ========================================================= */
 
   const loadQuestions =
-    useCallback(async () => {
-      try {
-        const data =
-          await getQuestions();
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getQuestions();
 
-        setQuestions(
-          data.map((item) => ({
-            id: item.id,
-            user: item.user_name,
-            category: item.category,
-            question: item.question,
-            replies: item.replies,
-            status: item.status,
-            date: new Date(
-              item.created_at
+          setQuestions(
+            data.map(
+              (item) => ({
+                id: item.id,
+
+                user:
+                  item.user_name,
+
+                category:
+                  item.category,
+
+                question:
+                  item.question,
+
+                replies:
+                  item.replies,
+
+                status:
+                  item.status,
+
+                date:
+                  new Date(
+                    item.created_at
+                  )
+                    .toISOString()
+                    .slice(
+                      0,
+                      10
+                    ),
+              })
             )
-              .toISOString()
-              .slice(0, 10),
-          }))
-        );
-      } catch (error) {
-        console.error(
-          "Could not load questions:",
-          error
-        );
-      }
-    }, []);
+          );
+        } catch (error) {
+          console.error(
+            "Could not load questions:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+
+  /* =========================================================
+     LOAD ORDERS
+  ========================================================= */
 
   const loadOrders =
-    useCallback(async () => {
-      try {
-        const data =
-          await getOrders();
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getOrders();
 
-        setOrders(
-          data.map((item) => ({
-            id: item.id,
-            orderNumber:
-              item.order_number,
-            customer: item.customer,
-            item: item.item,
-            quantity: Number(
-              item.quantity
-            ),
-            total: Number(item.total),
-            payment: item.payment,
-            delivery: item.delivery,
-            date: new Date(
-              item.created_at
+          setOrders(
+            data.map(
+              (item) => ({
+                id: item.id,
+
+                orderNumber:
+                  item.order_number,
+
+                customer:
+                  item.customer,
+
+                item:
+                  item.item,
+
+                quantity:
+                  Number(
+                    item.quantity
+                  ),
+
+                total:
+                  Number(
+                    item.total
+                  ),
+
+                payment:
+                  item.payment,
+
+                delivery:
+                  item.delivery,
+
+                date:
+                  new Date(
+                    item.created_at
+                  )
+                    .toISOString()
+                    .slice(
+                      0,
+                      10
+                    ),
+              })
             )
-              .toISOString()
-              .slice(0, 10),
-          }))
-        );
-      } catch (error) {
-        console.error(
-          "Could not load orders:",
-          error
-        );
-      }
-    }, []);
+          );
+        } catch (error) {
+          console.error(
+            "Could not load orders:",
+            error
+          );
+        }
+      },
+      []
+    );
+
+
+  /* =========================================================
+     INITIAL LOAD
+  ========================================================= */
 
   useEffect(() => {
     async function loadEverything() {
@@ -509,6 +741,11 @@ function AdminApp({
     loadQuestions,
     loadOrders,
   ]);
+
+
+  /* =========================================================
+     REALTIME
+  ========================================================= */
 
   useEffect(() => {
     const channel =
@@ -593,21 +830,31 @@ function AdminApp({
     loadOrders,
   ]);
 
-  const totalRevenue = orders
-    .filter(
-      (order) =>
-        order.payment === "Paid"
-    )
-    .reduce(
-      (total, order) =>
-        total + order.total,
-      0
-    );
+
+  const totalRevenue =
+    orders
+      .filter(
+        (order) =>
+          order.payment ===
+          "Paid"
+      )
+      .reduce(
+        (
+          total,
+          order
+        ) =>
+          total +
+          order.total,
+        0
+      );
+
 
   const lowStockCards =
     cards.filter(
-      (card) => card.stock <= 2
+      (card) =>
+        card.stock <= 2
     );
+
 
   const mythicCount =
     cards.filter(
@@ -616,116 +863,153 @@ function AdminApp({
         "Mythic Rare"
     ).length;
 
+
   const filteredCards =
-    useMemo(() => {
-      const query =
-        globalSearch
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const query =
+          globalSearch
+            .trim()
+            .toLowerCase();
 
-      return cards.filter(
-        (card) => {
-          const matchesQuery =
-            !query ||
-            `${card.name} ${card.game} ${card.set} ${card.setCode} ${card.rarity} ${card.colors}`
-              .toLowerCase()
-              .includes(query);
+        return cards.filter(
+          (card) => {
+            const matchesQuery =
+              !query ||
+              `${card.name} ${card.game} ${card.set} ${card.setCode} ${card.rarity} ${card.colors}`
+                .toLowerCase()
+                .includes(
+                  query
+                );
 
-          const matchesRarity =
-            rarityFilter ===
-              "All" ||
-            card.rarity ===
-              rarityFilter;
+            const matchesRarity =
+              rarityFilter ===
+                "All" ||
+              card.rarity ===
+                rarityFilter;
 
-          return (
-            matchesQuery &&
-            matchesRarity
-          );
-        }
-      );
-    }, [
-      cards,
-      globalSearch,
-      rarityFilter,
-    ]);
+            return (
+              matchesQuery &&
+              matchesRarity
+            );
+          }
+        );
+      },
+      [
+        cards,
+        globalSearch,
+        rarityFilter,
+      ]
+    );
+
 
   const filteredEvents =
-    useMemo(() => {
-      const query =
-        globalSearch
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const query =
+          globalSearch
+            .trim()
+            .toLowerCase();
 
-      if (!query) {
-        return events;
-      }
+        if (!query) {
+          return events;
+        }
 
-      return events.filter(
-        (event) =>
-          `${event.title} ${event.format} ${event.venue}`
-            .toLowerCase()
-            .includes(query)
-      );
-    }, [
-      events,
-      globalSearch,
-    ]);
+        return events.filter(
+          (event) =>
+            `${event.title} ${event.format} ${event.venue}`
+              .toLowerCase()
+              .includes(
+                query
+              )
+        );
+      },
+      [
+        events,
+        globalSearch,
+      ]
+    );
+
 
   const filteredUsers =
-    useMemo(() => {
-      const query =
-        globalSearch
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const query =
+          globalSearch
+            .trim()
+            .toLowerCase();
 
-      if (!query) {
-        return users;
-      }
+        if (!query) {
+          return users;
+        }
 
-      return users.filter(
-        (user) =>
-          `${user.name} ${user.email} ${user.role}`
-            .toLowerCase()
-            .includes(query)
-      );
-    }, [
-      users,
-      globalSearch,
-    ]);
+        return users.filter(
+          (user) =>
+            `${user.name} ${user.email} ${user.role}`
+              .toLowerCase()
+              .includes(
+                query
+              )
+        );
+      },
+      [
+        users,
+        globalSearch,
+      ]
+    );
+
 
   const filteredOrders =
-    useMemo(() => {
-      const query =
-        globalSearch
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const query =
+          globalSearch
+            .trim()
+            .toLowerCase();
 
-      if (!query) {
-        return orders;
-      }
+        if (!query) {
+          return orders;
+        }
 
-      return orders.filter(
-        (order) =>
-          `${order.orderNumber} ${order.customer} ${order.item}`
-            .toLowerCase()
-            .includes(query)
-      );
-    }, [
-      orders,
-      globalSearch,
-    ]);
+        return orders.filter(
+          (order) =>
+            `${order.orderNumber} ${order.customer} ${order.item}`
+              .toLowerCase()
+              .includes(
+                query
+              )
+        );
+      },
+      [
+        orders,
+        globalSearch,
+      ]
+    );
+
 
   function navigate(page) {
     setActivePage(page);
-    setSidebarOpen(false);
+
+    setSidebarOpen(
+      false
+    );
+
     setGlobalSearch("");
-    setRarityFilter("All");
+
+    setRarityFilter(
+      "All"
+    );
   }
 
-  function openAddModal(type) {
-    setEditingItem(null);
 
-    if (type === "card") {
+  function openAddModal(type) {
+    setEditingItem(
+      null
+    );
+
+    if (
+      type === "card"
+    ) {
       setCardForm(
         emptyCardForm
       );
@@ -739,37 +1023,61 @@ function AdminApp({
       );
     }
 
-    if (type === "event") {
+    if (
+      type === "event"
+    ) {
       setEventForm(
         emptyEventForm
       );
+
+      setEventImageFile(
+        null
+      );
+
+      setEventImagePreview(
+        ""
+      );
     }
 
-    if (type === "ranking") {
+    if (
+      type === "ranking"
+    ) {
       setRankingForm(
         emptyRankingForm
       );
     }
 
-    if (type === "user") {
+    if (
+      type === "user"
+    ) {
       setUserForm({
         ...emptyUserForm,
-        joined: new Date()
-          .toISOString()
-          .slice(0, 10),
+
+        joined:
+          new Date()
+            .toISOString()
+            .slice(
+              0,
+              10
+            ),
       });
     }
 
     setModal(type);
   }
 
+
   function openEditModal(
     type,
     item
   ) {
-    setEditingItem(item);
+    setEditingItem(
+      item
+    );
 
-    if (type === "card") {
+    if (
+      type === "card"
+    ) {
       setCardForm(item);
 
       setCardImageFile(
@@ -777,28 +1085,50 @@ function AdminApp({
       );
 
       setCardImagePreview(
-        item.imageUrl || ""
+        item.imageUrl ||
+        ""
       );
     }
 
-    if (type === "event") {
+    if (
+      type === "event"
+    ) {
       setEventForm(item);
+
+      setEventImageFile(
+        null
+      );
+
+      setEventImagePreview(
+        item.imageUrl ||
+        ""
+      );
     }
 
-    if (type === "ranking") {
-      setRankingForm(item);
+    if (
+      type === "ranking"
+    ) {
+      setRankingForm(
+        item
+      );
     }
 
-    if (type === "user") {
+    if (
+      type === "user"
+    ) {
       setUserForm(item);
     }
 
     setModal(type);
   }
 
+
   function closeModal() {
     setModal(null);
-    setEditingItem(null);
+
+    setEditingItem(
+      null
+    );
 
     setCardImageFile(
       null
@@ -807,13 +1137,27 @@ function AdminApp({
     setCardImagePreview(
       ""
     );
+
+    setEventImageFile(
+      null
+    );
+
+    setEventImagePreview(
+      ""
+    );
   }
+
+
+  /* =========================================================
+     CARD IMAGE CHANGE
+  ========================================================= */
 
   function handleCardImageChange(
     event
   ) {
     const file =
-      event.target.files?.[0];
+      event.target
+        .files?.[0];
 
     if (!file) {
       return;
@@ -827,6 +1171,7 @@ function AdminApp({
       alert(
         "Please choose an image file."
       );
+
       return;
     }
 
@@ -837,10 +1182,13 @@ function AdminApp({
       alert(
         "Image must be 5MB or smaller."
       );
+
       return;
     }
 
-    setCardImageFile(file);
+    setCardImageFile(
+      file
+    );
 
     const preview =
       URL.createObjectURL(
@@ -851,6 +1199,64 @@ function AdminApp({
       preview
     );
   }
+
+
+  /* =========================================================
+     EVENT IMAGE CHANGE
+  ========================================================= */
+
+  function handleEventImageChange(
+    event
+  ) {
+    const file =
+      event.target
+        .files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+      alert(
+        "Please choose an image file."
+      );
+
+      return;
+    }
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      alert(
+        "Image must be 5MB or smaller."
+      );
+
+      return;
+    }
+
+    setEventImageFile(
+      file
+    );
+
+    const preview =
+      URL.createObjectURL(
+        file
+      );
+
+    setEventImagePreview(
+      preview
+    );
+  }
+
+
+  /* =========================================================
+     SAVE CARD
+  ========================================================= */
 
   async function saveCard(
     event
@@ -882,7 +1288,8 @@ function AdminApp({
           );
 
         if (
-          editingItem?.imagePath
+          editingItem
+            ?.imagePath
         ) {
           oldImagePath =
             editingItem.imagePath;
@@ -949,10 +1356,12 @@ function AdminApp({
             : cardForm.status,
 
         image_url:
-          imageUrl || null,
+          imageUrl ||
+          null,
 
         image_path:
-          imagePath || null,
+          imagePath ||
+          null,
       };
 
       if (editingItem) {
@@ -993,55 +1402,110 @@ function AdminApp({
         "Could not save card."
       );
     } finally {
-      setCardSaving(false);
+      setCardSaving(
+        false
+      );
     }
   }
+
+
+  /* =========================================================
+     SAVE EVENT
+  ========================================================= */
 
   async function saveEvent(
     event
   ) {
     event.preventDefault();
 
-    const data = {
-      title:
-        eventForm.title.trim(),
+    if (eventSaving) {
+      return;
+    }
 
-      format:
-        eventForm.format,
-
-      event_date:
-        eventForm.date,
-
-      event_time:
-        eventForm.time,
-
-      venue:
-        eventForm.venue.trim(),
-
-      fee:
-        Number(
-          eventForm.fee
-        ),
-
-      slots:
-        Number(
-          eventForm.slots
-        ),
-
-      registered:
-        Number(
-          eventForm.registered ||
-            0
-        ),
-
-      bracket:
-        eventForm.bracket,
-
-      status:
-        eventForm.status,
-    };
+    setEventSaving(
+      true
+    );
 
     try {
+      let imageUrl =
+        eventForm.imageUrl ||
+        "";
+
+      let imagePath =
+        eventForm.imagePath ||
+        "";
+
+      let oldImagePath =
+        null;
+
+      if (eventImageFile) {
+        const uploaded =
+          await uploadEventImage(
+            eventImageFile
+          );
+
+        if (
+          editingItem
+            ?.imagePath
+        ) {
+          oldImagePath =
+            editingItem.imagePath;
+        }
+
+        imageUrl =
+          uploaded.url;
+
+        imagePath =
+          uploaded.path;
+      }
+
+      const data = {
+        title:
+          eventForm.title.trim(),
+
+        format:
+          eventForm.format,
+
+        event_date:
+          eventForm.date,
+
+        event_time:
+          eventForm.time,
+
+        venue:
+          eventForm.venue.trim(),
+
+        fee:
+          Number(
+            eventForm.fee
+          ),
+
+        slots:
+          Number(
+            eventForm.slots
+          ),
+
+        registered:
+          Number(
+            eventForm.registered ||
+            0
+          ),
+
+        bracket:
+          eventForm.bracket,
+
+        status:
+          eventForm.status,
+
+        image_url:
+          imageUrl ||
+          null,
+
+        image_path:
+          imagePath ||
+          null,
+      };
+
       if (editingItem) {
         await updateEvent(
           editingItem.id,
@@ -1053,19 +1517,43 @@ function AdminApp({
         );
       }
 
+      if (oldImagePath) {
+        try {
+          await deleteEventImage(
+            oldImagePath
+          );
+        } catch (error) {
+          console.warn(
+            "Old event image cleanup failed:",
+            error
+          );
+        }
+      }
+
       closeModal();
 
       await loadEvents();
     } catch (error) {
       console.error(
+        "Save event:",
         error
       );
 
       alert(
+        error.message ||
         "Could not save event."
+      );
+    } finally {
+      setEventSaving(
+        false
       );
     }
   }
+
+
+  /* =========================================================
+     SAVE RANKING
+  ========================================================= */
 
   async function saveRanking(
     event
@@ -1128,42 +1616,51 @@ function AdminApp({
     }
   }
 
+
   function saveUser(event) {
     event.preventDefault();
 
     const normalizedUser = {
       ...userForm,
-      bracket: Number(
-        userForm.bracket
-      ),
+
+      bracket:
+        Number(
+          userForm.bracket
+        ),
     };
 
     if (editingItem) {
-      setUsers((current) =>
-        current.map(
-          (item) =>
-            item.id ===
-            editingItem.id
-              ? {
-                  ...normalizedUser,
-                  id:
-                    editingItem.id,
-                }
-              : item
-        )
+      setUsers(
+        (current) =>
+          current.map(
+            (item) =>
+              item.id ===
+              editingItem.id
+                ? {
+                    ...normalizedUser,
+
+                    id:
+                      editingItem.id,
+                  }
+                : item
+          )
       );
     } else {
-      setUsers((current) => [
-        {
-          ...normalizedUser,
-          id: Date.now(),
-        },
-        ...current,
-      ]);
+      setUsers(
+        (current) => [
+          {
+            ...normalizedUser,
+            id: Date.now(),
+          },
+
+          ...current,
+        ]
+      );
     }
 
     closeModal();
   }
+
 
   function requestDelete(
     type,
@@ -1174,6 +1671,7 @@ function AdminApp({
       item,
     });
   }
+
 
   async function confirmDelete() {
     if (!deleteTarget) {
@@ -1186,38 +1684,53 @@ function AdminApp({
     } = deleteTarget;
 
     try {
-      if (type === "card") {
+      if (
+        type === "card"
+      ) {
         await deleteCard(
           item.id,
           item.imagePath
         );
       }
 
-      if (type === "event") {
+      if (
+        type === "event"
+      ) {
         await deleteEvent(
-          item.id
+          item.id,
+          item.imagePath
         );
       }
 
-      if (type === "ranking") {
+      if (
+        type ===
+        "ranking"
+      ) {
         await deleteRanking(
           item.id
         );
       }
 
-      if (type === "question") {
+      if (
+        type ===
+        "question"
+      ) {
         await deleteQuestion(
           item.id
         );
       }
 
-      if (type === "order") {
+      if (
+        type === "order"
+      ) {
         await deleteOrder(
           item.id
         );
       }
 
-      if (type === "user") {
+      if (
+        type === "user"
+      ) {
         setUsers(
           (current) =>
             current.filter(
@@ -1243,6 +1756,7 @@ function AdminApp({
     }
   }
 
+
   async function updateQuestionStatus(
     id,
     status
@@ -1261,6 +1775,7 @@ function AdminApp({
     }
   }
 
+
   async function updateOrderField(
     id,
     field,
@@ -1270,7 +1785,8 @@ function AdminApp({
       await updateOrder(
         id,
         {
-          [field]: value,
+          [field]:
+            value,
         }
       );
 
@@ -1285,6 +1801,11 @@ function AdminApp({
       );
     }
   }
+
+
+  /* =========================================================
+     DASHBOARD
+  ========================================================= */
 
   function renderDashboard() {
     return (
@@ -1310,15 +1831,20 @@ function AdminApp({
             type="button"
             className="admin-primary-button"
             onClick={() =>
-              openAddModal("card")
+              openAddModal(
+                "card"
+              )
             }
           >
-            <Plus size={18} />
+            <Plus
+              size={18}
+            />
             Add new card
           </button>
         </section>
 
         <section className="admin-stat-grid">
+
           <article className="admin-stat-card">
             <div className="admin-stat-icon">
               <CircleDollarSign
@@ -1343,6 +1869,7 @@ function AdminApp({
             </div>
           </article>
 
+
           <article className="admin-stat-card">
             <div className="admin-stat-icon">
               <Package
@@ -1356,7 +1883,9 @@ function AdminApp({
               </span>
 
               <strong>
-                {cards.length}
+                {
+                  cards.length
+                }
               </strong>
 
               <small>
@@ -1367,6 +1896,7 @@ function AdminApp({
               </small>
             </div>
           </article>
+
 
           <article className="admin-stat-card">
             <div className="admin-stat-icon">
@@ -1381,7 +1911,9 @@ function AdminApp({
               </span>
 
               <strong>
-                {mythicCount}
+                {
+                  mythicCount
+                }
               </strong>
 
               <small>
@@ -1389,6 +1921,7 @@ function AdminApp({
               </small>
             </div>
           </article>
+
 
           <article className="admin-stat-card">
             <div className="admin-stat-icon">
@@ -1403,7 +1936,9 @@ function AdminApp({
               </span>
 
               <strong>
-                {users.length}
+                {
+                  users.length
+                }
               </strong>
 
               <small>
@@ -1418,10 +1953,14 @@ function AdminApp({
               </small>
             </div>
           </article>
+
         </section>
 
+
         <section className="admin-dashboard-grid">
+
           <article className="admin-panel admin-revenue-panel">
+
             <div className="admin-panel-heading">
               <div>
                 <span className="admin-eyebrow">
@@ -1438,7 +1977,9 @@ function AdminApp({
               />
             </div>
 
+
             <div className="admin-chart">
+
               {[
                 35,
                 48,
@@ -1459,7 +2000,8 @@ function AdminApp({
                     <div
                       className="admin-chart-bar"
                       style={{
-                        height: `${height}%`,
+                        height:
+                          `${height}%`,
                       }}
                     />
 
@@ -1473,16 +2015,22 @@ function AdminApp({
                           "Fri",
                           "Sat",
                           "Sun",
-                        ][index]
+                        ][
+                          index
+                        ]
                       }
                     </span>
                   </div>
                 )
               )}
+
             </div>
+
           </article>
 
+
           <article className="admin-panel">
+
             <div className="admin-panel-heading">
               <div>
                 <span className="admin-eyebrow">
@@ -1499,7 +2047,9 @@ function AdminApp({
               />
             </div>
 
+
             <div className="admin-compact-list">
+
               {lowStockCards.map(
                 (card) => (
                   <div
@@ -1518,20 +2068,26 @@ function AdminApp({
                       />
                     ) : (
                       <div className="admin-product-thumbnail">
-                        {card.name.slice(
-                          0,
-                          1
-                        )}
+                        {
+                          card.name.slice(
+                            0,
+                            1
+                          )
+                        }
                       </div>
                     )}
 
                     <div>
                       <strong>
-                        {card.name}
+                        {
+                          card.name
+                        }
                       </strong>
 
                       <span>
-                        {card.set}
+                        {
+                          card.set
+                        }
                       </span>
                     </div>
 
@@ -1543,17 +2099,26 @@ function AdminApp({
                           : ""
                       }`}
                     >
-                      {card.stock} left
+                      {
+                        card.stock
+                      }{" "}
+                      left
                     </span>
                   </div>
                 )
               )}
+
             </div>
+
           </article>
+
         </section>
 
+
         <section className="admin-dashboard-grid lower">
+
           <article className="admin-panel">
+
             <div className="admin-panel-heading">
               <div>
                 <span className="admin-eyebrow">
@@ -1569,54 +2134,71 @@ function AdminApp({
                 type="button"
                 className="admin-text-button"
                 onClick={() =>
-                  navigate("orders")
+                  navigate(
+                    "orders"
+                  )
                 }
               >
                 View all
               </button>
             </div>
 
+
             <div className="admin-compact-list">
+
               {orders
-                .slice(0, 4)
-                .map((order) => (
-                  <div
-                    className="admin-compact-item"
-                    key={order.id}
-                  >
-                    <div className="admin-product-thumbnail">
-                      <ShoppingBag
-                        size={17}
-                      />
-                    </div>
+                .slice(
+                  0,
+                  4
+                )
+                .map(
+                  (order) => (
+                    <div
+                      className="admin-compact-item"
+                      key={
+                        order.id
+                      }
+                    >
+                      <div className="admin-product-thumbnail">
+                        <ShoppingBag
+                          size={17}
+                        />
+                      </div>
 
-                    <div>
+                      <div>
+                        <strong>
+                          {
+                            order.customer
+                          }
+                        </strong>
+
+                        <span>
+                          {
+                            order.orderNumber
+                          }{" "}
+                          ·{" "}
+                          {
+                            order.item
+                          }
+                        </span>
+                      </div>
+
                       <strong>
-                        {
-                          order.customer
-                        }
+                        {formatCurrency(
+                          order.total
+                        )}
                       </strong>
-
-                      <span>
-                        {
-                          order.orderNumber
-                        }{" "}
-                        ·{" "}
-                        {order.item}
-                      </span>
                     </div>
+                  )
+                )}
 
-                    <strong>
-                      {formatCurrency(
-                        order.total
-                      )}
-                    </strong>
-                  </div>
-                ))}
             </div>
+
           </article>
 
+
           <article className="admin-panel">
+
             <div className="admin-panel-heading">
               <div>
                 <span className="admin-eyebrow">
@@ -1633,14 +2215,19 @@ function AdminApp({
               />
             </div>
 
+
             <div className="admin-compact-list">
+
               {questions
                 .filter(
                   (question) =>
                     question.status ===
                     "Open"
                 )
-                .slice(0, 4)
+                .slice(
+                  0,
+                  4
+                )
                 .map(
                   (question) => (
                     <div
@@ -1675,12 +2262,20 @@ function AdminApp({
                     </div>
                   )
                 )}
+
             </div>
+
           </article>
+
         </section>
       </>
     );
   }
+
+
+  /* =========================================================
+     CARDS
+  ========================================================= */
 
   function renderCards() {
     return (
@@ -1706,28 +2301,38 @@ function AdminApp({
             type="button"
             className="admin-primary-button"
             onClick={() =>
-              openAddModal("card")
+              openAddModal(
+                "card"
+              )
             }
           >
-            <Plus size={18} />
+            <Plus
+              size={18}
+            />
             Add card
           </button>
         </section>
 
+
         <div className="admin-filter-row">
+
           <button
             type="button"
             className={
-              rarityFilter === "All"
+              rarityFilter ===
+              "All"
                 ? "active"
                 : ""
             }
             onClick={() =>
-              setRarityFilter("All")
+              setRarityFilter(
+                "All"
+              )
             }
           >
             All rarities
           </button>
+
 
           {RARITIES.map(
             (rarity) => (
@@ -1746,37 +2351,75 @@ function AdminApp({
                   )
                 }
               >
-                {rarity}
+                {
+                  rarity
+                }
               </button>
             )
           )}
+
         </div>
 
+
         <AdminTableCard>
+
           <div className="admin-table-wrapper">
+
             <table className="admin-table">
+
               <thead>
                 <tr>
-                  <th>Card</th>
-                  <th>Set</th>
-                  <th>Color</th>
-                  <th>Rarity</th>
-                  <th>Finish</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
+                  <th>
+                    Card
+                  </th>
+
+                  <th>
+                    Set
+                  </th>
+
+                  <th>
+                    Color
+                  </th>
+
+                  <th>
+                    Rarity
+                  </th>
+
+                  <th>
+                    Finish
+                  </th>
+
+                  <th>
+                    Price
+                  </th>
+
+                  <th>
+                    Stock
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
                   <th>
                     Actions
                   </th>
                 </tr>
               </thead>
 
+
               <tbody>
+
                 {filteredCards.map(
                   (card) => (
-                    <tr key={card.id}>
+                    <tr
+                      key={
+                        card.id
+                      }
+                    >
                       <td>
                         <div className="admin-name-cell">
+
                           {card.imageUrl ? (
                             <img
                               src={
@@ -1789,12 +2432,15 @@ function AdminApp({
                             />
                           ) : (
                             <div className="admin-product-thumbnail">
-                              {card.name.slice(
-                                0,
-                                1
-                              )}
+                              {
+                                card.name.slice(
+                                  0,
+                                  1
+                                )
+                              }
                             </div>
                           )}
+
 
                           <div>
                             <strong>
@@ -1818,11 +2464,15 @@ function AdminApp({
                               }
                             </span>
                           </div>
+
                         </div>
                       </td>
 
+
                       <td>
-                        {card.set}
+                        {
+                          card.set
+                        }
 
                         <span className="admin-set-code">
                           {
@@ -1830,6 +2480,7 @@ function AdminApp({
                           }
                         </span>
                       </td>
+
 
                       <td>
                         <ColorPip
@@ -1839,6 +2490,7 @@ function AdminApp({
                         />
                       </td>
 
+
                       <td>
                         <RarityBadge
                           value={
@@ -1847,11 +2499,13 @@ function AdminApp({
                         />
                       </td>
 
+
                       <td>
                         {
                           card.finish
                         }
                       </td>
+
 
                       <td>
                         <strong>
@@ -1860,6 +2514,7 @@ function AdminApp({
                           )}
                         </strong>
                       </td>
+
 
                       <td>
                         <span
@@ -1876,6 +2531,7 @@ function AdminApp({
                         </span>
                       </td>
 
+
                       <td>
                         <StatusBadge
                           value={
@@ -1883,6 +2539,7 @@ function AdminApp({
                           }
                         />
                       </td>
+
 
                       <td>
                         <ActionButtons
@@ -1903,13 +2560,22 @@ function AdminApp({
                     </tr>
                   )
                 )}
+
               </tbody>
+
             </table>
+
           </div>
+
         </AdminTableCard>
       </>
     );
   }
+
+
+  /* =========================================================
+     EVENTS
+  ========================================================= */
 
   function renderEvents() {
     return (
@@ -1926,7 +2592,8 @@ function AdminApp({
 
             <p>
               Create and manage
-              tournaments.
+              tournaments and event
+              posters.
             </p>
           </div>
 
@@ -1934,24 +2601,57 @@ function AdminApp({
             type="button"
             className="admin-primary-button"
             onClick={() =>
-              openAddModal("event")
+              openAddModal(
+                "event"
+              )
             }
           >
-            <Plus size={18} />
+            <Plus
+              size={18}
+            />
             Create event
           </button>
         </section>
 
+
         <div className="admin-event-grid">
+
           {filteredEvents.map(
             (event) => (
               <article
                 className="admin-event-card"
                 key={event.id}
               >
+
+                {event.imageUrl ? (
+                  <div className="admin-event-poster">
+                    <img
+                      src={
+                        event.imageUrl
+                      }
+                      alt={
+                        event.title
+                      }
+                    />
+                  </div>
+                ) : (
+                  <div className="admin-event-poster admin-event-poster--empty">
+                    <CalendarDays
+                      size={42}
+                    />
+
+                    <span>
+                      No event poster
+                    </span>
+                  </div>
+                )}
+
+
                 <div className="admin-event-card__header">
                   <span>
-                    {event.format}
+                    {
+                      event.format
+                    }
                   </span>
 
                   <StatusBadge
@@ -1961,35 +2661,46 @@ function AdminApp({
                   />
                 </div>
 
+
                 <h2>
-                  {event.title}
+                  {
+                    event.title
+                  }
                 </h2>
 
+
                 <div className="admin-event-details">
+
                   <p>
                     <strong>
                       Date:
                     </strong>{" "}
-                    {event.date}
+                    {
+                      event.date
+                    }
                   </p>
 
                   <p>
                     <strong>
                       Time:
                     </strong>{" "}
-                    {event.time}
+                    {
+                      event.time
+                    }
                   </p>
 
                   <p>
                     <strong>
                       Venue:
                     </strong>{" "}
-                    {event.venue}
+                    {
+                      event.venue
+                    }
                   </p>
 
                   <p>
                     <strong>
-                      Division:
+                      Bracket:
                     </strong>{" "}
                     {
                       event.bracket
@@ -2004,9 +2715,12 @@ function AdminApp({
                       event.fee
                     )}
                   </p>
+
                 </div>
 
+
                 <div className="admin-registration-progress">
+
                   <div>
                     <span>
                       Registrations
@@ -2016,19 +2730,26 @@ function AdminApp({
                       {
                         event.registered
                       }
-                      /{event.slots}
+                      /
+                      {
+                        event.slots
+                      }
                     </strong>
                   </div>
 
+
                   <div className="admin-progress-track">
+
                     <span
                       style={{
                         width: `${
                           event.slots >
                           0
                             ? Math.min(
-                                (event.registered /
-                                  event.slots) *
+                                (
+                                  event.registered /
+                                  event.slots
+                                ) *
                                   100,
                                 100
                               )
@@ -2036,10 +2757,14 @@ function AdminApp({
                         }%`,
                       }}
                     />
+
                   </div>
+
                 </div>
 
+
                 <div className="admin-card-actions">
+
                   <button
                     type="button"
                     onClick={() =>
@@ -2054,6 +2779,7 @@ function AdminApp({
                     />
                     Edit
                   </button>
+
 
                   <button
                     type="button"
@@ -2070,14 +2796,22 @@ function AdminApp({
                     />
                     Delete
                   </button>
+
                 </div>
+
               </article>
             )
           )}
+
         </div>
       </>
     );
   }
+
+
+  /* =========================================================
+     RANKINGS
+  ========================================================= */
 
   function renderRankings() {
     return (
@@ -2093,7 +2827,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Update divisions,
+              Update brackets,
               wins, losses,
               points and rank.
             </p>
@@ -2108,53 +2842,64 @@ function AdminApp({
               )
             }
           >
-            <Plus size={18} />
+            <Plus
+              size={18}
+            />
             Add player
           </button>
         </section>
+
 
         {[1, 2, 3, 4].map(
           (bracket) => (
             <AdminTableCard
               key={bracket}
-              title={`Division ${bracket} · ${BRACKET_FORMAT[bracket]}`}
+              title={`Bracket ${bracket} · ${BRACKET_FORMAT[bracket]}`}
               icon={
                 <Trophy
                   size={20}
                 />
               }
             >
+
               <div className="admin-table-wrapper">
+
                 <table className="admin-table">
+
                   <thead>
                     <tr>
                       <th>
                         Rank
                       </th>
+
                       <th>
                         Player
                       </th>
+
                       <th>
                         Wins
                       </th>
+
                       <th>
                         Losses
                       </th>
+
                       <th>
                         Points
                       </th>
+
                       <th>
                         Actions
                       </th>
                     </tr>
                   </thead>
 
+
                   <tbody>
+
                     {rankings
                       .filter(
-                        (
-                          player
-                        ) =>
+                        (player) =>
                           Number(
                             player.bracket
                           ) ===
@@ -2173,14 +2918,13 @@ function AdminApp({
                           )
                       )
                       .map(
-                        (
-                          player
-                        ) => (
+                        (player) => (
                           <tr
                             key={
                               player.id
                             }
                           >
+
                             <td>
                               <span className="admin-rank-badge">
                                 #
@@ -2190,8 +2934,10 @@ function AdminApp({
                               </span>
                             </td>
 
+
                             <td>
                               <div className="admin-name-cell">
+
                                 <div className="admin-user-avatar">
                                   {getInitials(
                                     player.name
@@ -2203,8 +2949,10 @@ function AdminApp({
                                     player.name
                                   }
                                 </strong>
+
                               </div>
                             </td>
+
 
                             <td>
                               {
@@ -2212,11 +2960,13 @@ function AdminApp({
                               }
                             </td>
 
+
                             <td>
                               {
                                 player.losses
                               }
                             </td>
+
 
                             <td>
                               <strong>
@@ -2225,6 +2975,7 @@ function AdminApp({
                                 }
                               </strong>
                             </td>
+
 
                             <td>
                               <ActionButtons
@@ -2242,18 +2993,28 @@ function AdminApp({
                                 }
                               />
                             </td>
+
                           </tr>
                         )
                       )}
+
                   </tbody>
+
                 </table>
+
               </div>
+
             </AdminTableCard>
           )
         )}
       </>
     );
   }
+
+
+  /* =========================================================
+     COMMUNITY
+  ========================================================= */
 
   function renderCommunity() {
     return (
@@ -2275,20 +3036,28 @@ function AdminApp({
           </div>
         </section>
 
+
         <div className="admin-question-list">
+
           {questions.map(
             (question) => (
               <article
                 className="admin-question-card"
-                key={question.id}
+                key={
+                  question.id
+                }
               >
+
                 <div className="admin-question-card__top">
+
                   <div className="admin-name-cell">
+
                     <div className="admin-user-avatar">
                       {getInitials(
                         question.user
                       )}
                     </div>
+
 
                     <div>
                       <strong>
@@ -2307,20 +3076,25 @@ function AdminApp({
                         }
                       </span>
                     </div>
+
                   </div>
+
 
                   <StatusBadge
                     value={
                       question.status
                     }
                   />
+
                 </div>
+
 
                 <h3>
                   {
                     question.question
                   }
                 </h3>
+
 
                 <p>
                   {
@@ -2329,7 +3103,9 @@ function AdminApp({
                   replies
                 </p>
 
+
                 <div className="admin-card-actions">
+
                   <button
                     type="button"
                     onClick={() =>
@@ -2344,6 +3120,7 @@ function AdminApp({
                     />
                     Mark answered
                   </button>
+
 
                   <button
                     type="button"
@@ -2360,6 +3137,7 @@ function AdminApp({
                     Close
                   </button>
 
+
                   <button
                     type="button"
                     className="danger"
@@ -2375,14 +3153,22 @@ function AdminApp({
                     />
                     Delete
                   </button>
+
                 </div>
+
               </article>
             )
           )}
+
         </div>
       </>
     );
   }
+
+
+  /* =========================================================
+     USERS
+  ========================================================= */
 
   function renderUsers() {
     return (
@@ -2399,7 +3185,8 @@ function AdminApp({
 
             <p>
               This page is still
-              local in this version.
+              local in this
+              version.
             </p>
           </div>
 
@@ -2407,43 +3194,73 @@ function AdminApp({
             type="button"
             className="admin-primary-button"
             onClick={() =>
-              openAddModal("user")
+              openAddModal(
+                "user"
+              )
             }
           >
-            <Plus size={18} />
+            <Plus
+              size={18}
+            />
             Add user
           </button>
         </section>
 
+
         <AdminTableCard>
+
           <div className="admin-table-wrapper">
+
             <table className="admin-table">
+
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Role</th>
                   <th>
-                    Division
+                    User
                   </th>
-                  <th>Status</th>
-                  <th>Joined</th>
+
+                  <th>
+                    Role
+                  </th>
+
+                  <th>
+                    Bracket
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                  <th>
+                    Joined
+                  </th>
+
                   <th>
                     Actions
                   </th>
                 </tr>
               </thead>
 
+
               <tbody>
+
                 {filteredUsers.map(
                   (user) => (
-                    <tr key={user.id}>
+                    <tr
+                      key={
+                        user.id
+                      }
+                    >
+
                       <td>
                         <div className="admin-name-cell">
+
                           <div className="admin-user-avatar">
                             {getInitials(
                               user.name
                             )}
                           </div>
+
 
                           <div>
                             <strong>
@@ -2458,15 +3275,20 @@ function AdminApp({
                               }
                             </span>
                           </div>
+
                         </div>
                       </td>
 
-                      <td>
-                        {user.role}
-                      </td>
 
                       <td>
-                        Division{" "}
+                        {
+                          user.role
+                        }
+                      </td>
+
+
+                      <td>
+                        Bracket{" "}
                         {
                           user.bracket
                         }{" "}
@@ -2478,6 +3300,7 @@ function AdminApp({
                         }
                       </td>
 
+
                       <td>
                         <StatusBadge
                           value={
@@ -2486,11 +3309,13 @@ function AdminApp({
                         />
                       </td>
 
+
                       <td>
                         {
                           user.joined
                         }
                       </td>
+
 
                       <td>
                         <ActionButtons
@@ -2508,16 +3333,26 @@ function AdminApp({
                           }
                         />
                       </td>
+
                     </tr>
                   )
                 )}
+
               </tbody>
+
             </table>
+
           </div>
+
         </AdminTableCard>
       </>
     );
   }
+
+
+  /* =========================================================
+     ORDERS
+  ========================================================= */
 
   function renderOrders() {
     return (
@@ -2539,34 +3374,60 @@ function AdminApp({
           </div>
         </section>
 
+
         <AdminTableCard>
+
           <div className="admin-table-wrapper">
+
             <table className="admin-table">
+
               <thead>
                 <tr>
-                  <th>Order</th>
+                  <th>
+                    Order
+                  </th>
+
                   <th>
                     Customer
                   </th>
-                  <th>Item</th>
-                  <th>Total</th>
+
+                  <th>
+                    Item
+                  </th>
+
+                  <th>
+                    Total
+                  </th>
+
                   <th>
                     Payment
                   </th>
+
                   <th>
                     Delivery
                   </th>
-                  <th>Date</th>
+
+                  <th>
+                    Date
+                  </th>
+
                   <th>
                     Actions
                   </th>
                 </tr>
               </thead>
 
+
               <tbody>
+
                 {filteredOrders.map(
                   (order) => (
-                    <tr key={order.id}>
+                    <tr
+                      key={
+                        order.id
+                      }
+                    >
+
                       <td>
                         <strong>
                           {
@@ -2575,18 +3436,24 @@ function AdminApp({
                         </strong>
                       </td>
 
+
                       <td>
                         {
                           order.customer
                         }
                       </td>
 
+
                       <td>
-                        {order.item} ×{" "}
+                        {
+                          order.item
+                        }{" "}
+                        ×{" "}
                         {
                           order.quantity
                         }
                       </td>
+
 
                       <td>
                         <strong>
@@ -2595,6 +3462,7 @@ function AdminApp({
                           )}
                         </strong>
                       </td>
+
 
                       <td>
                         <select
@@ -2608,8 +3476,7 @@ function AdminApp({
                             updateOrderField(
                               order.id,
                               "payment",
-                              event
-                                .target
+                              event.target
                                 .value
                             )
                           }
@@ -2628,6 +3495,7 @@ function AdminApp({
                         </select>
                       </td>
 
+
                       <td>
                         <select
                           className="admin-inline-select"
@@ -2640,8 +3508,7 @@ function AdminApp({
                             updateOrderField(
                               order.id,
                               "delivery",
-                              event
-                                .target
+                              event.target
                                 .value
                             )
                           }
@@ -2668,12 +3535,17 @@ function AdminApp({
                         </select>
                       </td>
 
+
                       <td>
-                        {order.date}
+                        {
+                          order.date
+                        }
                       </td>
+
 
                       <td>
                         <div className="admin-action-buttons">
+
                           <button
                             type="button"
                             title="View order"
@@ -2682,6 +3554,7 @@ function AdminApp({
                               size={16}
                             />
                           </button>
+
 
                           <button
                             type="button"
@@ -2697,18 +3570,29 @@ function AdminApp({
                               size={16}
                             />
                           </button>
+
                         </div>
                       </td>
+
                     </tr>
                   )
                 )}
+
               </tbody>
+
             </table>
+
           </div>
+
         </AdminTableCard>
       </>
     );
   }
+
+
+  /* =========================================================
+     SETTINGS
+  ========================================================= */
 
   function renderSettings() {
     return (
@@ -2730,10 +3614,14 @@ function AdminApp({
           </div>
         </section>
 
+
         <div className="admin-settings-grid">
+
           <form
             className="admin-settings-card"
-            onSubmit={(event) =>
+            onSubmit={(
+              event
+            ) =>
               event.preventDefault()
             }
           >
@@ -2749,9 +3637,13 @@ function AdminApp({
               </div>
             </div>
 
+
             <AdminField label="Shop name">
-              <input defaultValue="STAX Card Shop" />
+              <input
+                defaultValue="STAX Card Shop"
+              />
             </AdminField>
+
 
             <AdminField label="Shop email">
               <input
@@ -2760,9 +3652,13 @@ function AdminApp({
               />
             </AdminField>
 
+
             <AdminField label="Phone number">
-              <input defaultValue="+63 912 345 6789" />
+              <input
+                defaultValue="+63 912 345 6789"
+              />
             </AdminField>
+
 
             <AdminField label="Shop address">
               <textarea
@@ -2771,20 +3667,26 @@ function AdminApp({
               />
             </AdminField>
 
+
             <button
               type="submit"
               className="admin-primary-button"
             >
               Save information
             </button>
+
           </form>
+
 
           <form
             className="admin-settings-card"
-            onSubmit={(event) =>
+            onSubmit={(
+              event
+            ) =>
               event.preventDefault()
             }
           >
+
             <div className="admin-panel-heading">
               <div>
                 <span className="admin-eyebrow">
@@ -2797,10 +3699,14 @@ function AdminApp({
               </div>
             </div>
 
+
             <AdminField label="Default currency">
-              <select defaultValue="PHP">
+              <select
+                defaultValue="PHP"
+              >
                 <option value="PHP">
-                  PHP — Philippine Peso
+                  PHP — Philippine
+                  Peso
                 </option>
 
                 <option value="USD">
@@ -2809,8 +3715,11 @@ function AdminApp({
               </select>
             </AdminField>
 
+
             <AdminField label="Order pickup">
-              <select defaultValue="Enabled">
+              <select
+                defaultValue="Enabled"
+              >
                 <option>
                   Enabled
                 </option>
@@ -2820,9 +3729,12 @@ function AdminApp({
                 </option>
               </select>
             </AdminField>
+
 
             <AdminField label="Delivery">
-              <select defaultValue="Enabled">
+              <select
+                defaultValue="Enabled"
+              >
                 <option>
                   Enabled
                 </option>
@@ -2832,9 +3744,12 @@ function AdminApp({
                 </option>
               </select>
             </AdminField>
+
 
             <AdminField label="Community questions">
-              <select defaultValue="Enabled">
+              <select
+                defaultValue="Enabled"
+              >
                 <option>
                   Enabled
                 </option>
@@ -2844,6 +3759,7 @@ function AdminApp({
                 </option>
               </select>
             </AdminField>
+
 
             <button
               type="submit"
@@ -2851,14 +3767,19 @@ function AdminApp({
             >
               Save preferences
             </button>
+
           </form>
+
         </div>
       </>
     );
   }
 
+
   function renderPage() {
-    switch (activePage) {
+    switch (
+      activePage
+    ) {
       case "cards":
         return renderCards();
 
@@ -2885,12 +3806,15 @@ function AdminApp({
     }
   }
 
+
   const adminName =
     profile?.full_name ||
     "Admin User";
 
+
   return (
     <div className="admin-app">
+
       <aside
         className={`admin-sidebar ${
           sidebarOpen
@@ -2898,10 +3822,13 @@ function AdminApp({
             : ""
         }`}
       >
+
         <div className="admin-brand">
+
           <div className="admin-brand__logo">
             S
           </div>
+
 
           <div>
             <strong>
@@ -2913,39 +3840,54 @@ function AdminApp({
             </span>
           </div>
 
+
           <button
             type="button"
             className="admin-sidebar-close"
             onClick={() =>
-              setSidebarOpen(false)
+              setSidebarOpen(
+                false
+              )
             }
           >
-            <X size={20} />
+            <X
+              size={20}
+            />
           </button>
+
         </div>
 
+
         <div className="admin-account-card">
+
           <div className="admin-user-avatar">
             {getInitials(
               adminName
             )}
           </div>
 
+
           <div>
             <strong>
-              {adminName}
+              {
+                adminName
+              }
             </strong>
 
             <span>
               Administrator
             </span>
           </div>
+
         </div>
 
+
         <nav className="admin-navigation">
+
           <span className="admin-navigation-label">
             Main menu
           </span>
+
 
           {navigationItems.map(
             (item) => {
@@ -2955,7 +3897,9 @@ function AdminApp({
               return (
                 <button
                   type="button"
-                  key={item.id}
+                  key={
+                    item.id
+                  }
                   className={
                     activePage ===
                     item.id
@@ -2973,50 +3917,74 @@ function AdminApp({
                   />
 
                   <span>
-                    {item.label}
+                    {
+                      item.label
+                    }
                   </span>
                 </button>
               );
             }
           )}
+
         </nav>
+
 
         <button
           type="button"
           className="admin-logout"
-          onClick={onLogout}
+          onClick={
+            onLogout
+          }
         >
-          <LogOut size={19} />
+          <LogOut
+            size={19}
+          />
+
           <span>
             Log out
           </span>
         </button>
+
       </aside>
+
 
       {sidebarOpen && (
         <button
           type="button"
           className="admin-overlay"
           onClick={() =>
-            setSidebarOpen(false)
+            setSidebarOpen(
+              false
+            )
           }
         />
       )}
 
+
       <div className="admin-main">
+
         <header className="admin-header">
+
           <button
             type="button"
             className="admin-mobile-menu"
             onClick={() =>
-              setSidebarOpen(true)
+              setSidebarOpen(
+                true
+              )
             }
           >
-            <Menu size={22} />
+            <Menu
+              size={22}
+            />
           </button>
 
+
           <label className="admin-header-search">
-            <Search size={18} />
+
+            <Search
+              size={18}
+            />
 
             <input
               type="search"
@@ -3024,16 +3992,21 @@ function AdminApp({
               value={
                 globalSearch
               }
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setGlobalSearch(
                   event.target
                     .value
                 )
               }
             />
+
           </label>
 
+
           <div className="admin-header-actions">
+
             <button
               type="button"
               className="admin-header-icon"
@@ -3043,19 +4016,24 @@ function AdminApp({
               />
             </button>
 
+
             <button
               type="button"
               className="admin-profile-button"
             >
+
               <div className="admin-user-avatar">
                 {getInitials(
                   adminName
                 )}
               </div>
 
+
               <div>
                 <strong>
-                  {adminName}
+                  {
+                    adminName
+                  }
                 </strong>
 
                 <span>
@@ -3063,32 +4041,51 @@ function AdminApp({
                 </span>
               </div>
 
+
               <ChevronDown
                 size={16}
               />
+
             </button>
+
           </div>
+
         </header>
+
 
         <main className="admin-content">
           {renderPage()}
         </main>
+
       </div>
 
-      {modal === "card" && (
+
+      {/* =====================================================
+          CARD MODAL
+      ===================================================== */}
+
+      {modal ===
+        "card" && (
         <Modal
           title={
             editingItem
               ? "Edit card"
               : "Add new card"
           }
-          onClose={closeModal}
+          onClose={
+            closeModal
+          }
         >
+
           <form
             className="admin-form"
-            onSubmit={saveCard}
+            onSubmit={
+              saveCard
+            }
           >
+
             <div className="admin-form-grid">
+
               <AdminField
                 label="Card name"
                 full
@@ -3103,6 +4100,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       name:
                         event.target
                           .value,
@@ -3110,6 +4108,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Game">
                 <select
@@ -3121,6 +4120,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       game:
                         event.target
                           .value,
@@ -3130,17 +4130,21 @@ function AdminApp({
                   <option>
                     Magic
                   </option>
+
                   <option>
                     Pokemon
                   </option>
+
                   <option>
                     Yu-Gi-Oh!
                   </option>
+
                   <option>
                     One Piece
                   </option>
                 </select>
               </AdminField>
+
 
               <AdminField label="Set name">
                 <input
@@ -3153,6 +4157,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       set:
                         event.target
                           .value,
@@ -3160,6 +4165,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Set code">
                 <input
@@ -3172,6 +4178,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       setCode:
                         event.target
                           .value,
@@ -3179,6 +4186,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Color identity">
                 <select
@@ -3190,23 +4198,31 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       colors:
                         event.target
                           .value,
                     })
                   }
                 >
+
                   {COLOR_IDENTITIES.map(
                     (color) => (
                       <option
-                        key={color}
+                        key={
+                          color
+                        }
                       >
-                        {color}
+                        {
+                          color
+                        }
                       </option>
                     )
                   )}
+
                 </select>
               </AdminField>
+
 
               <AdminField label="Rarity">
                 <select
@@ -3218,12 +4234,14 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       rarity:
                         event.target
                           .value,
                     })
                   }
                 >
+
                   {RARITIES.map(
                     (rarity) => (
                       <option
@@ -3231,12 +4249,16 @@ function AdminApp({
                           rarity
                         }
                       >
-                        {rarity}
+                        {
+                          rarity
+                        }
                       </option>
                     )
                   )}
+
                 </select>
               </AdminField>
+
 
               <AdminField label="Finish">
                 <select
@@ -3248,12 +4270,14 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       finish:
                         event.target
                           .value,
                     })
                   }
                 >
+
                   {FINISHES.map(
                     (finish) => (
                       <option
@@ -3261,12 +4285,16 @@ function AdminApp({
                           finish
                         }
                       >
-                        {finish}
+                        {
+                          finish
+                        }
                       </option>
                     )
                   )}
+
                 </select>
               </AdminField>
+
 
               <AdminField label="Condition">
                 <select
@@ -3278,16 +4306,16 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       condition:
                         event.target
                           .value,
                     })
                   }
                 >
+
                   {CONDITIONS.map(
-                    (
-                      condition
-                    ) => (
+                    (condition) => (
                       <option
                         key={
                           condition
@@ -3299,8 +4327,10 @@ function AdminApp({
                       </option>
                     )
                   )}
+
                 </select>
               </AdminField>
+
 
               <AdminField label="Seller">
                 <input
@@ -3312,6 +4342,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       seller:
                         event.target
                           .value,
@@ -3319,6 +4350,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Price">
                 <input
@@ -3333,6 +4365,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       price:
                         event.target
                           .value,
@@ -3340,6 +4373,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Stock">
                 <input
@@ -3354,6 +4388,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       stock:
                         event.target
                           .value,
@@ -3361,6 +4396,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Status">
                 <select
@@ -3372,6 +4408,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       status:
                         event.target
                           .value,
@@ -3388,7 +4425,9 @@ function AdminApp({
                 </select>
               </AdminField>
 
+
               <AdminField label="Featured card">
+
                 <label className="admin-checkbox">
                   <input
                     type="checkbox"
@@ -3400,6 +4439,7 @@ function AdminApp({
                     ) =>
                       setCardForm({
                         ...cardForm,
+
                         featured:
                           event.target
                             .checked,
@@ -3410,7 +4450,9 @@ function AdminApp({
                   Show this card as
                   featured
                 </label>
+
               </AdminField>
+
 
               <AdminField
                 label="Card photo"
@@ -3424,6 +4466,7 @@ function AdminApp({
                   }
                 />
 
+
                 {cardImagePreview && (
                   <div className="admin-card-image-preview">
                     <img
@@ -3434,8 +4477,11 @@ function AdminApp({
                     />
                   </div>
                 )}
+
               </AdminField>
+
             </div>
+
 
             <ModalFooter
               onCancel={
@@ -3445,24 +4491,39 @@ function AdminApp({
                 cardSaving
               }
             />
+
           </form>
+
         </Modal>
       )}
 
-      {modal === "event" && (
+
+      {/* =====================================================
+          EVENT MODAL
+      ===================================================== */}
+
+      {modal ===
+        "event" && (
         <Modal
           title={
             editingItem
               ? "Edit event"
               : "Create event"
           }
-          onClose={closeModal}
+          onClose={
+            closeModal
+          }
         >
+
           <form
             className="admin-form"
-            onSubmit={saveEvent}
+            onSubmit={
+              saveEvent
+            }
           >
+
             <div className="admin-form-grid">
+
               <AdminField
                 label="Event title"
                 full
@@ -3477,6 +4538,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       title:
                         event.target
                           .value,
@@ -3484,6 +4546,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Format">
                 <select
@@ -3495,12 +4558,14 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       format:
                         event.target
                           .value,
                     })
                   }
                 >
+
                   {FORMATS.map(
                     (format) => (
                       <option
@@ -3508,14 +4573,18 @@ function AdminApp({
                           format
                         }
                       >
-                        {format}
+                        {
+                          format
+                        }
                       </option>
                     )
                   )}
+
                 </select>
               </AdminField>
 
-              <AdminField label="Division">
+
+              <AdminField label="Bracket">
                 <select
                   value={
                     eventForm.bracket
@@ -3525,6 +4594,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       bracket:
                         event.target
                           .value,
@@ -3532,19 +4602,23 @@ function AdminApp({
                   }
                 >
                   <option>
-                    Division 1
+                    Bracket 1
                   </option>
+
                   <option>
-                    Division 2
+                    Bracket 2
                   </option>
+
                   <option>
-                    Division 3
+                    Bracket 3
                   </option>
+
                   <option>
-                    Division 4
+                    Bracket 4
                   </option>
                 </select>
               </AdminField>
+
 
               <AdminField label="Date">
                 <input
@@ -3558,6 +4632,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       date:
                         event.target
                           .value,
@@ -3565,6 +4640,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Time">
                 <input
@@ -3578,6 +4654,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       time:
                         event.target
                           .value,
@@ -3585,6 +4662,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField
                 label="Venue"
@@ -3600,6 +4678,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       venue:
                         event.target
                           .value,
@@ -3607,6 +4686,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Entry fee">
                 <input
@@ -3621,6 +4701,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       fee:
                         event.target
                           .value,
@@ -3628,6 +4709,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Available slots">
                 <input
@@ -3642,6 +4724,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       slots:
                         event.target
                           .value,
@@ -3649,6 +4732,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Registered players">
                 <input
@@ -3662,6 +4746,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       registered:
                         event.target
                           .value,
@@ -3669,6 +4754,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Registration status">
                 <select
@@ -3680,6 +4766,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       status:
                         event.target
                           .value,
@@ -3689,39 +4776,91 @@ function AdminApp({
                   <option>
                     Open
                   </option>
+
                   <option>
                     Full
                   </option>
+
                   <option>
                     Closed
                   </option>
                 </select>
               </AdminField>
+
+
+              <AdminField
+                label="Event poster"
+                full
+              >
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={
+                    handleEventImageChange
+                  }
+                />
+
+
+                {eventImagePreview && (
+                  <div className="admin-event-image-preview">
+
+                    <img
+                      src={
+                        eventImagePreview
+                      }
+                      alt="Event poster preview"
+                    />
+
+                  </div>
+                )}
+
+              </AdminField>
+
             </div>
+
 
             <ModalFooter
               onCancel={
                 closeModal
               }
+              saving={
+                eventSaving
+              }
             />
+
           </form>
+
         </Modal>
       )}
 
-      {modal === "ranking" && (
+
+      {/* =====================================================
+          RANKING MODAL
+      ===================================================== */}
+
+      {modal ===
+        "ranking" && (
         <Modal
           title={
             editingItem
               ? "Edit player ranking"
               : "Add ranked player"
           }
-          onClose={closeModal}
+          onClose={
+            closeModal
+          }
         >
+
           <form
             className="admin-form"
-            onSubmit={saveRanking}
+            onSubmit={
+              saveRanking
+            }
           >
+
             <div className="admin-form-grid">
+
               <AdminField
                 label="Player name"
                 full
@@ -3736,6 +4875,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       name:
                         event.target
                           .value,
@@ -3744,7 +4884,8 @@ function AdminApp({
                 />
               </AdminField>
 
-              <AdminField label="Division">
+
+              <AdminField label="Bracket">
                 <select
                   value={
                     rankingForm.bracket
@@ -3754,6 +4895,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       bracket:
                         event.target
                           .value,
@@ -3761,23 +4903,23 @@ function AdminApp({
                   }
                 >
                   <option value="1">
-                    Division 1 ·
-                    Standard
+                    Bracket 1 ·
                   </option>
+
                   <option value="2">
-                    Division 2 ·
-                    Commander
+                    Bracket 2 ·
                   </option>
+
                   <option value="3">
-                    Division 3 ·
-                    Legacy
+                    Bracket 3 ·
                   </option>
+
                   <option value="4">
-                    Division 4 ·
-                    Modern
+                    Bracket 4 ·
                   </option>
                 </select>
               </AdminField>
+
 
               <AdminField label="Rank">
                 <input
@@ -3792,6 +4934,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       rank:
                         event.target
                           .value,
@@ -3799,6 +4942,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Wins">
                 <input
@@ -3813,6 +4957,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       wins:
                         event.target
                           .value,
@@ -3820,6 +4965,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Losses">
                 <input
@@ -3834,6 +4980,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       losses:
                         event.target
                           .value,
@@ -3841,6 +4988,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField
                 label="Points"
@@ -3858,6 +5006,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       points:
                         event.target
                           .value,
@@ -3865,31 +5014,48 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
             </div>
+
 
             <ModalFooter
               onCancel={
                 closeModal
               }
             />
+
           </form>
+
         </Modal>
       )}
 
-      {modal === "user" && (
+
+      {/* =====================================================
+          USER MODAL
+      ===================================================== */}
+
+      {modal ===
+        "user" && (
         <Modal
           title={
             editingItem
               ? "Edit user"
               : "Add new user"
           }
-          onClose={closeModal}
+          onClose={
+            closeModal
+          }
         >
+
           <form
             className="admin-form"
-            onSubmit={saveUser}
+            onSubmit={
+              saveUser
+            }
           >
+
             <div className="admin-form-grid">
+
               <AdminField label="Full name">
                 <input
                   required
@@ -3901,6 +5067,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       name:
                         event.target
                           .value,
@@ -3908,6 +5075,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Email address">
                 <input
@@ -3921,6 +5089,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       email:
                         event.target
                           .value,
@@ -3928,6 +5097,7 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
 
               <AdminField label="Role">
                 <select
@@ -3939,6 +5109,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       role:
                         event.target
                           .value,
@@ -3955,7 +5126,8 @@ function AdminApp({
                 </select>
               </AdminField>
 
-              <AdminField label="Division">
+
+              <AdminField label="Bracket">
                 <select
                   value={
                     userForm.bracket
@@ -3965,6 +5137,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       bracket:
                         event.target
                           .value,
@@ -3972,26 +5145,26 @@ function AdminApp({
                   }
                 >
                   <option value="1">
-                    Division 1 ·
-                    Standard
+                    Bracket 1 ·
+                    
                   </option>
 
                   <option value="2">
-                    Division 2 ·
-                    Commander
+                    Bracket 2 ·
+                    
                   </option>
 
                   <option value="3">
-                    Division 3 ·
-                    Legacy
+                    Bracket 3 ·
+                    
                   </option>
 
                   <option value="4">
-                    Division 4 ·
-                    Modern
+                    Bracket 4 ·
                   </option>
                 </select>
               </AdminField>
+
 
               <AdminField label="Status">
                 <select
@@ -4003,6 +5176,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       status:
                         event.target
                           .value,
@@ -4023,6 +5197,7 @@ function AdminApp({
                 </select>
               </AdminField>
 
+
               <AdminField label="Joined date">
                 <input
                   required
@@ -4035,6 +5210,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       joined:
                         event.target
                           .value,
@@ -4042,32 +5218,46 @@ function AdminApp({
                   }
                 />
               </AdminField>
+
             </div>
+
 
             <ModalFooter
               onCancel={
                 closeModal
               }
             />
+
           </form>
+
         </Modal>
       )}
 
+
+      {/* =====================================================
+          DELETE CONFIRMATION
+      ===================================================== */}
+
       {deleteTarget && (
         <div className="admin-modal-backdrop">
+
           <div className="admin-confirm-dialog">
+
             <div className="admin-confirm-icon">
               <Trash2
                 size={23}
               />
             </div>
 
+
             <h2>
               Delete item?
             </h2>
 
+
             <p>
               This will remove{" "}
+
               <strong>
                 {deleteTarget.item
                   .name ||
@@ -4083,7 +5273,9 @@ function AdminApp({
               .
             </p>
 
+
             <div className="admin-modal-footer">
+
               <button
                 type="button"
                 className="admin-secondary-button"
@@ -4096,6 +5288,7 @@ function AdminApp({
                 Cancel
               </button>
 
+
               <button
                 type="button"
                 className="admin-danger-button"
@@ -4105,13 +5298,18 @@ function AdminApp({
               >
                 Delete
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
+
     </div>
   );
 }
+
 
 function AdminTableCard({
   title,
@@ -4120,20 +5318,31 @@ function AdminTableCard({
 }) {
   return (
     <section className="admin-table-card">
+
       {title && (
         <div className="admin-panel-heading admin-table-card-heading">
+
           <h2>
-            {title}
+            {
+              title
+            }
           </h2>
 
-          {icon}
+          {
+            icon
+          }
+
         </div>
       )}
 
-      {children}
+      {
+        children
+      }
+
     </section>
   );
 }
+
 
 function StatusBadge({
   value,
@@ -4150,10 +5359,13 @@ function StatusBadge({
     <span
       className={`admin-status admin-status--${className}`}
     >
-      {value}
+      {
+        value
+      }
     </span>
   );
 }
+
 
 function ActionButtons({
   onEdit,
@@ -4161,27 +5373,35 @@ function ActionButtons({
 }) {
   return (
     <div className="admin-action-buttons">
+
       <button
         type="button"
-        onClick={onEdit}
+        onClick={
+          onEdit
+        }
       >
         <Edit3
           size={16}
         />
       </button>
 
+
       <button
         type="button"
         className="danger"
-        onClick={onDelete}
+        onClick={
+          onDelete
+        }
       >
         <Trash2
           size={16}
         />
       </button>
+
     </div>
   );
 }
+
 
 function AdminField({
   label,
@@ -4196,14 +5416,21 @@ function AdminField({
           : ""
       }`}
     >
+
       <span>
-        {label}
+        {
+          label
+        }
       </span>
 
-      {children}
+      {
+        children
+      }
+
     </label>
   );
 }
+
 
 function Modal({
   title,
@@ -4212,35 +5439,50 @@ function Modal({
 }) {
   return (
     <div className="admin-modal-backdrop">
+
       <div className="admin-modal">
+
         <div className="admin-modal-header">
+
           <div>
             <span className="admin-eyebrow">
               STAX Administration
             </span>
 
             <h2>
-              {title}
+              {
+                title
+              }
             </h2>
           </div>
 
+
           <button
             type="button"
-            onClick={onClose}
+            onClick={
+              onClose
+            }
           >
             <X
               size={20}
             />
           </button>
+
         </div>
 
+
         <div className="admin-modal-body">
-          {children}
+          {
+            children
+          }
         </div>
+
       </div>
+
     </div>
   );
 }
+
 
 function ModalFooter({
   onCancel,
@@ -4248,26 +5490,36 @@ function ModalFooter({
 }) {
   return (
     <div className="admin-modal-footer">
+
       <button
         type="button"
         className="admin-secondary-button"
-        onClick={onCancel}
-        disabled={saving}
+        onClick={
+          onCancel
+        }
+        disabled={
+          saving
+        }
       >
         Cancel
       </button>
 
+
       <button
         type="submit"
         className="admin-primary-button"
-        disabled={saving}
+        disabled={
+          saving
+        }
       >
         {saving
           ? "Saving..."
           : "Save changes"}
       </button>
+
     </div>
   );
 }
+
 
 export default AdminApp;
