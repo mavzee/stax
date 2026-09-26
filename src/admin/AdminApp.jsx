@@ -45,10 +45,12 @@ import {
   deleteQuestion,
   deleteRanking,
   getCards,
+  getEventRegistrations,
   getEvents,
   getOrders,
   getQuestions,
   getRankings,
+  getReceiptSignedUrl,
   updateCard,
   updateEvent,
   updateOrder,
@@ -59,11 +61,6 @@ import {
 } from "../lib/database";
 
 import "./admin.css";
-
-
-/* =========================================================
-   CONSTANTS
-========================================================= */
 
 const RARITIES = [
   "Common",
@@ -127,11 +124,6 @@ const BRACKET_FORMAT = {
   4: "Modern",
 };
 
-
-/* =========================================================
-   LOCAL USERS
-========================================================= */
-
 const initialUsers = [
   {
     id: 1,
@@ -152,11 +144,6 @@ const initialUsers = [
     joined: "2025-12-01",
   },
 ];
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
 
 const navigationItems = [
   {
@@ -200,11 +187,6 @@ const navigationItems = [
     icon: Settings,
   },
 ];
-
-
-/* =========================================================
-   EMPTY FORMS
-========================================================= */
 
 const emptyCardForm = {
   name: "",
@@ -257,11 +239,6 @@ const emptyUserForm = {
   joined: "",
 };
 
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
 function formatCurrency(value) {
   return new Intl.NumberFormat(
     "en-PH",
@@ -276,13 +253,30 @@ function formatCurrency(value) {
 }
 
 function getInitials(name = "") {
-  return name
+  return String(name)
     .split(" ")
     .filter(Boolean)
     .map((word) => word[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function formatRegistrationDate(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Date(value).toLocaleString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }
+  );
 }
 
 function RarityBadge({
@@ -328,11 +322,6 @@ function ColorPip({
   );
 }
 
-
-/* =========================================================
-   ADMIN APP
-========================================================= */
-
 function AdminApp({
   onLogout,
   profile,
@@ -365,6 +354,11 @@ function AdminApp({
   const [
     events,
     setEvents,
+  ] = useState([]);
+
+  const [
+    eventRegistrations,
+    setEventRegistrations,
   ] = useState([]);
 
   const [
@@ -422,11 +416,6 @@ function AdminApp({
     setUserForm,
   ] = useState(emptyUserForm);
 
-
-  /* =========================================================
-     CARD IMAGE
-  ========================================================= */
-
   const [
     cardImageFile,
     setCardImageFile,
@@ -441,11 +430,6 @@ function AdminApp({
     cardSaving,
     setCardSaving,
   ] = useState(false);
-
-
-  /* =========================================================
-     EVENT IMAGE
-  ========================================================= */
 
   const [
     eventImageFile,
@@ -462,7 +446,6 @@ function AdminApp({
     setEventSaving,
   ] = useState(false);
 
-
   /* =========================================================
      LOAD CARDS
   ========================================================= */
@@ -477,37 +460,56 @@ function AdminApp({
           setCards(
             data.map(
               (card) => ({
-                id: card.id,
-                name: card.name,
-                game: card.game,
-                set: card.set_name,
+                id:
+                  card.id,
+
+                name:
+                  card.name,
+
+                game:
+                  card.game,
+
+                set:
+                  card.set_name,
+
                 setCode:
                   card.set_code,
+
                 rarity:
                   card.rarity,
+
                 colors:
                   card.colors,
+
                 condition:
                   card.condition,
+
                 finish:
                   card.finish,
+
                 seller:
                   card.seller,
+
                 price:
                   Number(
                     card.price
                   ),
+
                 stock:
                   Number(
                     card.stock
                   ),
+
                 featured:
                   card.featured,
+
                 status:
                   card.status,
+
                 imageUrl:
                   card.image_url ||
                   "",
+
                 imagePath:
                   card.image_path ||
                   "",
@@ -524,7 +526,6 @@ function AdminApp({
       []
     );
 
-
   /* =========================================================
      LOAD EVENTS
   ========================================================= */
@@ -539,36 +540,50 @@ function AdminApp({
           setEvents(
             data.map(
               (item) => ({
-                id: item.id,
+                id:
+                  item.id,
+
                 title:
                   item.title,
+
                 format:
                   item.format,
+
                 date:
                   item.event_date,
+
                 time:
                   item.event_time,
+
                 venue:
                   item.venue,
+
                 fee:
                   Number(
                     item.fee
                   ),
+
                 slots:
                   Number(
                     item.slots
                   ),
+
                 registered:
                   Number(
-                    item.registered
+                    item.registered ||
+                    0
                   ),
+
                 bracket:
                   item.bracket,
+
                 status:
                   item.status,
+
                 imageUrl:
                   item.image_url ||
                   "",
+
                 imagePath:
                   item.image_path ||
                   "",
@@ -585,6 +600,33 @@ function AdminApp({
       []
     );
 
+  /* =========================================================
+     LOAD EVENT REGISTRATIONS
+  ========================================================= */
+
+  const loadEventRegistrations =
+    useCallback(
+      async () => {
+        try {
+          const data =
+            await getEventRegistrations();
+
+          setEventRegistrations(
+            data
+          );
+        } catch (error) {
+          console.error(
+            "Could not load event registrations:",
+            error
+          );
+
+          setEventRegistrations(
+            []
+          );
+        }
+      },
+      []
+    );
 
   /* =========================================================
      LOAD RANKINGS
@@ -597,7 +639,9 @@ function AdminApp({
           const data =
             await getRankings();
 
-          setRankings(data);
+          setRankings(
+            data
+          );
         } catch (error) {
           console.error(
             "Could not load rankings:",
@@ -607,7 +651,6 @@ function AdminApp({
       },
       []
     );
-
 
   /* =========================================================
      LOAD QUESTIONS
@@ -623,17 +666,24 @@ function AdminApp({
           setQuestions(
             data.map(
               (item) => ({
-                id: item.id,
+                id:
+                  item.id,
+
                 user:
                   item.user_name,
+
                 category:
                   item.category,
+
                 question:
                   item.question,
+
                 replies:
                   item.replies,
+
                 status:
                   item.status,
+
                 date:
                   new Date(
                     item.created_at
@@ -656,7 +706,6 @@ function AdminApp({
       []
     );
 
-
   /* =========================================================
      LOAD ORDERS
   ========================================================= */
@@ -671,25 +720,45 @@ function AdminApp({
           setOrders(
             data.map(
               (item) => ({
-                id: item.id,
+                id:
+                  item.id,
+
                 orderNumber:
                   item.order_number,
+
                 customer:
                   item.customer,
+
                 item:
                   item.item,
+
                 quantity:
                   Number(
                     item.quantity
                   ),
+
                 total:
                   Number(
                     item.total
                   ),
-                payment:
-                  item.payment,
+
+                paymentMethod:
+                  item.payment_method ||
+                  "Pay Upon Pickup",
+
+                paymentStatus:
+                  item.payment_status ||
+                  item.payment ||
+                  "Pay on Pickup",
+
                 delivery:
-                  item.delivery,
+                  item.delivery ||
+                  "Pending",
+
+                receiptPath:
+                  item.receipt_path ||
+                  "",
+
                 date:
                   new Date(
                     item.created_at
@@ -712,7 +781,6 @@ function AdminApp({
       []
     );
 
-
   /* =========================================================
      INITIAL LOAD
   ========================================================= */
@@ -722,6 +790,7 @@ function AdminApp({
       await Promise.all([
         loadCards(),
         loadEvents(),
+        loadEventRegistrations(),
         loadRankings(),
         loadQuestions(),
         loadOrders(),
@@ -732,11 +801,11 @@ function AdminApp({
   }, [
     loadCards,
     loadEvents,
+    loadEventRegistrations,
     loadRankings,
     loadQuestions,
     loadOrders,
   ]);
-
 
   /* =========================================================
      REALTIME
@@ -748,44 +817,85 @@ function AdminApp({
         .channel(
           "stax-admin-realtime"
         )
+
         .on(
           "postgres_changes",
           {
-            event: "*",
-            schema: "public",
-            table: "cards",
+            event:
+              "*",
+
+            schema:
+              "public",
+
+            table:
+              "cards",
           },
           () => {
             loadCards();
           }
         )
+
         .on(
           "postgres_changes",
           {
-            event: "*",
-            schema: "public",
-            table: "events",
+            event:
+              "*",
+
+            schema:
+              "public",
+
+            table:
+              "events",
           },
           () => {
             loadEvents();
           }
         )
+
         .on(
           "postgres_changes",
           {
-            event: "*",
-            schema: "public",
-            table: "rankings",
+            event:
+              "*",
+
+            schema:
+              "public",
+
+            table:
+              "event_registrations",
+          },
+          () => {
+            loadEventRegistrations();
+            loadEvents();
+          }
+        )
+
+        .on(
+          "postgres_changes",
+          {
+            event:
+              "*",
+
+            schema:
+              "public",
+
+            table:
+              "rankings",
           },
           () => {
             loadRankings();
           }
         )
+
         .on(
           "postgres_changes",
           {
-            event: "*",
-            schema: "public",
+            event:
+              "*",
+
+            schema:
+              "public",
+
             table:
               "community_questions",
           },
@@ -793,17 +903,24 @@ function AdminApp({
             loadQuestions();
           }
         )
+
         .on(
           "postgres_changes",
           {
-            event: "*",
-            schema: "public",
-            table: "orders",
+            event:
+              "*",
+
+            schema:
+              "public",
+
+            table:
+              "orders",
           },
           () => {
             loadOrders();
           }
         )
+
         .subscribe();
 
     return () => {
@@ -814,21 +931,17 @@ function AdminApp({
   }, [
     loadCards,
     loadEvents,
+    loadEventRegistrations,
     loadRankings,
     loadQuestions,
     loadOrders,
   ]);
 
-
-  /* =========================================================
-     COMPUTED
-  ========================================================= */
-
   const totalRevenue =
     orders
       .filter(
         (order) =>
-          order.payment ===
+          order.paymentStatus ===
           "Paid"
       )
       .reduce(
@@ -853,11 +966,6 @@ function AdminApp({
         card.rarity ===
         "Mythic Rare"
     ).length;
-
-
-  /* =========================================================
-     FILTERS
-  ========================================================= */
 
   const filteredCards =
     useMemo(
@@ -965,7 +1073,7 @@ function AdminApp({
 
         return orders.filter(
           (order) =>
-            `${order.orderNumber} ${order.customer} ${order.item}`
+            `${order.orderNumber} ${order.customer} ${order.item} ${order.paymentMethod} ${order.paymentStatus}`
               .toLowerCase()
               .includes(
                 query
@@ -978,53 +1086,87 @@ function AdminApp({
       ]
     );
 
-
-  /* =========================================================
-     NAVIGATION
-  ========================================================= */
+  function getRegistrationsForEvent(
+    eventId
+  ) {
+    return eventRegistrations.filter(
+      (
+        registration
+      ) =>
+        Number(
+          registration.event_id
+        ) ===
+        Number(
+          eventId
+        )
+    );
+  }
 
   function navigate(page) {
     setActivePage(page);
-    setSidebarOpen(false);
+
+    setSidebarOpen(
+      false
+    );
+
     setGlobalSearch("");
-    setRarityFilter("All");
+
+    setRarityFilter(
+      "All"
+    );
   }
 
-
-  /* =========================================================
-     MODALS
-  ========================================================= */
-
   function openAddModal(type) {
-    setEditingItem(null);
+    setEditingItem(
+      null
+    );
 
-    if (type === "card") {
-      setCardForm({
-        ...emptyCardForm,
-      });
+    if (
+      type === "card"
+    ) {
+      setCardForm(
+        emptyCardForm
+      );
 
-      setCardImageFile(null);
-      setCardImagePreview("");
+      setCardImageFile(
+        null
+      );
+
+      setCardImagePreview(
+        ""
+      );
     }
 
-    if (type === "event") {
-      setEventForm({
-        ...emptyEventForm,
-      });
+    if (
+      type === "event"
+    ) {
+      setEventForm(
+        emptyEventForm
+      );
 
-      setEventImageFile(null);
-      setEventImagePreview("");
+      setEventImageFile(
+        null
+      );
+
+      setEventImagePreview(
+        ""
+      );
     }
 
-    if (type === "ranking") {
-      setRankingForm({
-        ...emptyRankingForm,
-      });
+    if (
+      type === "ranking"
+    ) {
+      setRankingForm(
+        emptyRankingForm
+      );
     }
 
-    if (type === "user") {
+    if (
+      type === "user"
+    ) {
       setUserForm({
         ...emptyUserForm,
+
         joined:
           new Date()
             .toISOString()
@@ -1042,14 +1184,18 @@ function AdminApp({
     type,
     item
   ) {
-    setEditingItem(item);
+    setEditingItem(
+      item
+    );
 
-    if (type === "card") {
-      setCardForm({
-        ...item,
-      });
+    if (
+      type === "card"
+    ) {
+      setCardForm(item);
 
-      setCardImageFile(null);
+      setCardImageFile(
+        null
+      );
 
       setCardImagePreview(
         item.imageUrl ||
@@ -1057,12 +1203,14 @@ function AdminApp({
       );
     }
 
-    if (type === "event") {
-      setEventForm({
-        ...item,
-      });
+    if (
+      type === "event"
+    ) {
+      setEventForm(item);
 
-      setEventImageFile(null);
+      setEventImageFile(
+        null
+      );
 
       setEventImagePreview(
         item.imageUrl ||
@@ -1070,16 +1218,18 @@ function AdminApp({
       );
     }
 
-    if (type === "ranking") {
-      setRankingForm({
-        ...item,
-      });
+    if (
+      type === "ranking"
+    ) {
+      setRankingForm(
+        item
+      );
     }
 
-    if (type === "user") {
-      setUserForm({
-        ...item,
-      });
+    if (
+      type === "user"
+    ) {
+      setUserForm(item);
     }
 
     setModal(type);
@@ -1087,19 +1237,27 @@ function AdminApp({
 
   function closeModal() {
     setModal(null);
-    setEditingItem(null);
 
-    setCardImageFile(null);
-    setCardImagePreview("");
+    setEditingItem(
+      null
+    );
 
-    setEventImageFile(null);
-    setEventImagePreview("");
+    setCardImageFile(
+      null
+    );
+
+    setCardImagePreview(
+      ""
+    );
+
+    setEventImageFile(
+      null
+    );
+
+    setEventImagePreview(
+      ""
+    );
   }
-
-
-  /* =========================================================
-     CARD IMAGE CHANGE
-  ========================================================= */
 
   function handleCardImageChange(
     event
@@ -1135,22 +1293,16 @@ function AdminApp({
       return;
     }
 
-    setCardImageFile(file);
-
-    const preview =
-      URL.createObjectURL(
-        file
-      );
+    setCardImageFile(
+      file
+    );
 
     setCardImagePreview(
-      preview
+      URL.createObjectURL(
+        file
+      )
     );
   }
-
-
-  /* =========================================================
-     EVENT IMAGE CHANGE
-  ========================================================= */
 
   function handleEventImageChange(
     event
@@ -1186,33 +1338,31 @@ function AdminApp({
       return;
     }
 
-    setEventImageFile(file);
-
-    const preview =
-      URL.createObjectURL(
-        file
-      );
+    setEventImageFile(
+      file
+    );
 
     setEventImagePreview(
-      preview
+      URL.createObjectURL(
+        file
+      )
     );
   }
-
-
-  /* =========================================================
-     SAVE CARD
-  ========================================================= */
 
   async function saveCard(
     event
   ) {
     event.preventDefault();
 
-    if (cardSaving) {
+    if (
+      cardSaving
+    ) {
       return;
     }
 
-    setCardSaving(true);
+    setCardSaving(
+      true
+    );
 
     try {
       let imageUrl =
@@ -1226,7 +1376,9 @@ function AdminApp({
       let oldImagePath =
         null;
 
-      if (cardImageFile) {
+      if (
+        cardImageFile
+      ) {
         const uploaded =
           await uploadCardImage(
             cardImageFile
@@ -1309,7 +1461,9 @@ function AdminApp({
           null,
       };
 
-      if (editingItem) {
+      if (
+        editingItem
+      ) {
         await updateCard(
           editingItem.id,
           cardData
@@ -1320,7 +1474,9 @@ function AdminApp({
         );
       }
 
-      if (oldImagePath) {
+      if (
+        oldImagePath
+      ) {
         try {
           await deleteCardImage(
             oldImagePath
@@ -1347,87 +1503,26 @@ function AdminApp({
         "Could not save card."
       );
     } finally {
-      setCardSaving(false);
+      setCardSaving(
+        false
+      );
     }
   }
-
-
-  /* =========================================================
-     SAVE EVENT
-  ========================================================= */
 
   async function saveEvent(
     event
   ) {
     event.preventDefault();
 
-    if (eventSaving) {
-      return;
-    }
-
-    const slots =
-      Number(
-        eventForm.slots
-      );
-
-    const registered =
-      Number(
-        eventForm.registered ||
-        0
-      );
-
-    if (!eventForm.title.trim()) {
-      alert(
-        "Please enter an event title."
-      );
-
-      return;
-    }
-
-    if (!eventForm.date) {
-      alert(
-        "Please choose an event date."
-      );
-
-      return;
-    }
-
-    if (!eventForm.time) {
-      alert(
-        "Please choose an event time."
-      );
-
-      return;
-    }
-
-    if (slots <= 0) {
-      alert(
-        "Available slots must be greater than 0."
-      );
-
-      return;
-    }
-
-    if (registered < 0) {
-      alert(
-        "Registered players cannot be negative."
-      );
-
-      return;
-    }
-
     if (
-      registered >
-      slots
+      eventSaving
     ) {
-      alert(
-        "Registered players cannot be greater than available slots."
-      );
-
       return;
     }
 
-    setEventSaving(true);
+    setEventSaving(
+      true
+    );
 
     try {
       let imageUrl =
@@ -1441,7 +1536,9 @@ function AdminApp({
       let oldImagePath =
         null;
 
-      if (eventImageFile) {
+      if (
+        eventImageFile
+      ) {
         const uploaded =
           await uploadEventImage(
             eventImageFile
@@ -1462,16 +1559,6 @@ function AdminApp({
           uploaded.path;
       }
 
-      let status =
-        eventForm.status;
-
-      if (
-        registered >=
-        slots
-      ) {
-        status = "Full";
-      }
-
       const data = {
         title:
           eventForm.title.trim(),
@@ -1490,18 +1577,25 @@ function AdminApp({
 
         fee:
           Number(
-            eventForm.fee ||
-            0
+            eventForm.fee
           ),
 
-        slots,
+        slots:
+          Number(
+            eventForm.slots
+          ),
 
-        registered,
+        registered:
+          Number(
+            eventForm.registered ||
+            0
+          ),
 
         bracket:
           eventForm.bracket,
 
-        status,
+        status:
+          eventForm.status,
 
         image_url:
           imageUrl ||
@@ -1512,12 +1606,9 @@ function AdminApp({
           null,
       };
 
-      console.log(
-        "Saving event:",
-        data
-      );
-
-      if (editingItem) {
+      if (
+        editingItem
+      ) {
         await updateEvent(
           editingItem.id,
           data
@@ -1528,7 +1619,9 @@ function AdminApp({
         );
       }
 
-      if (oldImagePath) {
+      if (
+        oldImagePath
+      ) {
         try {
           await deleteEventImage(
             oldImagePath
@@ -1543,10 +1636,13 @@ function AdminApp({
 
       closeModal();
 
-      await loadEvents();
+      await Promise.all([
+        loadEvents(),
+        loadEventRegistrations(),
+      ]);
     } catch (error) {
       console.error(
-        "Save event error:",
+        "Save event:",
         error
       );
 
@@ -1555,14 +1651,11 @@ function AdminApp({
         "Could not save event."
       );
     } finally {
-      setEventSaving(false);
+      setEventSaving(
+        false
+      );
     }
   }
-
-
-  /* =========================================================
-     SAVE RANKING
-  ========================================================= */
 
   async function saveRanking(
     event
@@ -1600,7 +1693,9 @@ function AdminApp({
     };
 
     try {
-      if (editingItem) {
+      if (
+        editingItem
+      ) {
         await updateRanking(
           editingItem.id,
           data
@@ -1625,12 +1720,9 @@ function AdminApp({
     }
   }
 
-
-  /* =========================================================
-     SAVE USER
-  ========================================================= */
-
-  function saveUser(event) {
+  function saveUser(
+    event
+  ) {
     event.preventDefault();
 
     const normalizedUser = {
@@ -1642,7 +1734,9 @@ function AdminApp({
         ),
     };
 
-    if (editingItem) {
+    if (
+      editingItem
+    ) {
       setUsers(
         (current) =>
           current.map(
@@ -1651,6 +1745,7 @@ function AdminApp({
               editingItem.id
                 ? {
                     ...normalizedUser,
+
                     id:
                       editingItem.id,
                   }
@@ -1662,7 +1757,8 @@ function AdminApp({
         (current) => [
           {
             ...normalizedUser,
-            id: Date.now(),
+            id:
+              Date.now(),
           },
 
           ...current,
@@ -1672,11 +1768,6 @@ function AdminApp({
 
     closeModal();
   }
-
-
-  /* =========================================================
-     DELETE
-  ========================================================= */
 
   function requestDelete(
     type,
@@ -1689,49 +1780,70 @@ function AdminApp({
   }
 
   async function confirmDelete() {
-    if (!deleteTarget) {
+    if (
+      !deleteTarget
+    ) {
       return;
     }
 
     const {
       type,
       item,
-    } = deleteTarget;
+    } =
+      deleteTarget;
 
     try {
-      if (type === "card") {
+      if (
+        type ===
+        "card"
+      ) {
         await deleteCard(
           item.id,
           item.imagePath
         );
       }
 
-      if (type === "event") {
+      if (
+        type ===
+        "event"
+      ) {
         await deleteEvent(
           item.id,
           item.imagePath
         );
       }
 
-      if (type === "ranking") {
+      if (
+        type ===
+        "ranking"
+      ) {
         await deleteRanking(
           item.id
         );
       }
 
-      if (type === "question") {
+      if (
+        type ===
+        "question"
+      ) {
         await deleteQuestion(
           item.id
         );
       }
 
-      if (type === "order") {
+      if (
+        type ===
+        "order"
+      ) {
         await deleteOrder(
           item.id
         );
       }
 
-      if (type === "user") {
+      if (
+        type ===
+        "user"
+      ) {
         setUsers(
           (current) =>
             current.filter(
@@ -1742,27 +1854,18 @@ function AdminApp({
         );
       }
 
-      setDeleteTarget(null);
+      setDeleteTarget(
+        null
+      );
 
-      if (type === "card") {
-        await loadCards();
-      }
-
-      if (type === "event") {
-        await loadEvents();
-      }
-
-      if (type === "ranking") {
-        await loadRankings();
-      }
-
-      if (type === "question") {
-        await loadQuestions();
-      }
-
-      if (type === "order") {
-        await loadOrders();
-      }
+      await Promise.all([
+        loadCards(),
+        loadEvents(),
+        loadEventRegistrations(),
+        loadRankings(),
+        loadQuestions(),
+        loadOrders(),
+      ]);
     } catch (error) {
       console.error(
         "Delete error:",
@@ -1775,11 +1878,6 @@ function AdminApp({
       );
     }
   }
-
-
-  /* =========================================================
-     QUESTION STATUS
-  ========================================================= */
 
   async function updateQuestionStatus(
     id,
@@ -1796,18 +1894,8 @@ function AdminApp({
       console.error(
         error
       );
-
-      alert(
-        error.message ||
-        "Could not update question."
-      );
     }
   }
-
-
-  /* =========================================================
-     ORDER STATUS
-  ========================================================= */
 
   async function updateOrderField(
     id,
@@ -1835,16 +1923,50 @@ function AdminApp({
     }
   }
 
+  async function viewOrderReceipt(
+    order
+  ) {
+    if (
+      !order.receiptPath
+    ) {
+      alert(
+        "This order does not have a receipt."
+      );
 
-  /* =========================================================
-     DASHBOARD
-  ========================================================= */
+      return;
+    }
+
+    try {
+      const signedUrl =
+        await getReceiptSignedUrl(
+          order.receiptPath
+        );
+
+      window.open(
+        signedUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } catch (error) {
+      console.error(
+        "Receipt error:",
+        error
+      );
+
+      alert(
+        error.message ||
+        "Could not open receipt."
+      );
+    }
+  }
 
   function renderDashboard() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Overview
             </span>
@@ -1854,8 +1976,11 @@ function AdminApp({
             </h1>
 
             <p>
-              Manage the STAX marketplace from one dashboard.
+              Manage the STAX
+              marketplace from one
+              dashboard.
             </p>
+
           </div>
 
           <button
@@ -1870,14 +1995,17 @@ function AdminApp({
             <Plus
               size={18}
             />
+
             Add new card
           </button>
+
         </section>
 
 
         <section className="admin-stat-grid">
 
           <article className="admin-stat-card">
+
             <div className="admin-stat-icon">
               <CircleDollarSign
                 size={23}
@@ -1885,6 +2013,7 @@ function AdminApp({
             </div>
 
             <div>
+
               <span>
                 Total revenue
               </span>
@@ -1898,11 +2027,14 @@ function AdminApp({
               <small>
                 Paid orders only
               </small>
+
             </div>
+
           </article>
 
 
           <article className="admin-stat-card">
+
             <div className="admin-stat-icon">
               <Package
                 size={23}
@@ -1910,6 +2042,7 @@ function AdminApp({
             </div>
 
             <div>
+
               <span>
                 Cards listed
               </span>
@@ -1926,11 +2059,14 @@ function AdminApp({
                 }{" "}
                 low-stock cards
               </small>
+
             </div>
+
           </article>
 
 
           <article className="admin-stat-card">
+
             <div className="admin-stat-icon">
               <Sparkles
                 size={23}
@@ -1938,24 +2074,28 @@ function AdminApp({
             </div>
 
             <div>
+
               <span>
-                Mythic rares
+                Event registrations
               </span>
 
               <strong>
                 {
-                  mythicCount
+                  eventRegistrations.length
                 }
               </strong>
 
               <small>
-                In inventory
+                Registered players
               </small>
+
             </div>
+
           </article>
 
 
           <article className="admin-stat-card">
+
             <div className="admin-stat-icon">
               <Users
                 size={23}
@@ -1963,6 +2103,7 @@ function AdminApp({
             </div>
 
             <div>
+
               <span>
                 Registered users
               </span>
@@ -1983,7 +2124,9 @@ function AdminApp({
                 }{" "}
                 active
               </small>
+
             </div>
+
           </article>
 
         </section>
@@ -1994,7 +2137,9 @@ function AdminApp({
           <article className="admin-panel admin-revenue-panel">
 
             <div className="admin-panel-heading">
+
               <div>
+
                 <span className="admin-eyebrow">
                   Performance
                 </span>
@@ -2002,11 +2147,13 @@ function AdminApp({
                 <h2>
                   Sales overview
                 </h2>
+
               </div>
 
               <BarChart3
                 size={23}
               />
+
             </div>
 
 
@@ -2027,8 +2174,11 @@ function AdminApp({
                 ) => (
                   <div
                     className="admin-chart-column"
-                    key={index}
+                    key={
+                      index
+                    }
                   >
+
                     <div
                       className="admin-chart-bar"
                       style={{
@@ -2047,9 +2197,12 @@ function AdminApp({
                           "Fri",
                           "Sat",
                           "Sun",
-                        ][index]
+                        ][
+                          index
+                        ]
                       }
                     </span>
+
                   </div>
                 )
               )}
@@ -2062,7 +2215,9 @@ function AdminApp({
           <article className="admin-panel">
 
             <div className="admin-panel-heading">
+
               <div>
+
                 <span className="admin-eyebrow">
                   Inventory
                 </span>
@@ -2070,11 +2225,13 @@ function AdminApp({
                 <h2>
                   Low stock
                 </h2>
+
               </div>
 
               <Package
                 size={23}
               />
+
             </div>
 
 
@@ -2084,8 +2241,11 @@ function AdminApp({
                 (card) => (
                   <div
                     className="admin-compact-item"
-                    key={card.id}
+                    key={
+                      card.id
+                    }
                   >
+
                     {card.imageUrl ? (
                       <img
                         src={
@@ -2108,6 +2268,7 @@ function AdminApp({
                     )}
 
                     <div>
+
                       <strong>
                         {
                           card.name
@@ -2119,6 +2280,7 @@ function AdminApp({
                           card.set
                         }
                       </span>
+
                     </div>
 
                     <span
@@ -2134,6 +2296,7 @@ function AdminApp({
                       }{" "}
                       left
                     </span>
+
                   </div>
                 )
               )}
@@ -2150,7 +2313,9 @@ function AdminApp({
           <article className="admin-panel">
 
             <div className="admin-panel-heading">
+
               <div>
+
                 <span className="admin-eyebrow">
                   Recent
                 </span>
@@ -2158,6 +2323,7 @@ function AdminApp({
                 <h2>
                   Latest orders
                 </h2>
+
               </div>
 
               <button
@@ -2171,6 +2337,7 @@ function AdminApp({
               >
                 View all
               </button>
+
             </div>
 
 
@@ -2189,6 +2356,7 @@ function AdminApp({
                         order.id
                       }
                     >
+
                       <div className="admin-product-thumbnail">
                         <ShoppingBag
                           size={17}
@@ -2196,6 +2364,7 @@ function AdminApp({
                       </div>
 
                       <div>
+
                         <strong>
                           {
                             order.customer
@@ -2211,6 +2380,7 @@ function AdminApp({
                             order.item
                           }
                         </span>
+
                       </div>
 
                       <strong>
@@ -2218,6 +2388,7 @@ function AdminApp({
                           order.total
                         )}
                       </strong>
+
                     </div>
                   )
                 )}
@@ -2230,7 +2401,9 @@ function AdminApp({
           <article className="admin-panel">
 
             <div className="admin-panel-heading">
+
               <div>
+
                 <span className="admin-eyebrow">
                   Community
                 </span>
@@ -2238,11 +2411,13 @@ function AdminApp({
                 <h2>
                   Pending questions
                 </h2>
+
               </div>
 
               <MessageCircle
                 size={23}
               />
+
             </div>
 
 
@@ -2266,6 +2441,7 @@ function AdminApp({
                         question.id
                       }
                     >
+
                       <strong>
                         {
                           question.user
@@ -2289,6 +2465,7 @@ function AdminApp({
                       >
                         Mark answered
                       </button>
+
                     </div>
                   )
                 )}
@@ -2302,16 +2479,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     CARDS
-  ========================================================= */
-
   function renderCards() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Inventory
             </span>
@@ -2321,8 +2495,11 @@ function AdminApp({
             </h1>
 
             <p>
-              Add, edit, delete, price, stock, and photos.
+              Add, edit, delete,
+              price, stock, and
+              photos.
             </p>
+
           </div>
 
           <button
@@ -2337,8 +2514,10 @@ function AdminApp({
             <Plus
               size={18}
             />
+
             Add card
           </button>
+
         </section>
 
 
@@ -2365,7 +2544,9 @@ function AdminApp({
           {RARITIES.map(
             (rarity) => (
               <button
-                key={rarity}
+                key={
+                  rarity
+                }
                 type="button"
                 className={
                   rarityFilter ===
@@ -2445,7 +2626,9 @@ function AdminApp({
                         card.id
                       }
                     >
+
                       <td>
+
                         <div className="admin-name-cell">
 
                           {card.imageUrl ? (
@@ -2469,8 +2652,8 @@ function AdminApp({
                             </div>
                           )}
 
-
                           <div>
+
                             <strong>
                               {
                                 card.name
@@ -2478,9 +2661,7 @@ function AdminApp({
 
                               {card.featured && (
                                 <Sparkles
-                                  size={
-                                    12
-                                  }
+                                  size={12}
                                   className="admin-featured-star"
                                 />
                               )}
@@ -2491,13 +2672,16 @@ function AdminApp({
                                 card.condition
                               }
                             </span>
+
                           </div>
 
                         </div>
+
                       </td>
 
 
                       <td>
+
                         {
                           card.set
                         }
@@ -2507,6 +2691,7 @@ function AdminApp({
                             card.setCode
                           }
                         </span>
+
                       </td>
 
 
@@ -2585,6 +2770,7 @@ function AdminApp({
                           }
                         />
                       </td>
+
                     </tr>
                   )
                 )}
@@ -2600,16 +2786,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     EVENTS
-  ========================================================= */
-
   function renderEvents() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Tournaments
             </span>
@@ -2619,9 +2802,12 @@ function AdminApp({
             </h1>
 
             <p>
-              Create and manage tournaments and event posters.
+              Create and manage tournaments,
+              event posters, and registered players.
             </p>
+
           </div>
+
 
           <button
             type="button"
@@ -2635,198 +2821,335 @@ function AdminApp({
             <Plus
               size={18}
             />
+
             Create event
           </button>
+
         </section>
 
 
         <div className="admin-event-grid">
 
           {filteredEvents.map(
-            (event) => (
-              <article
-                className="admin-event-card"
-                key={event.id}
-              >
+            (event) => {
+              const registrations =
+                getRegistrationsForEvent(
+                  event.id
+                );
 
-                {event.imageUrl ? (
-                  <div className="admin-event-poster">
-                    <img
-                      src={
-                        event.imageUrl
-                      }
-                      alt={
-                        event.title
-                      }
-                    />
-                  </div>
-                ) : (
-                  <div className="admin-event-poster admin-event-poster--empty">
-                    <CalendarDays
-                      size={42}
-                    />
-
-                    <span>
-                      No event poster
-                    </span>
-                  </div>
-                )}
-
-
-                <div className="admin-event-card__header">
-                  <span>
-                    {
-                      event.format
-                    }
-                  </span>
-
-                  <StatusBadge
-                    value={
-                      event.status
-                    }
-                  />
-                </div>
-
-
-                <h2>
-                  {
-                    event.title
+              return (
+                <article
+                  className="admin-event-card"
+                  key={
+                    event.id
                   }
-                </h2>
+                >
+
+                  {event.imageUrl ? (
+                    <div className="admin-event-poster">
+
+                      <img
+                        src={
+                          event.imageUrl
+                        }
+                        alt={
+                          event.title
+                        }
+                      />
+
+                    </div>
+                  ) : (
+                    <div className="admin-event-poster admin-event-poster--empty">
+
+                      <CalendarDays
+                        size={42}
+                      />
+
+                      <span>
+                        No event poster
+                      </span>
+
+                    </div>
+                  )}
 
 
-                <div className="admin-event-details">
+                  <div className="admin-event-card__header">
 
-                  <p>
-                    <strong>
-                      Date:
-                    </strong>{" "}
-                    {
-                      event.date
-                    }
-                  </p>
-
-                  <p>
-                    <strong>
-                      Time:
-                    </strong>{" "}
-                    {
-                      event.time
-                    }
-                  </p>
-
-                  <p>
-                    <strong>
-                      Venue:
-                    </strong>{" "}
-                    {
-                      event.venue
-                    }
-                  </p>
-
-                  <p>
-                    <strong>
-                      Bracket:
-                    </strong>{" "}
-                    {
-                      event.bracket
-                    }
-                  </p>
-
-                  <p>
-                    <strong>
-                      Fee:
-                    </strong>{" "}
-                    {formatCurrency(
-                      event.fee
-                    )}
-                  </p>
-
-                </div>
-
-
-                <div className="admin-registration-progress">
-
-                  <div>
                     <span>
-                      Registrations
+                      {
+                        event.format
+                      }
                     </span>
 
-                    <strong>
-                      {
-                        event.registered
+                    <StatusBadge
+                      value={
+                        event.status
                       }
-                      /
-                      {
-                        event.slots
-                      }
-                    </strong>
-                  </div>
-
-
-                  <div className="admin-progress-track">
-
-                    <span
-                      style={{
-                        width: `${
-                          event.slots >
-                          0
-                            ? Math.min(
-                                (
-                                  event.registered /
-                                  event.slots
-                                ) *
-                                  100,
-                                100
-                              )
-                            : 0
-                        }%`,
-                      }}
                     />
 
                   </div>
 
-                </div>
 
-
-                <div className="admin-card-actions">
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openEditModal(
-                        "event",
-                        event
-                      )
+                  <h2>
+                    {
+                      event.title
                     }
-                  >
-                    <Edit3
-                      size={16}
-                    />
-                    Edit
-                  </button>
+                  </h2>
 
 
-                  <button
-                    type="button"
-                    className="danger"
-                    onClick={() =>
-                      requestDelete(
-                        "event",
-                        event
-                      )
-                    }
-                  >
-                    <Trash2
-                      size={16}
-                    />
-                    Delete
-                  </button>
+                  <div className="admin-event-details">
 
-                </div>
+                    <p>
+                      <strong>
+                        Date:
+                      </strong>{" "}
+                      {
+                        event.date
+                      }
+                    </p>
 
-              </article>
-            )
+
+                    <p>
+                      <strong>
+                        Time:
+                      </strong>{" "}
+                      {
+                        event.time
+                      }
+                    </p>
+
+
+                    <p>
+                      <strong>
+                        Venue:
+                      </strong>{" "}
+                      {
+                        event.venue
+                      }
+                    </p>
+
+
+                    <p>
+                      <strong>
+                        Bracket:
+                      </strong>{" "}
+                      {
+                        event.bracket
+                      }
+                    </p>
+
+
+                    <p>
+                      <strong>
+                        Fee:
+                      </strong>{" "}
+                      {formatCurrency(
+                        event.fee
+                      )}
+                    </p>
+
+                  </div>
+
+
+                  <div className="admin-registration-progress">
+
+                    <div>
+
+                      <span>
+                        Registrations
+                      </span>
+
+                      <strong>
+                        {
+                          registrations.length
+                        }
+                        /
+                        {
+                          event.slots
+                        }
+                      </strong>
+
+                    </div>
+
+
+                    <div className="admin-progress-track">
+
+                      <span
+                        style={{
+                          width:
+                            `${
+                              event.slots >
+                              0
+                                ? Math.min(
+                                    (
+                                      registrations.length /
+                                      event.slots
+                                    ) *
+                                      100,
+                                    100
+                                  )
+                                : 0
+                            }%`,
+                        }}
+                      />
+
+                    </div>
+
+                  </div>
+
+
+                  <div className="admin-event-registrants">
+
+                    <div className="admin-event-registrants__heading">
+
+                      <div>
+
+                        <span className="admin-eyebrow">
+                          Players
+                        </span>
+
+                        <h3>
+                          Registered Players
+                        </h3>
+
+                      </div>
+
+
+                      <span className="admin-event-registration-count">
+                        {
+                          registrations.length
+                        }
+                      </span>
+
+                    </div>
+
+
+                    {registrations.length >
+                    0 ? (
+
+                      <div className="admin-event-registrant-list">
+
+                        {registrations.map(
+                          (
+                            registration,
+                            index
+                          ) => {
+                            const player =
+                              registration.profile;
+
+                            return (
+                              <div
+                                className="admin-event-registrant"
+                                key={
+                                  registration.id
+                                }
+                              >
+
+                                <div className="admin-event-registrant-number">
+                                  {
+                                    index +
+                                    1
+                                  }
+                                </div>
+
+
+                                <div className="admin-user-avatar">
+                                  {getInitials(
+                                    player
+                                      ?.full_name ||
+                                      "Player"
+                                  )}
+                                </div>
+
+
+                                <div className="admin-event-registrant-info">
+
+                                  <strong>
+                                    {
+                                      player
+                                        ?.full_name ||
+                                      "Unknown Player"
+                                    }
+                                  </strong>
+
+
+                                  <span>
+                                    Bracket{" "}
+                                    {
+                                      player
+                                        ?.bracket ||
+                                      "-"
+                                    }
+                                  </span>
+
+                                </div>
+
+
+                                <span className="admin-event-registered-date">
+                                  {formatRegistrationDate(
+                                    registration.registered_at
+                                  )}
+                                </span>
+
+                              </div>
+                            );
+                          }
+                        )}
+
+                      </div>
+
+                    ) : (
+
+                      <div className="admin-event-no-registrants">
+                        No players registered yet.
+                      </div>
+
+                    )}
+
+                  </div>
+
+
+                  <div className="admin-card-actions">
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openEditModal(
+                          "event",
+                          event
+                        )
+                      }
+                    >
+                      <Edit3
+                        size={16}
+                      />
+
+                      Edit
+                    </button>
+
+
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={() =>
+                        requestDelete(
+                          "event",
+                          event
+                        )
+                      }
+                    >
+                      <Trash2
+                        size={16}
+                      />
+
+                      Delete
+                    </button>
+
+                  </div>
+
+                </article>
+              );
+            }
           )}
 
         </div>
@@ -2834,16 +3157,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     RANKINGS
-  ========================================================= */
-
   function renderRankings() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Leaderboards
             </span>
@@ -2853,9 +3173,13 @@ function AdminApp({
             </h1>
 
             <p>
-              Update brackets, wins, losses, points and rank.
+              Update brackets,
+              wins, losses,
+              points and rank.
             </p>
+
           </div>
+
 
           <button
             type="button"
@@ -2869,15 +3193,19 @@ function AdminApp({
             <Plus
               size={18}
             />
+
             Add player
           </button>
+
         </section>
 
 
         {[1, 2, 3, 4].map(
           (bracket) => (
             <AdminTableCard
-              key={bracket}
+              key={
+                bracket
+              }
               title={`Bracket ${bracket} · ${BRACKET_FORMAT[bracket]}`}
               icon={
                 <Trophy
@@ -2892,6 +3220,7 @@ function AdminApp({
 
                   <thead>
                     <tr>
+
                       <th>
                         Rank
                       </th>
@@ -2915,6 +3244,7 @@ function AdminApp({
                       <th>
                         Actions
                       </th>
+
                     </tr>
                   </thead>
 
@@ -2960,6 +3290,7 @@ function AdminApp({
 
 
                             <td>
+
                               <div className="admin-name-cell">
 
                                 <div className="admin-user-avatar">
@@ -2975,6 +3306,7 @@ function AdminApp({
                                 </strong>
 
                               </div>
+
                             </td>
 
 
@@ -3035,16 +3367,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     COMMUNITY
-  ========================================================= */
-
   function renderCommunity() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Moderation
             </span>
@@ -3054,9 +3383,12 @@ function AdminApp({
             </h1>
 
             <p>
-              Review and moderate community questions.
+              Review and moderate
+              community questions.
             </p>
+
           </div>
+
         </section>
 
 
@@ -3083,6 +3415,7 @@ function AdminApp({
 
 
                     <div>
+
                       <strong>
                         {
                           question.user
@@ -3098,6 +3431,7 @@ function AdminApp({
                           question.date
                         }
                       </span>
+
                     </div>
 
                   </div>
@@ -3141,6 +3475,7 @@ function AdminApp({
                     <Check
                       size={16}
                     />
+
                     Mark answered
                   </button>
 
@@ -3157,6 +3492,7 @@ function AdminApp({
                     <ShieldCheck
                       size={16}
                     />
+
                     Close
                   </button>
 
@@ -3174,6 +3510,7 @@ function AdminApp({
                     <Trash2
                       size={16}
                     />
+
                     Delete
                   </button>
 
@@ -3188,16 +3525,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     USERS
-  ========================================================= */
-
   function renderUsers() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Accounts
             </span>
@@ -3207,9 +3541,12 @@ function AdminApp({
             </h1>
 
             <p>
-              This page is still local in this version.
+              This page is still
+              local in this version.
             </p>
+
           </div>
+
 
           <button
             type="button"
@@ -3223,8 +3560,10 @@ function AdminApp({
             <Plus
               size={18}
             />
+
             Add user
           </button>
+
         </section>
 
 
@@ -3236,6 +3575,7 @@ function AdminApp({
 
               <thead>
                 <tr>
+
                   <th>
                     User
                   </th>
@@ -3259,6 +3599,7 @@ function AdminApp({
                   <th>
                     Actions
                   </th>
+
                 </tr>
               </thead>
 
@@ -3274,6 +3615,7 @@ function AdminApp({
                     >
 
                       <td>
+
                         <div className="admin-name-cell">
 
                           <div className="admin-user-avatar">
@@ -3284,6 +3626,7 @@ function AdminApp({
 
 
                           <div>
+
                             <strong>
                               {
                                 user.name
@@ -3295,9 +3638,11 @@ function AdminApp({
                                 user.email
                               }
                             </span>
+
                           </div>
 
                         </div>
+
                       </td>
 
 
@@ -3370,16 +3715,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     ORDERS
-  ========================================================= */
-
   function renderOrders() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Sales
             </span>
@@ -3389,9 +3731,13 @@ function AdminApp({
             </h1>
 
             <p>
-              Update payment and delivery status.
+              Review payments,
+              GCash receipts,
+              and delivery status.
             </p>
+
           </div>
+
         </section>
 
 
@@ -3399,10 +3745,11 @@ function AdminApp({
 
           <div className="admin-table-wrapper">
 
-            <table className="admin-table">
+            <table className="admin-table admin-orders-table">
 
               <thead>
                 <tr>
+
                   <th>
                     Order
                   </th>
@@ -3420,7 +3767,15 @@ function AdminApp({
                   </th>
 
                   <th>
-                    Payment
+                    Payment Method
+                  </th>
+
+                  <th>
+                    Receipt
+                  </th>
+
+                  <th>
+                    Payment Status
                   </th>
 
                   <th>
@@ -3434,6 +3789,7 @@ function AdminApp({
                   <th>
                     Actions
                   </th>
+
                 </tr>
               </thead>
 
@@ -3449,11 +3805,13 @@ function AdminApp({
                     >
 
                       <td>
+
                         <strong>
                           {
                             order.orderNumber
                           }
                         </strong>
+
                       </td>
 
 
@@ -3476,33 +3834,86 @@ function AdminApp({
 
 
                       <td>
+
                         <strong>
                           {formatCurrency(
                             order.total
                           )}
                         </strong>
+
                       </td>
 
 
                       <td>
+
+                        <span
+                          className={`admin-payment-method ${
+                            order.paymentMethod ===
+                            "GCash"
+                              ? "gcash"
+                              : "pickup"
+                          }`}
+                        >
+                          {
+                            order.paymentMethod
+                          }
+                        </span>
+
+                      </td>
+
+
+                      <td>
+
+                        {order.receiptPath ? (
+                          <button
+                            type="button"
+                            className="admin-view-receipt"
+                            onClick={() =>
+                              viewOrderReceipt(
+                                order
+                              )
+                            }
+                          >
+                            <Eye
+                              size={15}
+                            />
+
+                            View receipt
+                          </button>
+                        ) : (
+                          <span className="admin-no-receipt">
+                            —
+                          </span>
+                        )}
+
+                      </td>
+
+
+                      <td>
+
                         <select
                           className="admin-inline-select"
                           value={
-                            order.payment
+                            order.paymentStatus
                           }
                           onChange={(
                             event
                           ) =>
                             updateOrderField(
                               order.id,
-                              "payment",
+                              "payment_status",
                               event.target
                                 .value
                             )
                           }
                         >
-                          <option value="Pending">
-                            Pending
+
+                          <option value="Pending Verification">
+                            Pending Verification
+                          </option>
+
+                          <option value="Pay on Pickup">
+                            Pay on Pickup
                           </option>
 
                           <option value="Paid">
@@ -3512,11 +3923,18 @@ function AdminApp({
                           <option value="Refunded">
                             Refunded
                           </option>
+
+                          <option value="Cancelled">
+                            Cancelled
+                          </option>
+
                         </select>
+
                       </td>
 
 
                       <td>
+
                         <select
                           className="admin-inline-select"
                           value={
@@ -3533,12 +3951,17 @@ function AdminApp({
                             )
                           }
                         >
+
                           <option value="Pending">
                             Pending
                           </option>
 
                           <option value="Processing">
                             Processing
+                          </option>
+
+                          <option value="Ready for Pickup">
+                            Ready for Pickup
                           </option>
 
                           <option value="Shipped">
@@ -3552,7 +3975,9 @@ function AdminApp({
                           <option value="Cancelled">
                             Cancelled
                           </option>
+
                         </select>
+
                       </td>
 
 
@@ -3564,16 +3989,24 @@ function AdminApp({
 
 
                       <td>
+
                         <div className="admin-action-buttons">
 
-                          <button
-                            type="button"
-                            title="View order"
-                          >
-                            <Eye
-                              size={16}
-                            />
-                          </button>
+                          {order.receiptPath && (
+                            <button
+                              type="button"
+                              title="View receipt"
+                              onClick={() =>
+                                viewOrderReceipt(
+                                  order
+                                )
+                              }
+                            >
+                              <Eye
+                                size={16}
+                              />
+                            </button>
+                          )}
 
 
                           <button
@@ -3592,10 +4025,26 @@ function AdminApp({
                           </button>
 
                         </div>
+
                       </td>
 
                     </tr>
                   )
+                )}
+
+
+                {filteredOrders.length ===
+                  0 && (
+                  <tr>
+
+                    <td
+                      colSpan="10"
+                      className="admin-empty-table"
+                    >
+                      No orders found.
+                    </td>
+
+                  </tr>
                 )}
 
               </tbody>
@@ -3609,16 +4058,13 @@ function AdminApp({
     );
   }
 
-
-  /* =========================================================
-     SETTINGS
-  ========================================================= */
-
   function renderSettings() {
     return (
       <>
         <section className="admin-page-heading">
+
           <div>
+
             <span className="admin-eyebrow">
               Configuration
             </span>
@@ -3628,9 +4074,12 @@ function AdminApp({
             </h1>
 
             <p>
-              Update shop preferences.
+              Update shop
+              preferences.
             </p>
+
           </div>
+
         </section>
 
 
@@ -3644,8 +4093,11 @@ function AdminApp({
               event.preventDefault()
             }
           >
+
             <div className="admin-panel-heading">
+
               <div>
+
                 <span className="admin-eyebrow">
                   General
                 </span>
@@ -3653,7 +4105,9 @@ function AdminApp({
                 <h2>
                   Shop information
                 </h2>
+
               </div>
+
             </div>
 
 
@@ -3707,7 +4161,9 @@ function AdminApp({
           >
 
             <div className="admin-panel-heading">
+
               <div>
+
                 <span className="admin-eyebrow">
                   Marketplace
                 </span>
@@ -3715,11 +4171,14 @@ function AdminApp({
                 <h2>
                   Order settings
                 </h2>
+
               </div>
+
             </div>
 
 
             <AdminField label="Default currency">
+
               <select
                 defaultValue="PHP"
               >
@@ -3731,10 +4190,12 @@ function AdminApp({
                   USD — US Dollar
                 </option>
               </select>
+
             </AdminField>
 
 
             <AdminField label="Order pickup">
+
               <select
                 defaultValue="Enabled"
               >
@@ -3746,10 +4207,12 @@ function AdminApp({
                   Disabled
                 </option>
               </select>
+
             </AdminField>
 
 
             <AdminField label="Delivery">
+
               <select
                 defaultValue="Enabled"
               >
@@ -3761,10 +4224,12 @@ function AdminApp({
                   Disabled
                 </option>
               </select>
+
             </AdminField>
 
 
             <AdminField label="Community questions">
+
               <select
                 defaultValue="Enabled"
               >
@@ -3776,6 +4241,7 @@ function AdminApp({
                   Disabled
                 </option>
               </select>
+
             </AdminField>
 
 
@@ -3792,11 +4258,6 @@ function AdminApp({
       </>
     );
   }
-
-
-  /* =========================================================
-     PAGE SWITCH
-  ========================================================= */
 
   function renderPage() {
     switch (
@@ -3828,15 +4289,9 @@ function AdminApp({
     }
   }
 
-
   const adminName =
     profile?.full_name ||
     "Admin User";
-
-
-  /* =========================================================
-     RETURN
-  ========================================================= */
 
   return (
     <div className="admin-app">
@@ -3857,6 +4312,7 @@ function AdminApp({
 
 
           <div>
+
             <strong>
               STAX
             </strong>
@@ -3864,6 +4320,7 @@ function AdminApp({
             <span>
               Card Marketplace
             </span>
+
           </div>
 
 
@@ -3894,6 +4351,7 @@ function AdminApp({
 
 
           <div>
+
             <strong>
               {
                 adminName
@@ -3903,6 +4361,7 @@ function AdminApp({
             <span>
               Administrator
             </span>
+
           </div>
 
         </div>
@@ -3938,6 +4397,7 @@ function AdminApp({
                     )
                   }
                 >
+
                   <Icon
                     size={19}
                   />
@@ -3947,6 +4407,7 @@ function AdminApp({
                       item.label
                     }
                   </span>
+
                 </button>
               );
             }
@@ -4056,6 +4517,7 @@ function AdminApp({
 
 
               <div>
+
                 <strong>
                   {
                     adminName
@@ -4065,6 +4527,7 @@ function AdminApp({
                 <span>
                   Administrator
                 </span>
+
               </div>
 
 
@@ -4085,10 +4548,6 @@ function AdminApp({
 
       </div>
 
-
-      {/* =====================================================
-          CARD MODAL
-      ===================================================== */}
 
       {modal ===
         "card" && (
@@ -4126,6 +4585,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       name:
                         event.target
                           .value,
@@ -4145,25 +4605,26 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       game:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option value="Magic">
+                  <option>
                     Magic
                   </option>
 
-                  <option value="Pokemon">
+                  <option>
                     Pokemon
                   </option>
 
-                  <option value="Yu-Gi-Oh!">
+                  <option>
                     Yu-Gi-Oh!
                   </option>
 
-                  <option value="One Piece">
+                  <option>
                     One Piece
                   </option>
                 </select>
@@ -4181,6 +4642,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       set:
                         event.target
                           .value,
@@ -4201,6 +4663,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       setCode:
                         event.target
                           .value,
@@ -4220,20 +4683,17 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       colors:
                         event.target
                           .value,
                     })
                   }
                 >
-
                   {COLOR_IDENTITIES.map(
                     (color) => (
                       <option
                         key={
-                          color
-                        }
-                        value={
                           color
                         }
                       >
@@ -4243,7 +4703,6 @@ function AdminApp({
                       </option>
                     )
                   )}
-
                 </select>
               </AdminField>
 
@@ -4258,20 +4717,17 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       rarity:
                         event.target
                           .value,
                     })
                   }
                 >
-
                   {RARITIES.map(
                     (rarity) => (
                       <option
                         key={
-                          rarity
-                        }
-                        value={
                           rarity
                         }
                       >
@@ -4281,7 +4737,6 @@ function AdminApp({
                       </option>
                     )
                   )}
-
                 </select>
               </AdminField>
 
@@ -4296,20 +4751,17 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       finish:
                         event.target
                           .value,
                     })
                   }
                 >
-
                   {FINISHES.map(
                     (finish) => (
                       <option
                         key={
-                          finish
-                        }
-                        value={
                           finish
                         }
                       >
@@ -4319,7 +4771,6 @@ function AdminApp({
                       </option>
                     )
                   )}
-
                 </select>
               </AdminField>
 
@@ -4334,20 +4785,17 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       condition:
                         event.target
                           .value,
                     })
                   }
                 >
-
                   {CONDITIONS.map(
                     (condition) => (
                       <option
                         key={
-                          condition
-                        }
-                        value={
                           condition
                         }
                       >
@@ -4357,7 +4805,6 @@ function AdminApp({
                       </option>
                     )
                   )}
-
                 </select>
               </AdminField>
 
@@ -4372,6 +4819,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       seller:
                         event.target
                           .value,
@@ -4394,6 +4842,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       price:
                         event.target
                           .value,
@@ -4416,6 +4865,7 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       stock:
                         event.target
                           .value,
@@ -4435,17 +4885,18 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
+
                       status:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option value="Available">
+                  <option>
                     Available
                   </option>
 
-                  <option value="Unavailable">
+                  <option>
                     Unavailable
                   </option>
                 </select>
@@ -4465,6 +4916,7 @@ function AdminApp({
                     ) =>
                       setCardForm({
                         ...cardForm,
+
                         featured:
                           event.target
                             .checked,
@@ -4482,6 +4934,7 @@ function AdminApp({
                 label="Card photo"
                 full
               >
+
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -4493,12 +4946,14 @@ function AdminApp({
 
                 {cardImagePreview && (
                   <div className="admin-card-image-preview">
+
                     <img
                       src={
                         cardImagePreview
                       }
                       alt="Card preview"
                     />
+
                   </div>
                 )}
 
@@ -4521,10 +4976,6 @@ function AdminApp({
         </Modal>
       )}
 
-
-      {/* =====================================================
-          EVENT MODAL
-      ===================================================== */}
 
       {modal ===
         "event" && (
@@ -4562,6 +5013,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       title:
                         event.target
                           .value,
@@ -4581,20 +5033,17 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       format:
                         event.target
                           .value,
                     })
                   }
                 >
-
                   {FORMATS.map(
                     (format) => (
                       <option
                         key={
-                          format
-                        }
-                        value={
                           format
                         }
                       >
@@ -4604,7 +5053,6 @@ function AdminApp({
                       </option>
                     )
                   )}
-
                 </select>
               </AdminField>
 
@@ -4619,25 +5067,26 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       bracket:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option value="Bracket 1">
+                  <option>
                     Bracket 1
                   </option>
 
-                  <option value="Bracket 2">
+                  <option>
                     Bracket 2
                   </option>
 
-                  <option value="Bracket 3">
+                  <option>
                     Bracket 3
                   </option>
 
-                  <option value="Bracket 4">
+                  <option>
                     Bracket 4
                   </option>
                 </select>
@@ -4656,6 +5105,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       date:
                         event.target
                           .value,
@@ -4677,6 +5127,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       time:
                         event.target
                           .value,
@@ -4700,6 +5151,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       venue:
                         event.target
                           .value,
@@ -4722,6 +5174,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       fee:
                         event.target
                           .value,
@@ -4744,6 +5197,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       slots:
                         event.target
                           .value,
@@ -4765,6 +5219,7 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       registered:
                         event.target
                           .value,
@@ -4784,21 +5239,22 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
+
                       status:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option value="Open">
+                  <option>
                     Open
                   </option>
 
-                  <option value="Full">
+                  <option>
                     Full
                   </option>
 
-                  <option value="Closed">
+                  <option>
                     Closed
                   </option>
                 </select>
@@ -4852,10 +5308,6 @@ function AdminApp({
       )}
 
 
-      {/* =====================================================
-          RANKING MODAL
-      ===================================================== */}
-
       {modal ===
         "ranking" && (
         <Modal
@@ -4892,6 +5344,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       name:
                         event.target
                           .value,
@@ -4911,6 +5364,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       bracket:
                         event.target
                           .value,
@@ -4949,6 +5403,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       rank:
                         event.target
                           .value,
@@ -4971,6 +5426,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       wins:
                         event.target
                           .value,
@@ -4993,6 +5449,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       losses:
                         event.target
                           .value,
@@ -5018,6 +5475,7 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
+
                       points:
                         event.target
                           .value,
@@ -5040,10 +5498,6 @@ function AdminApp({
         </Modal>
       )}
 
-
-      {/* =====================================================
-          USER MODAL
-      ===================================================== */}
 
       {modal ===
         "user" && (
@@ -5078,6 +5532,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       name:
                         event.target
                           .value,
@@ -5099,6 +5554,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       email:
                         event.target
                           .value,
@@ -5118,17 +5574,18 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       role:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option value="Player">
+                  <option>
                     Player
                   </option>
 
-                  <option value="Admin">
+                  <option>
                     Admin
                   </option>
                 </select>
@@ -5145,6 +5602,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       bracket:
                         event.target
                           .value,
@@ -5180,21 +5638,22 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       status:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option value="Active">
+                  <option>
                     Active
                   </option>
 
-                  <option value="Suspended">
+                  <option>
                     Suspended
                   </option>
 
-                  <option value="Inactive">
+                  <option>
                     Inactive
                   </option>
                 </select>
@@ -5213,6 +5672,7 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
+
                       joined:
                         event.target
                           .value,
@@ -5235,10 +5695,6 @@ function AdminApp({
         </Modal>
       )}
 
-
-      {/* =====================================================
-          DELETE CONFIRMATION
-      ===================================================== */}
 
       {deleteTarget && (
         <div className="admin-modal-backdrop">
@@ -5312,11 +5768,6 @@ function AdminApp({
   );
 }
 
-
-/* =========================================================
-   TABLE CARD
-========================================================= */
-
 function AdminTableCard({
   title,
   icon,
@@ -5349,11 +5800,6 @@ function AdminTableCard({
   );
 }
 
-
-/* =========================================================
-   STATUS BADGE
-========================================================= */
-
 function StatusBadge({
   value,
 }) {
@@ -5375,11 +5821,6 @@ function StatusBadge({
     </span>
   );
 }
-
-
-/* =========================================================
-   ACTION BUTTONS
-========================================================= */
 
 function ActionButtons({
   onEdit,
@@ -5416,11 +5857,6 @@ function ActionButtons({
   );
 }
 
-
-/* =========================================================
-   FIELD
-========================================================= */
-
 function AdminField({
   label,
   full = false,
@@ -5449,11 +5885,6 @@ function AdminField({
   );
 }
 
-
-/* =========================================================
-   MODAL
-========================================================= */
-
 function Modal({
   title,
   onClose,
@@ -5467,6 +5898,7 @@ function Modal({
         <div className="admin-modal-header">
 
           <div>
+
             <span className="admin-eyebrow">
               STAX Administration
             </span>
@@ -5476,6 +5908,7 @@ function Modal({
                 title
               }
             </h2>
+
           </div>
 
 
@@ -5504,11 +5937,6 @@ function Modal({
     </div>
   );
 }
-
-
-/* =========================================================
-   MODAL FOOTER
-========================================================= */
 
 function ModalFooter({
   onCancel,
@@ -5546,6 +5974,5 @@ function ModalFooter({
     </div>
   );
 }
-
 
 export default AdminApp;

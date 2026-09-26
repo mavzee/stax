@@ -528,3 +528,196 @@
     grid-template-columns: 1fr;
   }
 }
+/* =========================================
+   SIGN UP
+========================================= */
+
+.stax-signup-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  color: #71849a;
+  font-size: 13px;
+}
+
+.stax-signup-prompt button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563b9;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stax-signup-prompt button:hover {
+  text-decoration: underline;
+}
+
+.stax-back-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563b9;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stax-back-login:hover {
+  text-decoration: underline;
+}
+
+.stax-login-select select {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #102033;
+  cursor: pointer;
+}
+
+.stax-player-account-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #174a85;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.stax-player-account-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.stax-login-success {
+  padding: 11px 13px;
+  border: 1px solid #bbdfc7;
+  border-radius: 10px;
+  background: #eef9f2;
+  color: #277447;
+  font-size: 12px;
+  line-height: 1.5;
+}
+/* =========================================
+   SIGN UP / REGISTRATION
+========================================= */
+
+.stax-signup-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 18px;
+  color: #71849a;
+  font-size: 13px;
+  text-align: center;
+}
+
+.stax-signup-prompt button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563b9;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stax-signup-prompt button:hover {
+  color: #174a85;
+  text-decoration: underline;
+}
+
+.stax-back-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563b9;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stax-back-login:hover {
+  color: #174a85;
+}
+
+.stax-login-select select {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #102033;
+  font: inherit;
+  cursor: pointer;
+}
+
+.stax-login-select select option {
+  color: #102033;
+  background: #ffffff;
+}
+
+.stax-player-account-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #174a85;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.stax-player-account-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.stax-login-success {
+  padding: 12px 14px;
+  border: 1px solid #b7dfc4;
+  border-radius: 11px;
+  background: #edf9f1;
+  color: #247448;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.stax-login-error {
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 11px;
+  background: #fff1f2;
+  color: #c24154;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 650px) {
+  .stax-signup-prompt {
+    font-size: 12px;
+  }
+
+  .stax-player-account-note {
+    font-size: 11px;
+  }
+}

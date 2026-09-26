@@ -2936,3 +2936,167 @@ img {
     width: 100%;
   }
 }
+/* =========================================================
+   PAYMENT METHOD
+========================================================= */
+
+.admin-orders-table {
+  min-width: 1150px;
+}
+
+.admin-payment-method {
+  display: inline-flex;
+
+  min-width: 110px;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding:
+    6px 10px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+.admin-payment-method.gcash {
+  background: #e8f2fc;
+
+  color: #2563b9;
+}
+
+.admin-payment-method.pickup {
+  background: #fff7dd;
+
+  color: #8a651c;
+}
+
+.admin-empty-table {
+  padding:
+    40px !important;
+
+  color:
+    #71849a !important;
+
+  text-align:
+    center !important;
+}
+/* =========================================================
+   EVENT IMAGE SAME SIZE
+========================================================= */
+
+.admin-event-poster {
+  width: 100%;
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+
+  overflow: hidden;
+
+  border-radius: 14px 14px 0 0;
+
+  background: #0f1f33;
+}
+
+.admin-event-poster img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+.admin-event-poster--empty {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  color: #71849a;
+
+  background: #eef3f8;
+}
+
+
+/* =========================================================
+   ORDER PAYMENT UI
+========================================================= */
+
+.admin-orders-table {
+  min-width: 1320px;
+}
+
+.admin-payment-method {
+  display: inline-flex;
+
+  min-width: 110px;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-payment-method.gcash {
+  background: #e8f2fc;
+  color: #2563b9;
+}
+
+.admin-payment-method.pickup {
+  background: #fff7dd;
+  color: #8a651c;
+}
+
+.admin-view-receipt {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 7px 10px;
+
+  border: 1px solid #bfd6ec;
+
+  border-radius: 9px;
+
+  background: #eef6ff;
+
+  color: #2563b9;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-view-receipt:hover {
+  border-color: #2563b9;
+
+  background: #dbeafe;
+}
+
+.admin-no-receipt {
+  color: #94a3b8;
+}
+
+.admin-empty-table {
+  padding: 40px !important;
+
+  color: #71849a !important;
+
+  text-align: center !important;
+}

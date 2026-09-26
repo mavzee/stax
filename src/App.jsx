@@ -22,17 +22,20 @@ function App() {
   const [
     session,
     setSession,
-  ] = useState(null);
+  ] =
+    useState(null);
 
   const [
     profile,
     setProfile,
-  ] = useState(null);
+  ] =
+    useState(null);
 
   const [
     loading,
     setLoading,
-  ] = useState(true);
+  ] =
+    useState(true);
 
 
   useEffect(() => {
@@ -65,10 +68,17 @@ function App() {
           "Session error:",
           error
         );
+
+        if (alive) {
+          setLoading(
+            false
+          );
+        }
       }
     }
 
     initialize();
+
 
     const {
       data: {
@@ -76,7 +86,10 @@ function App() {
       },
     } =
       supabase.auth.onAuthStateChange(
-        (_event, newSession) => {
+        (
+          _event,
+          newSession
+        ) => {
           if (!alive) {
             return;
           }
@@ -86,6 +99,7 @@ function App() {
           );
         }
       );
+
 
     return () => {
       alive = false;
@@ -100,19 +114,29 @@ function App() {
 
     async function loadProfile() {
       if (!session) {
-        setProfile(null);
-        setLoading(false);
+        setProfile(
+          null
+        );
+
+        setLoading(
+          false
+        );
+
         return;
       }
 
-      setLoading(true);
+      setLoading(
+        true
+      );
 
       try {
         const data =
           await getMyProfile();
 
         if (alive) {
-          setProfile(data);
+          setProfile(
+            data
+          );
         }
       } catch (error) {
         console.error(
@@ -121,26 +145,43 @@ function App() {
         );
 
         if (alive) {
-          setProfile(null);
+          setProfile(
+            null
+          );
         }
       } finally {
         if (alive) {
-          setLoading(false);
+          setLoading(
+            false
+          );
         }
       }
     }
 
     loadProfile();
 
+
     return () => {
       alive = false;
     };
-  }, [session]);
+  }, [
+    session,
+  ]);
 
 
   async function handleLogout() {
     try {
-      const { error } =
+      /*
+       * Remove saved cart
+       * when the user logs out.
+       */
+      localStorage.removeItem(
+        "stax_cart"
+      );
+
+      const {
+        error,
+      } =
         await supabase.auth.signOut();
 
       if (error) {
@@ -183,7 +224,9 @@ function App() {
 
 
   if (!session) {
-    return <Login />;
+    return (
+      <Login />
+    );
   }
 
 
@@ -224,31 +267,40 @@ function App() {
             "center",
         }}
       >
+
         <div>
+
           <h2>
             Account unavailable
           </h2>
 
           <button
+            type="button"
             onClick={
               handleLogout
             }
           >
             Log out
           </button>
+
         </div>
+
       </div>
     );
   }
 
 
   if (
-    profile.role ===
+    String(
+      profile.role
+    ).toLowerCase() ===
     "admin"
   ) {
     return (
       <AdminApp
-        profile={profile}
+        profile={
+          profile
+        }
         onLogout={
           handleLogout
         }
@@ -259,7 +311,9 @@ function App() {
 
   return (
     <UserApp
-      profile={profile}
+      profile={
+        profile
+      }
       onLogout={
         handleLogout
       }
