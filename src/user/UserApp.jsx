@@ -42,6 +42,9 @@ import {
 
 import "./user.css";
 
+/* =========================================================
+   MENU
+========================================================= */
 
 const menuItems = [
   {
@@ -71,7 +74,7 @@ const menuItems = [
   },
   {
     id: "cart",
-    label: "My Cart",
+    label: "Cart",
     icon: ShoppingCart,
   },
   {
@@ -81,196 +84,133 @@ const menuItems = [
   },
 ];
 
+/* =========================================================
+   HELPERS
+========================================================= */
 
-function formatPrice(
-  price
-) {
-  return new Intl.NumberFormat(
-    "en-PH",
-    {
-      style: "currency",
-      currency: "PHP",
-      maximumFractionDigits: 0,
-    }
-  ).format(
-    Number(price || 0)
-  );
-}
+const formatPrice = (value) =>
+  new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(Number(value || 0));
 
+const formatEventDate = (date) => {
+  if (!date) return "TBA";
 
-function formatEventDate(
-  date
-) {
-  if (!date) {
-    return "";
-  }
-
-  const [
-    year,
-    month,
-    day,
-  ] = date
-    .split("-")
-    .map(Number);
-
-  const parsed =
-    new Date(
-      year,
-      month - 1,
-      day
-    );
-
-  return new Intl.DateTimeFormat(
+  return new Date(`${date}T00:00:00`).toLocaleDateString(
     "en-US",
     {
-      month: "long",
+      month: "short",
       day: "numeric",
       year: "numeric",
     }
-  ).format(parsed);
-}
+  );
+};
 
+const formatEventTime = (time) => {
+  if (!time) return "TBA";
 
-function formatEventTime(
-  time
-) {
-  if (!time) {
-    return "";
-  }
+  const [hour, minute] = time.split(":");
 
-  const [
-    hours,
-    minutes,
-  ] = time
-    .slice(
-      0,
-      5
-    )
-    .split(":")
-    .map(Number);
+  const date = new Date();
 
-  const parsed =
-    new Date();
-
-  parsed.setHours(
-    hours,
-    minutes,
+  date.setHours(
+    Number(hour),
+    Number(minute),
     0,
     0
   );
 
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      hour: "numeric",
-      minute: "2-digit",
-    }
-  ).format(parsed);
-}
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
 
-
-function getDateParts(
-  date
-) {
+const getDateParts = (date) => {
   if (!date) {
     return {
-      day: "",
-      month: "",
+      day: "--",
+      month: "---",
     };
   }
 
-  const [
-    year,
-    month,
-    day,
-  ] = date
-    .split("-")
-    .map(Number);
-
-  const parsed =
-    new Date(
-      year,
-      month - 1,
-      day
-    );
+  const value = new Date(`${date}T00:00:00`);
 
   return {
-    day,
-
-    month:
-      new Intl.DateTimeFormat(
-        "en-US",
-        {
-          month: "short",
-        }
-      ).format(
-        parsed
-      ),
+    day: value.getDate(),
+    month: value
+      .toLocaleDateString("en-US", {
+        month: "short",
+      })
+      .toUpperCase(),
   };
-}
+};
 
+const getInitials = (name = "") => {
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 
-function getInitials(
-  name = ""
-) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map(
-      (part) =>
-        part[0]
-    )
+  if (!words.length) {
+    return "ST";
+  }
+
+  return words
+    .slice(0, 2)
+    .map((word) => word[0])
     .join("")
-    .slice(
-      0,
-      2
-    )
     .toUpperCase();
-}
+};
 
+/* =========================================================
+   USER APP
+========================================================= */
 
-function UserApp({
+const UserApp = ({
   onLogout,
   profile,
-}) {
-  const [
-    activePage,
-    setActivePage,
-  ] = useState(
-    "home"
-  );
+}) => {
+  /* =======================================================
+     STATE
+  ======================================================= */
+
+  const [activePage, setActivePage] =
+    useState("home");
 
   const [
     mobileSidebarOpen,
     setMobileSidebarOpen,
-  ] = useState(
-    false
-  );
+  ] = useState(false);
 
-  const [
-    searchText,
-    setSearchText,
-  ] = useState("");
+  const [searchText, setSearchText] =
+    useState("");
 
-  const [
-    gameFilter,
-    setGameFilter,
-  ] = useState("All");
+  const [gameFilter, setGameFilter] =
+    useState("All");
 
+  /*
+   * Used by the full rankings page.
+   */
   const [
     selectedBracket,
     setSelectedBracket,
   ] = useState(1);
 
+  /*
+   * Separate dropdown for the HOME leaderboard.
+   */
   const [
-    favorites,
-    setFavorites,
-  ] = useState([]);
+    homeLeaderboardBracket,
+    setHomeLeaderboardBracket,
+  ] = useState(1);
 
-  const [
-    cart,
-    setCart,
-  ] = useState([]);
+  const [favorites, setFavorites] =
+    useState([]);
+
+  const [cart, setCart] =
+    useState([]);
 
   const [
     questionText,
@@ -300,10 +240,7 @@ function UserApp({
   const [
     profileData,
     setProfileData,
-  ] = useState(
-    profile ||
-    null
-  );
+  ] = useState(profile || null);
 
   const [
     checkoutLoading,
@@ -315,237 +252,237 @@ function UserApp({
     setRegisteringEvent,
   ] = useState(null);
 
-
-  /* =========================================================
+  /* =======================================================
      LOAD CARDS
-  ========================================================= */
+  ======================================================= */
 
-  const loadCards =
-    useCallback(
-      async () => {
-        try {
-          const data =
-            await getCards();
+  const loadCards = useCallback(
+    async () => {
+      try {
+        const data = await getCards();
 
-          setCardItems(
-            data
-              .filter(
-                (card) =>
-                  card.status ===
-                    "Available" &&
-                  Number(
-                    card.stock
-                  ) > 0
-              )
-              .map(
-                (card) => ({
-                  id:
-                    card.id,
+        const mapped = (data || [])
+          .filter(
+            (item) =>
+              item.status === "Available" &&
+              Number(item.stock || 0) > 0
+          )
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            game:
+              item.game ||
+              "Magic: The Gathering",
+            set:
+              item.set_name ||
+              "",
+            rarity:
+              item.rarity ||
+              "",
+            condition:
+              item.condition ||
+              "",
+            price:
+              Number(item.price || 0),
+            stock:
+              Number(item.stock || 0),
+            seller:
+              item.seller ||
+              "STAX Card Shop",
+            rating: 5,
+            imageUrl:
+              item.image_url ||
+              "",
+          }));
 
-                  name:
-                    card.name,
+        setCardItems(mapped);
+      } catch (error) {
+        console.error(
+          "Failed to load cards:",
+          error
+        );
+      }
+    },
+    []
+  );
 
-                  game:
-                    card.game ||
-                    "Magic",
-
-                  set:
-                    card.set_name,
-
-                  rarity:
-                    card.rarity,
-
-                  condition:
-                    card.condition,
-
-                  price:
-                    Number(
-                      card.price
-                    ),
-
-                  stock:
-                    Number(
-                      card.stock
-                    ),
-
-                  seller:
-                    card.seller,
-
-                  rating:
-                    5,
-
-                  imageUrl:
-                    card.image_url ||
-                    "",
-                })
-              )
-          );
-        } catch (error) {
-          console.error(
-            "Could not load cards:",
-            error
-          );
-        }
-      },
-      []
-    );
-
-
-  /* =========================================================
+  /* =======================================================
      LOAD EVENTS
-  ========================================================= */
+  ======================================================= */
 
-  const loadEvents =
-    useCallback(
-      async () => {
-        try {
-          const data =
-            await getEvents();
+  const loadEvents = useCallback(
+    async () => {
+      try {
+        const data = await getEvents();
 
-          setShopEvents(
-            data
-              .filter(
-                (item) =>
-                  item.status !==
-                  "Closed"
-              )
-              .map(
-                (item) => ({
-                  id:
-                    item.id,
+        const mapped = (data || [])
+          .filter(
+            (item) =>
+              item.status !== "Closed"
+          )
+          .map((item) => ({
+            id: item.id,
 
-                  title:
-                    item.title,
+            title:
+              item.title ||
+              "Untitled Event",
 
-                  game:
-                    item.format,
+            game:
+              item.format ||
+              "Tournament",
 
-                  date:
-                    item.event_date,
+            format:
+              item.format ||
+              "Tournament",
 
-                  time:
-                    item.event_time,
+            date:
+              item.event_date ||
+              "",
 
-                  venue:
-                    item.venue,
+            time:
+              item.event_time ||
+              "",
 
-                  fee:
-                    Number(
-                      item.fee
-                    ),
+            venue:
+              item.venue ||
+              "STAX Card Shop",
 
-                  slots:
-                    Math.max(
-                      Number(
-                        item.slots
-                      ) -
-                        Number(
-                          item.registered
-                        ),
-                      0
-                    ),
+            fee:
+              Number(
+                item.fee || 0
+              ),
 
-                  status:
-                    item.status,
+            totalSlots:
+              Number(
+                item.slots || 0
+              ),
 
-                  imageUrl:
-                    item.image_url ||
-                    "",
-                })
-              )
-          );
-        } catch (error) {
-          console.error(
-            "Could not load events:",
-            error
-          );
-        }
-      },
-      []
-    );
+            registered:
+              Number(
+                item.registered || 0
+              ),
 
+            slots: Math.max(
+              Number(
+                item.slots || 0
+              ) -
+                Number(
+                  item.registered ||
+                    0
+                ),
+              0
+            ),
 
-  /* =========================================================
+            bracket:
+              item.bracket ||
+              "",
+
+            status:
+              item.status ||
+              "Open",
+
+            imageUrl:
+              item.image_url ||
+              "",
+          }));
+
+        setShopEvents(mapped);
+      } catch (error) {
+        console.error(
+          "Failed to load events:",
+          error
+        );
+      }
+    },
+    []
+  );
+
+  /* =======================================================
      LOAD RANKINGS
-  ========================================================= */
+  ======================================================= */
 
-  const loadRankings =
-    useCallback(
-      async () => {
-        try {
-          const data =
-            await getRankings();
+  const loadRankings = useCallback(
+    async () => {
+      try {
+        const data =
+          await getRankings();
 
-          setRankingItems(
-            data
-          );
-        } catch (error) {
-          console.error(
-            "Could not load rankings:",
-            error
-          );
-        }
-      },
-      []
-    );
+        setRankingItems(
+          data || []
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load rankings:",
+          error
+        );
+      }
+    },
+    []
+  );
 
-
-  /* =========================================================
+  /* =======================================================
      LOAD QUESTIONS
-  ========================================================= */
+  ======================================================= */
 
-  const loadQuestions =
-    useCallback(
-      async () => {
-        try {
-          const data =
-            await getQuestions();
+  const loadQuestions = useCallback(
+    async () => {
+      try {
+        const data =
+          await getQuestions();
 
-          setQuestions(
-            data.map(
-              (item) => ({
-                id:
-                  item.id,
+        const mapped = (
+          data || []
+        ).map((item) => ({
+          id: item.id,
 
-                user:
-                  item.user_name,
+          user:
+            item.user_name ||
+            "STAX Player",
 
-                category:
-                  item.category,
+          category:
+            item.category ||
+            "General",
 
-                question:
-                  item.question,
+          question:
+            item.question ||
+            "",
 
-                replies:
-                  item.replies,
+          replies:
+            Number(
+              item.replies || 0
+            ),
 
-                status:
-                  item.status,
+          status:
+            item.status ||
+            "Open",
 
-                time:
-                  new Date(
-                    item.created_at
-                  ).toLocaleString(),
-              })
-            )
-          );
-        } catch (error) {
-          console.error(
-            "Could not load questions:",
-            error
-          );
-        }
-      },
-      []
-    );
+          time:
+            item.created_at
+              ? new Date(
+                  item.created_at
+                ).toLocaleString()
+              : "",
+        }));
 
+        setQuestions(mapped);
+      } catch (error) {
+        console.error(
+          "Failed to load questions:",
+          error
+        );
+      }
+    },
+    []
+  );
 
-  /* =========================================================
+  /* =======================================================
      INITIALIZE
-  ========================================================= */
+  ======================================================= */
 
   useEffect(() => {
-    async function initialize() {
+    let active = true;
+
+    const initialize = async () => {
       await Promise.all([
         loadCards(),
         loadEvents(),
@@ -554,32 +491,42 @@ function UserApp({
       ]);
 
       try {
-        const currentProfile =
+        const userProfile =
           await getMyProfile();
 
-        setProfileData(
-          currentProfile
-        );
+        if (!active) return;
 
-        if (
-          currentProfile
-            ?.bracket
-        ) {
-          setSelectedBracket(
+        if (userProfile) {
+          setProfileData(
+            userProfile
+          );
+
+          const bracket =
             Number(
-              currentProfile.bracket
-            )
+              userProfile.bracket
+            ) || 1;
+
+          setSelectedBracket(
+            bracket
+          );
+
+          setHomeLeaderboardBracket(
+            bracket
           );
         }
       } catch (error) {
         console.error(
-          "Could not load profile:",
+          "Failed to load profile:",
           error
         );
       }
-    }
+    };
 
     initialize();
+
+    return () => {
+      active = false;
+    };
   }, [
     loadCards,
     loadEvents,
@@ -587,68 +534,66 @@ function UserApp({
     loadQuestions,
   ]);
 
-
-  /* =========================================================
+  /* =======================================================
      REALTIME
-  ========================================================= */
+  ======================================================= */
 
   useEffect(() => {
-    const channel =
-      supabase
-        .channel(
-          "stax-user-realtime"
-        )
+    const channel = supabase
+      .channel(
+        "stax-user-realtime"
+      )
 
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "cards",
-          },
-          () => {
-            loadCards();
-          }
-        )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "cards",
+        },
+        () => {
+          loadCards();
+        }
+      )
 
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "events",
-          },
-          () => {
-            loadEvents();
-          }
-        )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "events",
+        },
+        () => {
+          loadEvents();
+        }
+      )
 
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "rankings",
-          },
-          () => {
-            loadRankings();
-          }
-        )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "rankings",
+        },
+        () => {
+          loadRankings();
+        }
+      )
 
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table:
-              "community_questions",
-          },
-          () => {
-            loadQuestions();
-          }
-        )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table:
+            "community_questions",
+        },
+        () => {
+          loadQuestions();
+        }
+      )
 
-        .subscribe();
+      .subscribe();
 
     return () => {
       supabase.removeChannel(
@@ -662,1322 +607,158 @@ function UserApp({
     loadQuestions,
   ]);
 
+  /* =======================================================
+     FILTER CARDS
+  ======================================================= */
 
   const filteredCards =
-    useMemo(
-      () => {
-        const search =
-          searchText
-            .trim()
+    useMemo(() => {
+      const query =
+        searchText
+          .trim()
+          .toLowerCase();
+
+      return cardItems.filter(
+        (card) => {
+          const matchesGame =
+            gameFilter === "All" ||
+            card.game ===
+              gameFilter;
+
+          const haystack = [
+            card.name,
+            card.game,
+            card.set,
+            card.rarity,
+            card.seller,
+          ]
+            .join(" ")
             .toLowerCase();
 
-        return cardItems.filter(
-          (card) => {
-            const matchesSearch =
-              !search ||
-              card.name
-                .toLowerCase()
-                .includes(
-                  search
-                ) ||
-              card.game
-                .toLowerCase()
-                .includes(
-                  search
-                ) ||
-              card.set
-                .toLowerCase()
-                .includes(
-                  search
-                ) ||
-              card.rarity
-                .toLowerCase()
-                .includes(
-                  search
-                ) ||
-              card.seller
-                .toLowerCase()
-                .includes(
-                  search
-                );
-
-            const matchesGame =
-              gameFilter ===
-                "All" ||
-              card.game ===
-                gameFilter;
-
-            return (
-              matchesSearch &&
-              matchesGame
+          const matchesSearch =
+            !query ||
+            haystack.includes(
+              query
             );
-          }
-        );
-      },
-      [
-        cardItems,
-        searchText,
-        gameFilter,
-      ]
-    );
 
+          return (
+            matchesGame &&
+            matchesSearch
+          );
+        }
+      );
+    }, [
+      cardItems,
+      gameFilter,
+      searchText,
+    ]);
 
-  const cartCount =
-    cart.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.quantity,
-      0
-    );
+  /* =======================================================
+     CART
+  ======================================================= */
 
+  const cartCount = useMemo(
+    () =>
+      cart.reduce(
+        (total, item) =>
+          total +
+          Number(
+            item.quantity || 0
+          ),
+        0
+      ),
+    [cart]
+  );
 
-  const cartTotal =
-    cart.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.price *
-          item.quantity,
-      0
-    );
+  const cartTotal = useMemo(
+    () =>
+      cart.reduce(
+        (total, item) =>
+          total +
+          Number(
+            item.price || 0
+          ) *
+            Number(
+              item.quantity || 0
+            ),
+        0
+      ),
+    [cart]
+  );
 
+  /* =======================================================
+     PROFILE
+  ======================================================= */
 
   const playerName =
-    profileData
-      ?.full_name ||
+    profileData?.full_name ||
     "STAX Player";
-
 
   const playerBracket =
     Number(
-      profileData
-        ?.bracket ||
-      1
-    );
-
+      profileData?.bracket
+    ) || 1;
 
   const currentPlayerRanking =
-    rankingItems.find(
-      (player) =>
-        player.name
-          .trim()
-          .toLowerCase() ===
-        playerName
-          .trim()
-          .toLowerCase()
+    useMemo(
+      () =>
+        rankingItems.find(
+          (item) =>
+            String(
+              item.name || ""
+            ).toLowerCase() ===
+            String(
+              playerName || ""
+            ).toLowerCase()
+        ),
+      [
+        rankingItems,
+        playerName,
+      ]
     );
-
 
   const playerRank =
-    currentPlayerRanking
-      ?.rank ||
+    currentPlayerRanking?.rank ||
     "-";
 
-
   const playerPoints =
-    currentPlayerRanking
-      ?.points ||
+    currentPlayerRanking?.points ||
     0;
 
+  /* =======================================================
+     HOME LEADERBOARD
+  ======================================================= */
 
-  function navigate(page) {
-    setActivePage(page);
-
-    setMobileSidebarOpen(
-      false
-    );
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-
-  function toggleFavorite(
-    cardId
-  ) {
-    setFavorites(
-      (current) =>
-        current.includes(
-          cardId
-        )
-          ? current.filter(
-              (id) =>
-                id !==
-                cardId
+  const homeLeaderboardPlayers =
+    useMemo(() => {
+      return rankingItems
+        .filter(
+          (player) =>
+            Number(
+              player.bracket
+            ) ===
+            Number(
+              homeLeaderboardBracket
             )
-          : [
-              ...current,
-              cardId,
-            ]
-    );
-  }
-
-
-  function addToCart(
-    card
-  ) {
-    setCart(
-      (current) => {
-        const existing =
-          current.find(
-            (item) =>
-              item.id ===
-              card.id
-          );
-
-        if (existing) {
-          return current.map(
-            (item) =>
-              item.id ===
-              card.id
-                ? {
-                    ...item,
-
-                    quantity:
-                      Math.min(
-                        item.quantity +
-                          1,
-                        card.stock
-                      ),
-                  }
-                : item
-          );
-        }
-
-        return [
-          ...current,
-
-          {
-            ...card,
-            quantity: 1,
-          },
-        ];
-      }
-    );
-  }
-
-
-  function changeQuantity(
-    cardId,
-    amount
-  ) {
-    setCart(
-      (current) =>
-        current
-          .map(
-            (item) =>
-              item.id ===
-              cardId
-                ? {
-                    ...item,
-
-                    quantity:
-                      Math.max(
-                        0,
-                        Math.min(
-                          item.quantity +
-                            amount,
-                          item.stock
-                        )
-                      ),
-                  }
-                : item
-          )
-          .filter(
-            (item) =>
-              item.quantity >
-              0
-          )
-    );
-  }
-
-
-  async function submitQuestion(
-    event
-  ) {
-    event.preventDefault();
-
-    const cleanQuestion =
-      questionText.trim();
-
-    if (!cleanQuestion) {
-      return;
-    }
-
-    try {
-      await createQuestion({
-        question:
-          cleanQuestion,
-
-        category:
-          "General",
-      });
-
-      setQuestionText(
-        ""
-      );
-
-      await loadQuestions();
-    } catch (error) {
-      console.error(
-        error
-      );
-
-      alert(
-        "Could not post question."
-      );
-    }
-  }
-
-
-  async function handleCheckout() {
-    if (
-      cart.length ===
-      0
-    ) {
-      return;
-    }
-
-    try {
-      setCheckoutLoading(
-        true
-      );
-
-      await checkoutCart(
-        cart
-      );
-
-      setCart([]);
-
-      await loadCards();
-
-      alert(
-        "Order submitted successfully."
-      );
-    } catch (error) {
-      console.error(
-        error
-      );
-
-      alert(
-        error.message ||
-        "Checkout failed."
-      );
-    } finally {
-      setCheckoutLoading(
-        false
-      );
-    }
-  }
-
-
-  async function handleRegisterEvent(
-    eventId
-  ) {
-    if (
-      registeringEvent
-    ) {
-      return;
-    }
-
-    try {
-      setRegisteringEvent(
-        eventId
-      );
-
-      await registerForEvent(
-        eventId
-      );
-
-      await loadEvents();
-
-      alert(
-        "Registration successful."
-      );
-    } catch (error) {
-      console.error(
-        error
-      );
-
-      alert(
-        error.message ||
-        "Could not register."
-      );
-    } finally {
-      setRegisteringEvent(
-        null
-      );
-    }
-  }
-
-
-  /* =========================================================
-     CARD GRID
-  ========================================================= */
-
-  function renderCardGrid(
-    limit
-  ) {
-    const displayedCards =
-      limit
-        ? filteredCards.slice(
-            0,
-            limit
-          )
-        : filteredCards;
-
-
-    return (
-      <div className="card-market-grid">
-
-        {displayedCards.map(
-          (
-            card,
-            index
-          ) => (
-            <article
-              className="market-card"
-              key={
-                card.id
-              }
-            >
-
-              <div
-                className={`market-card__image ${
-                  card.imageUrl
-                    ? "has-real-image"
-                    : `game-image-${
-                        (
-                          index %
-                          6
-                        ) +
-                        1
-                      }`
-                }`}
-              >
-
-                {card.imageUrl ? (
-                  <img
-                    src={
-                      card.imageUrl
-                    }
-                    alt={
-                      card.name
-                    }
-                    className="market-card__actual-image"
-                  />
-                ) : (
-                  <span>
-                    {
-                      card.game
-                    }
-                  </span>
-                )}
-
-
-                <button
-                  type="button"
-                  className={`favorite-button ${
-                    favorites.includes(
-                      card.id
-                    )
-                      ? "is-favorite"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    toggleFavorite(
-                      card.id
-                    )
-                  }
-                >
-                  <Heart
-                    size={19}
-                  />
-                </button>
-
-              </div>
-
-
-              <div className="market-card__body">
-
-                <div className="market-card__game-row">
-                  <span>
-                    {
-                      card.set
-                    }
-                  </span>
-
-                  <span className="rating">
-                    <Star
-                      size={14}
-                      fill="currentColor"
-                    />
-
-                    {
-                      card.rating
-                    }
-                  </span>
-                </div>
-
-
-                <h3>
-                  {
-                    card.name
-                  }
-                </h3>
-
-
-                <p className="card-rarity">
-                  {
-                    card.rarity
-                  }
-                </p>
-
-
-                <div className="card-condition-row">
-                  <span>
-                    {
-                      card.condition
-                    }
-                  </span>
-
-                  <span>
-                    {
-                      card.stock
-                    }{" "}
-                    available
-                  </span>
-                </div>
-
-
-                <div className="market-card__seller">
-                  Sold by{" "}
-
-                  <strong>
-                    {
-                      card.seller
-                    }
-                  </strong>
-                </div>
-
-
-                <div className="market-card__footer">
-                  <strong>
-                    {formatPrice(
-                      card.price
-                    )}
-                  </strong>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      addToCart(
-                        card
-                      )
-                    }
-                  >
-                    <ShoppingBag
-                      size={17}
-                    />
-
-                    Add
-                  </button>
-                </div>
-
-              </div>
-
-            </article>
-          )
-        )}
-
-
-        {displayedCards.length ===
-          0 && (
-          <div className="empty-state full-grid-item">
-
-            <Search
-              size={38}
-            />
-
-            <h3>
-              No cards found
-            </h3>
-
-            <p>
-              Try another search
-              or filter.
-            </p>
-
-          </div>
-        )}
-
-      </div>
-    );
-  }
-
-
-  /* =========================================================
-     HOME
-  ========================================================= */
-
-  function renderHome() {
-    return (
-      <>
-        <section className="hero-section">
-
-          <div className="hero-section__content">
-
-            <span className="eyebrow">
-              The home of local
-              card players
-            </span>
-
-
-            <h1>
-              Find cards. Join
-              events. Become the
-              top player.
-            </h1>
-
-
-            <p>
-              Browse cards,
-              register for
-              events, check
-              rankings and
-              connect with the
-              community.
-            </p>
-
-
-            <div className="hero-actions">
-
-              <button
-                type="button"
-                onClick={() =>
-                  navigate(
-                    "shop"
-                  )
-                }
-              >
-                Browse cards
-
-                <ChevronRight
-                  size={18}
-                />
-              </button>
-
-
-              <button
-                type="button"
-                className="secondary"
-                onClick={() =>
-                  navigate(
-                    "events"
-                  )
-                }
-              >
-                View events
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div className="hero-stat-panel">
-
-            <div>
-              <ShoppingBag
-                size={24}
-              />
-
-              <strong>
-                {
-                  cardItems.length
-                }
-              </strong>
-
-              <span>
-                Cards listed
-              </span>
-            </div>
-
-
-            <div>
-              <Users
-                size={24}
-              />
-
-              <strong>
-                {
-                  rankingItems.length
-                }
-              </strong>
-
-              <span>
-                Ranked players
-              </span>
-            </div>
-
-
-            <div>
-              <Trophy
-                size={24}
-              />
-
-              <strong>
-                {
-                  shopEvents.length
-                }
-              </strong>
-
-              <span>
-                Upcoming events
-              </span>
-            </div>
-
-          </div>
-
-        </section>
-
-
-        <section className="content-section">
-
-          <div className="section-heading">
-
-            <div>
-              <span className="eyebrow">
-                Marketplace
-              </span>
-
-              <h2>
-                Popular cards
-              </h2>
-
-              <p>
-                Discover cards
-                currently
-                available.
-              </p>
-            </div>
-
-
-            <button
-              type="button"
-              className="text-button"
-              onClick={() =>
-                navigate(
-                  "shop"
-                )
-              }
-            >
-              View all cards
-
-              <ChevronRight
-                size={17}
-              />
-            </button>
-
-          </div>
-
-
-          {renderCardGrid(
-            4
-          )}
-
-        </section>
-
-
-        <section className="dashboard-grid">
-
-          <article className="dashboard-panel">
-
-            <div className="section-heading compact">
-
-              <div>
-                <span className="eyebrow">
-                  Upcoming
-                </span>
-
-                <h2>
-                  Shop events
-                </h2>
-              </div>
-
-              <CalendarDays
-                size={25}
-              />
-
-            </div>
-
-
-            <div className="mini-event-list">
-
-              {shopEvents
-                .slice(
-                  0,
-                  3
-                )
-                .map(
-                  (event) => {
-                    const dateParts =
-                      getDateParts(
-                        event.date
-                      );
-
-                    return (
-                      <div
-                        className="mini-event-item"
-                        key={
-                          event.id
-                        }
-                      >
-
-                        {event.imageUrl ? (
-                          <div className="mini-event-poster">
-                            <img
-                              src={
-                                event.imageUrl
-                              }
-                              alt={
-                                event.title
-                              }
-                            />
-                          </div>
-                        ) : (
-                          <div className="event-date-box">
-                            <strong>
-                              {
-                                dateParts.day
-                              }
-                            </strong>
-
-                            <span>
-                              {
-                                dateParts.month
-                              }
-                            </span>
-                          </div>
-                        )}
-
-
-                        <div>
-                          <h3>
-                            {
-                              event.title
-                            }
-                          </h3>
-
-                          <p>
-                            {formatEventTime(
-                              event.time
-                            )}{" "}
-                            ·{" "}
-                            {
-                              event.slots
-                            }{" "}
-                            slots left
-                          </p>
-                        </div>
-
-                      </div>
-                    );
-                  }
-                )}
-
-            </div>
-
-          </article>
-
-
-          <article className="dashboard-panel">
-
-            <div className="section-heading compact">
-
-              <div>
-                <span className="eyebrow">
-                  Leaderboard
-                </span>
-
-                <h2>
-                  Bracket 1
-                  leaders
-                </h2>
-              </div>
-
-              <Trophy
-                size={25}
-              />
-
-            </div>
-
-
-            <div className="leader-preview-list">
-
-              {rankingItems
-                .filter(
-                  (player) =>
-                    Number(
-                      player.bracket
-                    ) ===
-                    1
-                )
-                .sort(
-                  (
-                    a,
-                    b
-                  ) =>
-                    Number(
-                      a.rank
-                    ) -
-                    Number(
-                      b.rank
-                    )
-                )
-                .slice(
-                  0,
-                  3
-                )
-                .map(
-                  (player) => (
-                    <div
-                      className="leader-preview-item"
-                      key={
-                        player.id
-                      }
-                    >
-
-                      <span className="rank-number">
-                        {
-                          player.rank
-                        }
-                      </span>
-
-
-                      <div className="player-avatar">
-                        {getInitials(
-                          player.name
-                        )}
-                      </div>
-
-
-                      <div>
-                        <strong>
-                          {
-                            player.name
-                          }
-                        </strong>
-
-                        <span>
-                          {
-                            player.wins
-                          }
-                          W ·{" "}
-                          {
-                            player.losses
-                          }
-                          L
-                        </span>
-                      </div>
-
-
-                      <strong className="player-points">
-                        {
-                          player.points
-                        }{" "}
-                        pts
-                      </strong>
-
-                    </div>
-                  )
-                )}
-
-            </div>
-
-          </article>
-
-        </section>
-      </>
-    );
-  }
-
-
-  /* =========================================================
-     SHOP
-  ========================================================= */
-
-  function renderShop() {
-    const gameOptions = [
-      "All",
-
-      ...new Set(
-        cardItems.map(
-          (card) =>
-            card.game
         )
-      ),
-    ];
-
-
-    return (
-      <section className="content-section page-section">
-
-        <div className="page-title-row">
-
-          <div>
-            <span className="eyebrow">
-              Marketplace
-            </span>
-
-            <h1>
-              Card Shop
-            </h1>
-
-            <p>
-              Search by card,
-              game, set,
-              rarity or seller.
-            </p>
-          </div>
-
-
-          <button
-            type="button"
-            className="cart-summary-button"
-            onClick={() =>
-              navigate(
-                "cart"
-              )
-            }
-          >
-            <ShoppingCart
-              size={20}
-            />
-
-            Cart
-
-            <span>
-              {
-                cartCount
-              }
-            </span>
-          </button>
-
-        </div>
-
-
-        <div className="shop-toolbar">
-
-          <label className="search-field">
-
-            <Search
-              size={19}
-            />
-
-            <input
-              type="search"
-              placeholder="Search for a card..."
-              value={
-                searchText
-              }
-              onChange={(
-                event
-              ) =>
-                setSearchText(
-                  event.target
-                    .value
-                )
-              }
-            />
-
-          </label>
-
-
-          <select
-            value={
-              gameFilter
-            }
-            onChange={(
-              event
-            ) =>
-              setGameFilter(
-                event.target
-                  .value
-              )
-            }
-          >
-
-            {gameOptions.map(
-              (game) => (
-                <option
-                  key={
-                    game
-                  }
-                  value={
-                    game
-                  }
-                >
-                  {game ===
-                  "All"
-                    ? "All games"
-                    : game}
-                </option>
-              )
-            )}
-
-          </select>
-
-        </div>
-
-
-        <div className="results-line">
-
-          <strong>
-            {
-              filteredCards.length
-            }
-          </strong>{" "}
-          cards found
-
-        </div>
-
-
-        {renderCardGrid()}
-
-      </section>
-    );
-  }
-
-
-  /* =========================================================
-     EVENTS
-  ========================================================= */
-
-  function renderEvents() {
-    return (
-      <section className="content-section page-section">
-
-        <div className="page-title-row">
-
-          <div>
-            <span className="eyebrow">
-              Compete and
-              connect
-            </span>
-
-            <h1>
-              Upcoming Events
-            </h1>
-
-            <p>
-              Register for
-              tournaments and
-              community events.
-            </p>
-          </div>
-
-        </div>
-
-
-        <div className="event-grid">
-
-          {shopEvents.map(
-            (event) => (
-              <article
-                className="event-card"
-                key={
-                  event.id
-                }
-              >
-
-                <div
-                  className={`event-card__banner ${
-                    event.imageUrl
-                      ? "has-event-image"
-                      : ""
-                  }`}
-                >
-
-                  {event.imageUrl ? (
-                    <img
-                      src={
-                        event.imageUrl
-                      }
-                      alt={
-                        event.title
-                      }
-                      className="event-card__poster"
-                    />
-                  ) : (
-                    <>
-                      <span>
-                        {
-                          event.game
-                        }
-                      </span>
-
-                      <CalendarDays
-                        size={34}
-                      />
-                    </>
-                  )}
-
-                </div>
-
-
-                <div className="event-card__body">
-
-                  <span className="event-status">
-                    {event.status ===
-                    "Full"
-                      ? "Registration full"
-                      : "Registration open"}
-                  </span>
-
-
-                  <h2>
-                    {
-                      event.title
-                    }
-                  </h2>
-
-
-                  <div className="event-detail-list">
-
-                    <p>
-                      <strong>
-                        Date:
-                      </strong>{" "}
-
-                      {formatEventDate(
-                        event.date
-                      )}
-                    </p>
-
-
-                    <p>
-                      <strong>
-                        Time:
-                      </strong>{" "}
-
-                      {formatEventTime(
-                        event.time
-                      )}
-                    </p>
-
-
-                    <p>
-                      <strong>
-                        Venue:
-                      </strong>{" "}
-
-                      {
-                        event.venue
-                      }
-                    </p>
-
-
-                    <p>
-                      <strong>
-                        Entry fee:
-                      </strong>{" "}
-
-                      {formatPrice(
-                        event.fee
-                      )}
-                    </p>
-
-                  </div>
-
-
-                  <div className="event-card__footer">
-
-                    <span>
-                      {
-                        event.slots
-                      }{" "}
-                      slots remaining
-                    </span>
-
-
-                    <button
-                      type="button"
-                      disabled={
-                        event.status ===
-                          "Full" ||
-                        event.slots <=
-                          0 ||
-                        registeringEvent ===
-                          event.id
-                      }
-                      onClick={() =>
-                        handleRegisterEvent(
-                          event.id
-                        )
-                      }
-                    >
-                      {registeringEvent ===
-                      event.id
-                        ? "Registering..."
-                        : event.status ===
-                            "Full" ||
-                          event.slots <=
-                            0
-                        ? "Full"
-                        : "Register now"}
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </article>
-            )
-          )}
-
-
-          {shopEvents.length ===
-            0 && (
-            <div className="empty-state full-grid-item">
-
-              <CalendarDays
-                size={42}
-              />
-
-              <h3>
-                No upcoming events
-              </h3>
-
-              <p>
-                Check back later for
-                new tournaments.
-              </p>
-
-            </div>
-          )}
-
-        </div>
-
-      </section>
-    );
-  }
-
-
-  /* =========================================================
-     RANKINGS
-  ========================================================= */
-
-  function renderRankings() {
-    const selectedPlayers =
-      rankingItems
+        .sort(
+          (a, b) =>
+            Number(a.rank || 9999) -
+            Number(b.rank || 9999)
+        )
+        .slice(0, 5);
+    }, [
+      rankingItems,
+      homeLeaderboardBracket,
+    ]);
+
+  /* =======================================================
+     FULL RANKINGS
+  ======================================================= */
+
+  const selectedRankingPlayers =
+    useMemo(() => {
+      return rankingItems
         .filter(
           (player) =>
             Number(
@@ -1988,263 +769,1353 @@ function UserApp({
             )
         )
         .sort(
-          (
-            a,
-            b
-          ) =>
-            Number(
-              a.rank
-            ) -
-            Number(
-              b.rank
+          (a, b) =>
+            Number(a.rank || 9999) -
+            Number(b.rank || 9999)
+        );
+    }, [
+      rankingItems,
+      selectedBracket,
+    ]);
+
+  /* =======================================================
+     GAMES
+  ======================================================= */
+
+  const games = useMemo(() => {
+    const values =
+      cardItems
+        .map(
+          (card) => card.game
+        )
+        .filter(Boolean);
+
+    return [
+      "All",
+      ...new Set(values),
+    ];
+  }, [cardItems]);
+
+  /* =======================================================
+     NAVIGATION
+  ======================================================= */
+
+  const navigate = (page) => {
+    setActivePage(page);
+
+    setMobileSidebarOpen(
+      false
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  /* =======================================================
+     FAVORITES
+  ======================================================= */
+
+  const toggleFavorite = (
+    cardId
+  ) => {
+    setFavorites(
+      (current) =>
+        current.includes(
+          cardId
+        )
+          ? current.filter(
+              (id) =>
+                id !== cardId
             )
+          : [
+              ...current,
+              cardId,
+            ]
+    );
+  };
+
+  /* =======================================================
+     ADD TO CART
+  ======================================================= */
+
+  const addToCart = (card) => {
+    setCart((current) => {
+      const existing =
+        current.find(
+          (item) =>
+            item.id === card.id
         );
 
+      if (existing) {
+        return current.map(
+          (item) =>
+            item.id ===
+            card.id
+              ? {
+                  ...item,
+
+                  quantity:
+                    Math.min(
+                      item.quantity +
+                        1,
+                      card.stock
+                    ),
+                }
+              : item
+        );
+      }
+
+      return [
+        ...current,
+        {
+          ...card,
+          quantity: 1,
+        },
+      ];
+    });
+  };
+
+  /* =======================================================
+     CHANGE QUANTITY
+  ======================================================= */
+
+  const changeQuantity = (
+    cardId,
+    amount
+  ) => {
+    setCart((current) =>
+      current
+        .map((item) => {
+          if (
+            item.id !== cardId
+          ) {
+            return item;
+          }
+
+          return {
+            ...item,
+
+            quantity:
+              Math.max(
+                0,
+                Math.min(
+                  item.stock,
+                  item.quantity +
+                    amount
+                )
+              ),
+          };
+        })
+        .filter(
+          (item) =>
+            item.quantity > 0
+        )
+    );
+  };
+
+  /* =======================================================
+     SUBMIT QUESTION
+  ======================================================= */
+
+  const submitQuestion =
+    async () => {
+      const value =
+        questionText.trim();
+
+      if (!value) return;
+
+      try {
+        await createQuestion({
+          category: "General",
+          question: value,
+        });
+
+        setQuestionText("");
+
+        await loadQuestions();
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          error.message ||
+            "Unable to post question."
+        );
+      }
+    };
+
+  /* =======================================================
+     CHECKOUT
+  ======================================================= */
+
+  const handleCheckout =
+    async () => {
+      if (!cart.length) {
+        return;
+      }
+
+      try {
+        setCheckoutLoading(
+          true
+        );
+
+        await checkoutCart(
+          cart
+        );
+
+        setCart([]);
+
+        await loadCards();
+
+        alert(
+          "Order placed successfully."
+        );
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          error.message ||
+            "Unable to complete checkout."
+        );
+      } finally {
+        setCheckoutLoading(
+          false
+        );
+      }
+    };
+
+  /* =======================================================
+     REGISTER EVENT
+  ======================================================= */
+
+  const handleRegisterEvent =
+    async (eventId) => {
+      try {
+        setRegisteringEvent(
+          eventId
+        );
+
+        await registerForEvent(
+          eventId
+        );
+
+        await loadEvents();
+
+        alert(
+          "Registration successful."
+        );
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          error.message ||
+            "Unable to register for this event."
+        );
+      } finally {
+        setRegisteringEvent(
+          null
+        );
+      }
+    };
+
+  /* =======================================================
+     MARKET CARD
+  ======================================================= */
+
+  const renderMarketCard = (
+    card
+  ) => {
+    const favorite =
+      favorites.includes(
+        card.id
+      );
 
     return (
-      <section className="content-section page-section">
+      <article
+        className="market-card"
+        key={card.id}
+      >
+        <div
+          className={`market-card__image ${
+            card.imageUrl
+              ? "has-real-image"
+              : ""
+          }`}
+        >
+          {card.imageUrl ? (
+            <img
+              src={card.imageUrl}
+              alt={card.name}
+              className="market-card__actual-image"
+            />
+          ) : (
+            <span>
+              {card.name}
+            </span>
+          )}
 
-        <div className="page-title-row">
+          <button
+            type="button"
+            className={`favorite-button ${
+              favorite
+                ? "is-favorite"
+                : ""
+            }`}
+            onClick={() =>
+              toggleFavorite(
+                card.id
+              )
+            }
+            aria-label="Favorite card"
+          >
+            <Heart size={17} />
+          </button>
+        </div>
 
-          <div>
-            <span className="eyebrow">
-              Player standings
+        <div className="market-card__body">
+          <div className="market-card__game-row">
+            <span>
+              {card.game}
             </span>
 
-            <h1>
-              Bracket Rankings
-            </h1>
+            <span className="rating">
+              <Star
+                size={12}
+                fill="currentColor"
+              />
+
+              {card.rating}
+            </span>
+          </div>
+
+          <h3>
+            {card.name}
+          </h3>
+
+          <p className="card-rarity">
+            {card.set}
+
+            {card.rarity
+              ? ` · ${card.rarity}`
+              : ""}
+          </p>
+
+          <div className="card-condition-row">
+            <span>
+              {card.condition}
+            </span>
+
+            <span>
+              {card.stock} in stock
+            </span>
+          </div>
+
+          <div className="market-card__seller">
+            Sold by{" "}
+            <strong>
+              {card.seller}
+            </strong>
+          </div>
+
+          <div className="market-card__footer">
+            <strong>
+              {formatPrice(
+                card.price
+              )}
+            </strong>
+
+            <button
+              type="button"
+              onClick={() =>
+                addToCart(card)
+              }
+            >
+              <ShoppingCart
+                size={14}
+              />
+
+              Add
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
+  /* =======================================================
+     HOME
+  ======================================================= */
+
+  const renderHome = () => (
+    <>
+      {/* HERO */}
+
+      <section className="hero-section">
+        <div className="hero-section__content">
+          <span className="eyebrow">
+            STAX CARD COMMUNITY
+          </span>
+
+          <h1>
+            Build your deck.
+            Rise through the
+            ranks.
+          </h1>
+
+          <p>
+            Buy cards, join
+            tournaments, track
+            your ranking, and
+            connect with other
+            players in the STAX
+            community.
+          </p>
+
+          <div className="hero-actions">
+            <button
+              type="button"
+              onClick={() =>
+                navigate("shop")
+              }
+            >
+              <ShoppingBag
+                size={18}
+              />
+
+              Browse Cards
+
+              <ChevronRight
+                size={17}
+              />
+            </button>
+
+            <button
+              type="button"
+              className="secondary"
+              onClick={() =>
+                navigate(
+                  "events"
+                )
+              }
+            >
+              <CalendarDays
+                size={18}
+              />
+
+              View Events
+            </button>
+          </div>
+        </div>
+
+        <div className="hero-stat-panel">
+          <div>
+            <Store size={25} />
+
+            <strong>
+              {cardItems.length}
+            </strong>
+
+            <span>
+              Cards available
+            </span>
+          </div>
+
+          <div>
+            <CalendarDays
+              size={25}
+            />
+
+            <strong>
+              {shopEvents.length}
+            </strong>
+
+            <span>
+              Upcoming events
+            </span>
+          </div>
+
+          <div>
+            <Trophy size={25} />
+
+            <strong>
+              #{playerRank}
+            </strong>
+
+            <span>
+              Your ranking
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* POPULAR CARDS */}
+
+      <section className="content-section">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">
+              MARKETPLACE
+            </span>
+
+            <h2>
+              Popular Cards
+            </h2>
 
             <p>
-              View current
-              positions and
-              points.
+              Discover cards
+              available in the
+              STAX marketplace.
             </p>
           </div>
 
+          <button
+            type="button"
+            className="text-button"
+            onClick={() =>
+              navigate("shop")
+            }
+          >
+            View all
+
+            <ChevronRight
+              size={16}
+            />
+          </button>
         </div>
 
+        <div className="card-market-grid">
+          {cardItems
+            .slice(0, 4)
+            .map(
+              renderMarketCard
+            )}
 
-        <div className="bracket-tabs">
+          {!cardItems.length && (
+            <div className="empty-state full-grid-item">
+              <ShoppingBag
+                size={30}
+              />
 
-          {[1, 2, 3, 4].map(
-            (bracket) => (
-              <button
-                type="button"
-                key={
-                  bracket
-                }
-                className={
-                  selectedBracket ===
-                  bracket
-                    ? "active"
-                    : ""
-                }
-                onClick={() =>
-                  setSelectedBracket(
-                    bracket
-                  )
-                }
-              >
-                Bracket{" "}
-                {
-                  bracket
-                }
-              </button>
-            )
+              <h3>
+                No cards
+                available
+              </h3>
+
+              <p>
+                Cards added by
+                the administrator
+                will appear here.
+              </p>
+            </div>
           )}
-
         </div>
+      </section>
 
+      {/* DASHBOARD */}
 
-        <div className="ranking-card">
+      <section className="dashboard-grid">
+        {/* UPCOMING EVENTS */}
 
-          <div className="ranking-card__header">
-
+        <article className="dashboard-panel">
+          <div className="section-heading compact">
             <div>
-              <span>
-                Current standings
+              <span className="eyebrow">
+                EVENTS
+              </span>
+
+              <h2>
+                Upcoming Events
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              className="text-button"
+              onClick={() =>
+                navigate(
+                  "events"
+                )
+              }
+            >
+              View all
+
+              <ChevronRight
+                size={15}
+              />
+            </button>
+          </div>
+
+          <div className="mini-event-list">
+            {shopEvents
+              .slice(0, 4)
+              .map((event) => {
+                const date =
+                  getDateParts(
+                    event.date
+                  );
+
+                return (
+                  <div
+                    className="mini-event-item"
+                    key={
+                      event.id
+                    }
+                  >
+                    {event.imageUrl ? (
+                      <div className="mini-event-poster">
+                        <img
+                          src={
+                            event.imageUrl
+                          }
+                          alt={
+                            event.title
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <div className="event-date-box">
+                        <strong>
+                          {date.day}
+                        </strong>
+
+                        <span>
+                          {
+                            date.month
+                          }
+                        </span>
+                      </div>
+                    )}
+
+                    <div>
+                      <h3>
+                        {
+                          event.title
+                        }
+                      </h3>
+
+                      <p>
+                        {formatEventDate(
+                          event.date
+                        )}
+
+                        {" · "}
+
+                        {formatEventTime(
+                          event.time
+                        )}
+
+                        {" · "}
+
+                        {event.venue}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+            {!shopEvents.length && (
+              <div className="empty-state">
+                <CalendarDays
+                  size={28}
+                />
+
+                <h3>
+                  No upcoming
+                  events
+                </h3>
+              </div>
+            )}
+          </div>
+        </article>
+
+        {/* =================================================
+            HOME LEADERBOARD WITH DROPDOWN
+        ================================================= */}
+
+        <article className="dashboard-panel">
+          <div className="section-heading compact">
+            <div>
+              <span className="eyebrow">
+                LEADERBOARD
               </span>
 
               <h2>
                 Bracket{" "}
                 {
-                  selectedBracket
-                }
+                  homeLeaderboardBracket
+                }{" "}
+                Leaders
               </h2>
             </div>
 
-            <Trophy
-              size={33}
-            />
-
-          </div>
-
-
-          <div className="ranking-table-wrapper">
-
-            <table className="ranking-table">
-
-              <thead>
-                <tr>
-                  <th>
-                    Rank
-                  </th>
-
-                  <th>
-                    Player
-                  </th>
-
-                  <th>
-                    Wins
-                  </th>
-
-                  <th>
-                    Losses
-                  </th>
-
-                  <th>
-                    Points
-                  </th>
-                </tr>
-              </thead>
-
-
-              <tbody>
-
-                {selectedPlayers.map(
-                  (player) => (
-                    <tr
-                      key={
-                        player.id
-                      }
-                    >
-
-                      <td>
-                        <span
-                          className={`rank-badge rank-badge-${player.rank}`}
-                        >
-                          {
-                            player.rank
-                          }
-                        </span>
-                      </td>
-
-
-                      <td>
-                        <div className="ranking-player">
-
-                          <div className="player-avatar">
-                            {getInitials(
-                              player.name
-                            )}
-                          </div>
-
-                          <strong>
-                            {
-                              player.name
-                            }
-                          </strong>
-
-                        </div>
-                      </td>
-
-
-                      <td>
-                        {
-                          player.wins
-                        }
-                      </td>
-
-
-                      <td>
-                        {
-                          player.losses
-                        }
-                      </td>
-
-
-                      <td>
-                        <strong>
-                          {
-                            player.points
-                          }
-                        </strong>
-                      </td>
-
-                    </tr>
+            <div className="home-leaderboard-controls">
+              <select
+                value={
+                  homeLeaderboardBracket
+                }
+                onChange={(
+                  event
+                ) =>
+                  setHomeLeaderboardBracket(
+                    Number(
+                      event
+                        .target
+                        .value
+                    )
                   )
-                )}
+                }
+                aria-label="Select leaderboard bracket"
+              >
+                <option
+                  value={1}
+                >
+                  Bracket 1
+                </option>
 
-              </tbody>
+                <option
+                  value={2}
+                >
+                  Bracket 2
+                </option>
 
-            </table>
+                <option
+                  value={3}
+                >
+                  Bracket 3
+                </option>
 
+                <option
+                  value={4}
+                >
+                  Bracket 4
+                </option>
+              </select>
+
+              <Trophy
+                size={22}
+              />
+            </div>
           </div>
 
+          <div className="leader-preview-list">
+            {homeLeaderboardPlayers.map(
+              (player) => (
+                <div
+                  className="leader-preview-item"
+                  key={
+                    player.id
+                  }
+                >
+                  <span className="rank-number">
+                    {
+                      player.rank
+                    }
+                  </span>
+
+                  <div className="player-avatar">
+                    {getInitials(
+                      player.name
+                    )}
+                  </div>
+
+                  <div>
+                    <strong>
+                      {
+                        player.name
+                      }
+                    </strong>
+
+                    <span>
+                      {Number(
+                        player.wins ||
+                          0
+                      )}
+                      W ·{" "}
+                      {Number(
+                        player.losses ||
+                          0
+                      )}
+                      L
+                    </span>
+                  </div>
+
+                  <strong className="player-points">
+                    {Number(
+                      player.points ||
+                        0
+                    )}{" "}
+                    pts
+                  </strong>
+                </div>
+              )
+            )}
+
+            {!homeLeaderboardPlayers.length && (
+              <div className="leaderboard-empty">
+                <Trophy
+                  size={28}
+                />
+
+                <strong>
+                  No players yet
+                </strong>
+
+                <span>
+                  No rankings
+                  available for
+                  Bracket{" "}
+                  {
+                    homeLeaderboardBracket
+                  }.
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="home-view-ranking-button"
+            onClick={() => {
+              setSelectedBracket(
+                homeLeaderboardBracket
+              );
+
+              navigate(
+                "rankings"
+              );
+            }}
+          >
+            View full Bracket{" "}
+            {
+              homeLeaderboardBracket
+            }{" "}
+            ranking
+
+            <ChevronRight
+              size={15}
+            />
+          </button>
+        </article>
+      </section>
+    </>
+  );
+
+  /* =======================================================
+     SHOP
+  ======================================================= */
+
+  const renderShop = () => (
+    <section className="page-section">
+      <div className="page-title-row">
+        <div>
+          <span className="eyebrow">
+            MARKETPLACE
+          </span>
+
+          <h1>
+            Card Shop
+          </h1>
+
+          <p>
+            Browse cards
+            available from the
+            STAX marketplace.
+          </p>
         </div>
 
-      </section>
-    );
-  }
+        <button
+          type="button"
+          className="cart-summary-button"
+          onClick={() =>
+            navigate("cart")
+          }
+        >
+          <ShoppingCart
+            size={17}
+          />
 
+          Cart
 
-  /* =========================================================
+          <span>
+            {cartCount}
+          </span>
+        </button>
+      </div>
+
+      <div className="shop-toolbar">
+        <label className="search-field">
+          <Search
+            size={17}
+          />
+
+          <input
+            type="text"
+            placeholder="Search cards..."
+            value={searchText}
+            onChange={(
+              event
+            ) =>
+              setSearchText(
+                event.target
+                  .value
+              )
+            }
+          />
+        </label>
+
+        <select
+          value={gameFilter}
+          onChange={(
+            event
+          ) =>
+            setGameFilter(
+              event.target.value
+            )
+          }
+        >
+          {games.map(
+            (game) => (
+              <option
+                key={game}
+                value={game}
+              >
+                {game}
+              </option>
+            )
+          )}
+        </select>
+      </div>
+
+      <div className="results-line">
+        Showing{" "}
+        <strong>
+          {
+            filteredCards.length
+          }
+        </strong>{" "}
+        cards
+      </div>
+
+      <div className="card-market-grid">
+        {filteredCards.map(
+          renderMarketCard
+        )}
+
+        {!filteredCards.length && (
+          <div className="empty-state large full-grid-item">
+            <Search
+              size={34}
+            />
+
+            <h2>
+              No cards found
+            </h2>
+
+            <p>
+              Try changing your
+              search or filter.
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  /* =======================================================
+     EVENTS
+  ======================================================= */
+
+  const renderEvents = () => (
+    <section className="page-section">
+      <div className="page-title-row">
+        <div>
+          <span className="eyebrow">
+            TOURNAMENTS
+          </span>
+
+          <h1>
+            Events
+          </h1>
+
+          <p>
+            Register for
+            upcoming STAX
+            tournaments and
+            community events.
+          </p>
+        </div>
+      </div>
+
+      <div className="event-grid">
+        {shopEvents.map(
+          (event) => (
+            <article
+              className="event-card"
+              key={event.id}
+            >
+              <div
+                className={`event-card__banner ${
+                  event.imageUrl
+                    ? "has-event-image"
+                    : ""
+                }`}
+              >
+                {event.imageUrl ? (
+                  <img
+                    src={
+                      event.imageUrl
+                    }
+                    alt={
+                      event.title
+                    }
+                    className="event-card__poster"
+                  />
+                ) : (
+                  <>
+                    <span>
+                      {
+                        event.format
+                      }
+                    </span>
+
+                    <Trophy
+                      size={40}
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="event-card__body">
+                <span className="event-status">
+                  {event.status}
+                </span>
+
+                <h2>
+                  {event.title}
+                </h2>
+
+                <div className="event-detail-list">
+                  <p>
+                    <strong>
+                      Date:
+                    </strong>{" "}
+                    {formatEventDate(
+                      event.date
+                    )}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Time:
+                    </strong>{" "}
+                    {formatEventTime(
+                      event.time
+                    )}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Venue:
+                    </strong>{" "}
+                    {event.venue}
+                  </p>
+
+                  {event.bracket && (
+                    <p>
+                      <strong>
+                        Bracket:
+                      </strong>{" "}
+                      {
+                        event.bracket
+                      }
+                    </p>
+                  )}
+
+                  <p>
+                    <strong>
+                      Entry:
+                    </strong>{" "}
+                    {formatPrice(
+                      event.fee
+                    )}
+                  </p>
+                </div>
+
+                <div className="event-card__footer">
+                  <span>
+                    {event.slots}{" "}
+                    slots remaining
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={
+                      event.slots <=
+                        0 ||
+                      registeringEvent ===
+                        event.id
+                    }
+                    onClick={() =>
+                      handleRegisterEvent(
+                        event.id
+                      )
+                    }
+                  >
+                    {registeringEvent ===
+                    event.id
+                      ? "Registering..."
+                      : event.slots <=
+                          0
+                        ? "Full"
+                        : "Register"}
+                  </button>
+                </div>
+              </div>
+            </article>
+          )
+        )}
+
+        {!shopEvents.length && (
+          <div className="empty-state large full-grid-item">
+            <CalendarDays
+              size={36}
+            />
+
+            <h2>
+              No upcoming
+              events
+            </h2>
+
+            <p>
+              New tournaments
+              will appear here.
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  /* =======================================================
+     RANKINGS
+  ======================================================= */
+
+  const renderRankings = () => (
+    <section className="page-section">
+      <div className="page-title-row">
+        <div>
+          <span className="eyebrow">
+            COMPETITIVE
+          </span>
+
+          <h1>
+            Rankings
+          </h1>
+
+          <p>
+            View player
+            standings across
+            every STAX bracket.
+          </p>
+        </div>
+      </div>
+
+      <div className="bracket-tabs">
+        {[1, 2, 3, 4].map(
+          (bracket) => (
+            <button
+              type="button"
+              key={bracket}
+              className={
+                selectedBracket ===
+                bracket
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setSelectedBracket(
+                  bracket
+                )
+              }
+            >
+              Bracket{" "}
+              {bracket}
+            </button>
+          )
+        )}
+      </div>
+
+      <div className="ranking-card">
+        <div className="ranking-card__header">
+          <div>
+            <span>
+              CURRENT
+              STANDINGS
+            </span>
+
+            <h2>
+              Bracket{" "}
+              {selectedBracket}
+            </h2>
+          </div>
+
+          <Trophy
+            size={31}
+          />
+        </div>
+
+        <div className="ranking-table-wrapper">
+          <table className="ranking-table">
+            <thead>
+              <tr>
+                <th>
+                  Rank
+                </th>
+
+                <th>
+                  Player
+                </th>
+
+                <th>
+                  Wins
+                </th>
+
+                <th>
+                  Losses
+                </th>
+
+                <th>
+                  Points
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {selectedRankingPlayers.map(
+                (player) => (
+                  <tr
+                    key={
+                      player.id
+                    }
+                  >
+                    <td>
+                      <span
+                        className={`rank-badge rank-badge-${player.rank}`}
+                      >
+                        {
+                          player.rank
+                        }
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="ranking-player">
+                        <div className="player-avatar">
+                          {getInitials(
+                            player.name
+                          )}
+                        </div>
+
+                        <strong>
+                          {
+                            player.name
+                          }
+                        </strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      {Number(
+                        player.wins ||
+                          0
+                      )}
+                    </td>
+
+                    <td>
+                      {Number(
+                        player.losses ||
+                          0
+                      )}
+                    </td>
+
+                    <td>
+                      <strong>
+                        {Number(
+                          player.points ||
+                            0
+                        )}
+                      </strong>
+                    </td>
+                  </tr>
+                )
+              )}
+
+              {!selectedRankingPlayers.length && (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{
+                      textAlign:
+                        "center",
+                    }}
+                  >
+                    No rankings
+                    available for
+                    this bracket.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+
+  /* =======================================================
      COMMUNITY
-  ========================================================= */
+  ======================================================= */
 
-  function renderCommunity() {
-    return (
-      <section className="content-section page-section">
-
+  const renderCommunity =
+    () => (
+      <section className="page-section">
         <div className="page-title-row">
-
           <div>
             <span className="eyebrow">
-              Ask the community
+              COMMUNITY
             </span>
 
             <h1>
-              Questions and
+              Questions &
               Discussions
             </h1>
 
             <p>
-              Ask about cards,
-              events, values or
-              decks.
+              Ask questions and
+              connect with other
+              STAX players.
             </p>
           </div>
-
         </div>
 
-
         <div className="community-layout">
-
           <div>
-
-            <form
-              className="question-form"
-              onSubmit={
-                submitQuestion
-              }
-            >
-
+            <div className="question-form">
               <div className="question-form__icon">
                 <CircleHelp
-                  size={25}
+                  size={21}
                 />
               </div>
 
-
               <div className="question-form__content">
-
                 <h2>
-                  Ask a question
+                  Ask the
+                  community
                 </h2>
 
-
                 <textarea
+                  rows={4}
                   value={
                     questionText
                   }
@@ -2252,39 +2123,40 @@ function UserApp({
                     event
                   ) =>
                     setQuestionText(
-                      event.target
+                      event
+                        .target
                         .value
                     )
                   }
                   placeholder="What would you like to ask?"
-                  rows={4}
                 />
 
-
                 <div className="question-form__footer">
-
                   <span>
                     Be respectful
-                    and provide
-                    details.
+                    and keep your
+                    question
+                    related to
+                    STAX and card
+                    gaming.
                   </span>
 
-
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={
+                      submitQuestion
+                    }
+                    disabled={
+                      !questionText.trim()
+                    }
                   >
-                    Post question
+                    Post Question
                   </button>
-
                 </div>
-
               </div>
-
-            </form>
-
+            </div>
 
             <div className="question-list">
-
               {questions.map(
                 (question) => (
                   <article
@@ -2293,18 +2165,14 @@ function UserApp({
                       question.id
                     }
                   >
-
                     <div className="question-avatar">
                       {getInitials(
                         question.user
                       )}
                     </div>
 
-
                     <div className="question-card__content">
-
                       <div className="question-meta">
-
                         <strong>
                           {
                             question.user
@@ -2316,9 +2184,7 @@ function UserApp({
                             question.time
                           }
                         </span>
-
                       </div>
-
 
                       <span className="question-category">
                         {
@@ -2326,592 +2192,505 @@ function UserApp({
                         }
                       </span>
 
-
                       <h3>
                         {
                           question.question
                         }
                       </h3>
 
-
                       <button
                         type="button"
                       >
                         <MessageCircle
-                          size={17}
+                          size={14}
                         />
 
-                        {
-                          question.replies
-                        }{" "}
+                        {question.replies}{" "}
                         replies
                       </button>
-
                     </div>
-
                   </article>
                 )
               )}
 
-            </div>
+              {!questions.length && (
+                <div className="empty-state">
+                  <MessageCircle
+                    size={30}
+                  />
 
+                  <h3>
+                    No questions
+                    yet
+                  </h3>
+
+                  <p>
+                    Be the first
+                    to start a
+                    discussion.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-
           <aside className="community-sidebar">
-
             <h3>
-              Community guidelines
+              Community
+              Guidelines
             </h3>
 
-
             <ul>
-              <li>
-                Use a clear
-                question.
-              </li>
-
               <li>
                 Respect other
                 players.
               </li>
 
               <li>
-                Do not post
-                fake listings.
+                Keep discussions
+                relevant.
               </li>
 
               <li>
-                Report suspicious
-                activity.
+                Avoid spam or
+                duplicate posts.
+              </li>
+
+              <li>
+                Share helpful
+                information.
               </li>
             </ul>
-
           </aside>
-
         </div>
-
       </section>
     );
-  }
 
-
-  /* =========================================================
+  /* =======================================================
      CART
-  ========================================================= */
+  ======================================================= */
 
-  function renderCart() {
-    return (
-      <section className="content-section page-section">
+  const renderCart = () => (
+    <section className="page-section">
+      <div className="page-title-row">
+        <div>
+          <span className="eyebrow">
+            CHECKOUT
+          </span>
 
-        <div className="page-title-row">
+          <h1>
+            Your Cart
+          </h1>
 
-          <div>
-            <span className="eyebrow">
-              Your order
-            </span>
-
-            <h1>
-              Shopping Cart
-            </h1>
-
-            <p>
-              Review selected
-              cards before
-              checkout.
-            </p>
-          </div>
-
+          <p>
+            Review your cards
+            before placing your
+            order.
+          </p>
         </div>
+      </div>
 
+      {!cart.length ? (
+        <div className="empty-state large">
+          <ShoppingCart
+            size={38}
+          />
 
-        {cart.length ===
-        0 ? (
+          <h2>
+            Your cart is empty
+          </h2>
 
-          <div className="empty-state large">
-
-            <ShoppingCart
-              size={47}
-            />
-
-            <h2>
-              Your cart is empty
-            </h2>
-
-            <p>
-              Browse the shop
-              and add cards.
-            </p>
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "shop"
-                )
-              }
-            >
-              Browse cards
-            </button>
-
-          </div>
-
-        ) : (
-
-          <div className="cart-layout">
-
-            <div className="cart-list">
-
-              {cart.map(
-                (
-                  item,
-                  index
-                ) => (
-                  <article
-                    className="cart-item"
-                    key={
-                      item.id
-                    }
-                  >
-
-                    <div
-                      className={`cart-item__image ${
-                        item.imageUrl
-                          ? "has-real-image"
-                          : `game-image-${
-                              (
-                                index %
-                                6
-                              ) +
-                              1
-                            }`
-                      }`}
-                    >
-
-                      {item.imageUrl ? (
-                        <img
-                          src={
-                            item.imageUrl
-                          }
-                          alt={
-                            item.name
-                          }
-                          className="cart-item__actual-image"
-                        />
-                      ) : (
-                        <span>
-                          {
-                            item.game
-                          }
-                        </span>
-                      )}
-
-                    </div>
-
-
-                    <div className="cart-item__details">
-
-                      <span>
-                        {
-                          item.set
-                        }
-                      </span>
-
-                      <h3>
-                        {
-                          item.name
-                        }
-                      </h3>
-
-                      <p>
-                        {
-                          item.condition
-                        }{" "}
-                        ·{" "}
-                        {
-                          item.seller
-                        }
-                      </p>
-
-                    </div>
-
-
-                    <div className="quantity-control">
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          changeQuantity(
-                            item.id,
-                            -1
-                          )
-                        }
-                      >
-                        <Minus
-                          size={16}
-                        />
-                      </button>
-
-
-                      <span>
-                        {
-                          item.quantity
-                        }
-                      </span>
-
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          changeQuantity(
-                            item.id,
-                            1
-                          )
-                        }
-                      >
-                        <Plus
-                          size={16}
-                        />
-                      </button>
-
-                    </div>
-
-
-                    <strong>
-                      {formatPrice(
-                        item.price *
-                          item.quantity
-                      )}
-                    </strong>
-
-                  </article>
-                )
-              )}
-
-            </div>
-
-
-            <aside className="order-summary">
-
-              <h2>
-                Order summary
-              </h2>
-
-
-              <div>
-                <span>
-                  Items
-                </span>
-
-                <strong>
-                  {
-                    cartCount
-                  }
-                </strong>
-              </div>
-
-
-              <div>
-                <span>
-                  Subtotal
-                </span>
-
-                <strong>
-                  {formatPrice(
-                    cartTotal
-                  )}
-                </strong>
-              </div>
-
-
-              <div>
-                <span>
-                  Shipping
-                </span>
-
-                <strong>
-                  Calculated later
-                </strong>
-              </div>
-
-
-              <div className="order-total">
-                <span>
-                  Total
-                </span>
-
-                <strong>
-                  {formatPrice(
-                    cartTotal
-                  )}
-                </strong>
-              </div>
-
-
-              <button
-                type="button"
-                disabled={
-                  checkoutLoading
-                }
-                onClick={
-                  handleCheckout
-                }
-              >
-                {checkoutLoading
-                  ? "Processing..."
-                  : "Proceed to checkout"}
-              </button>
-
-            </aside>
-
-          </div>
-        )}
-
-      </section>
-    );
-  }
-
-
-  /* =========================================================
-     PROFILE
-  ========================================================= */
-
-  function renderProfile() {
-    return (
-      <section className="content-section page-section">
-
-        <div className="profile-header-card">
-
-          <div className="profile-avatar">
-            {getInitials(
-              playerName
-            )}
-          </div>
-
-
-          <div>
-            <span className="eyebrow">
-              Player account
-            </span>
-
-            <h1>
-              {
-                playerName
-              }
-            </h1>
-
-            <p>
-              Card collector
-              and tournament
-              player
-            </p>
-          </div>
-
+          <p>
+            Add cards from the
+            marketplace to get
+            started.
+          </p>
 
           <button
             type="button"
+            onClick={() =>
+              navigate("shop")
+            }
           >
-            Edit profile
+            Browse Cards
           </button>
-
         </div>
+      ) : (
+        <div className="cart-layout">
+          <div className="cart-list">
+            {cart.map(
+              (item) => (
+                <article
+                  className="cart-item"
+                  key={item.id}
+                >
+                  <div
+                    className={`cart-item__image ${
+                      item.imageUrl
+                        ? "has-real-image"
+                        : ""
+                    }`}
+                  >
+                    {item.imageUrl ? (
+                      <img
+                        src={
+                          item.imageUrl
+                        }
+                        alt={
+                          item.name
+                        }
+                        className="cart-item__actual-image"
+                      />
+                    ) : (
+                      <span>
+                        {
+                          item.name
+                        }
+                      </span>
+                    )}
+                  </div>
 
+                  <div className="cart-item__details">
+                    <span>
+                      {item.game}
+                    </span>
 
-        <div className="profile-grid">
+                    <h3>
+                      {item.name}
+                    </h3>
 
-          <article className="profile-panel">
-
-            <h2>
-              Player information
-            </h2>
-
-
-            <div className="profile-info-row">
-              <span>
-                Current bracket
-              </span>
-
-              <strong>
-                Bracket{" "}
-                {
-                  playerBracket
-                }
-              </strong>
-            </div>
-
-
-            <div className="profile-info-row">
-              <span>
-                Current rank
-              </span>
-
-              <strong>
-                #
-                {
-                  playerRank
-                }
-              </strong>
-            </div>
-
-
-            <div className="profile-info-row">
-              <span>
-                Total points
-              </span>
-
-              <strong>
-                {
-                  playerPoints
-                }{" "}
-                points
-              </strong>
-            </div>
-
-
-            <div className="profile-info-row">
-              <span>
-                Member since
-              </span>
-
-              <strong>
-                {profileData
-                  ?.joined
-                  ? new Date(
-                      profileData.joined
-                    ).toLocaleDateString(
-                      "en-US",
+                    <p>
                       {
-                        month:
-                          "long",
+                        item.condition
+                      }{" "}
+                      ·{" "}
+                      {formatPrice(
+                        item.price
+                      )}{" "}
+                      each
+                    </p>
+                  </div>
 
-                        year:
-                          "numeric",
+                  <div className="quantity-control">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        changeQuantity(
+                          item.id,
+                          -1
+                        )
                       }
-                    )
-                  : "-"}
+                    >
+                      <Minus
+                        size={14}
+                      />
+                    </button>
+
+                    <span>
+                      {
+                        item.quantity
+                      }
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        changeQuantity(
+                          item.id,
+                          1
+                        )
+                      }
+                      disabled={
+                        item.quantity >=
+                        item.stock
+                      }
+                    >
+                      <Plus
+                        size={14}
+                      />
+                    </button>
+                  </div>
+
+                  <strong>
+                    {formatPrice(
+                      item.price *
+                        item.quantity
+                    )}
+                  </strong>
+                </article>
+              )
+            )}
+          </div>
+
+          <aside className="order-summary">
+            <h2>
+              Order Summary
+            </h2>
+
+            <div>
+              <span>
+                Items
+              </span>
+
+              <strong>
+                {cartCount}
               </strong>
             </div>
 
-          </article>
+            <div>
+              <span>
+                Subtotal
+              </span>
 
-
-          <article className="profile-panel">
-
-            <h2>
-              Account activity
-            </h2>
-
-
-            <div className="profile-stat-grid">
-
-              <div>
-                <ShoppingBag
-                  size={21}
-                />
-
-                <strong>
-                  {
-                    cartCount
-                  }
-                </strong>
-
-                <span>
-                  Cart items
-                </span>
-              </div>
-
-
-              <div>
-                <CalendarDays
-                  size={21}
-                />
-
-                <strong>
-                  {
-                    shopEvents.length
-                  }
-                </strong>
-
-                <span>
-                  Events
-                </span>
-              </div>
-
-
-              <div>
-                <Heart
-                  size={21}
-                />
-
-                <strong>
-                  {
-                    favorites.length
-                  }
-                </strong>
-
-                <span>
-                  Favorites
-                </span>
-              </div>
-
-
-              <div>
-                <MessageCircle
-                  size={21}
-                />
-
-                <strong>
-                  {
-                    questions.length
-                  }
-                </strong>
-
-                <span>
-                  Questions
-                </span>
-              </div>
-
+              <strong>
+                {formatPrice(
+                  cartTotal
+                )}
+              </strong>
             </div>
 
-          </article>
+            <div>
+              <span>
+                Shipping
+              </span>
 
+              <strong>
+                Free
+              </strong>
+            </div>
+
+            <div className="order-total">
+              <span>
+                Total
+              </span>
+
+              <strong>
+                {formatPrice(
+                  cartTotal
+                )}
+              </strong>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                handleCheckout
+              }
+              disabled={
+                checkoutLoading
+              }
+            >
+              {checkoutLoading
+                ? "Processing..."
+                : "Place Order"}
+            </button>
+          </aside>
+        </div>
+      )}
+    </section>
+  );
+
+  /* =======================================================
+     PROFILE
+  ======================================================= */
+
+  const renderProfile = () => (
+    <section className="page-section">
+      <div className="profile-header-card">
+        <div className="profile-avatar">
+          {getInitials(
+            playerName
+          )}
         </div>
 
-      </section>
-    );
-  }
+        <div>
+          <span className="eyebrow">
+            PLAYER PROFILE
+          </span>
 
+          <h1>
+            {playerName}
+          </h1>
 
-  function renderPage() {
-    switch (
-      activePage
-    ) {
-      case "shop":
-        return renderShop();
+          <p>
+            {profileData?.email ||
+              ""}
+          </p>
+        </div>
+      </div>
 
-      case "events":
-        return renderEvents();
+      <div className="profile-grid">
+        <article className="profile-panel">
+          <h2>
+            Account
+            Information
+          </h2>
 
-      case "rankings":
-        return renderRankings();
+          <div className="profile-info-row">
+            <span>
+              Name
+            </span>
 
-      case "community":
-        return renderCommunity();
+            <strong>
+              {playerName}
+            </strong>
+          </div>
 
-      case "cart":
-        return renderCart();
+          <div className="profile-info-row">
+            <span>
+              Email
+            </span>
 
-      case "profile":
-        return renderProfile();
+            <strong>
+              {profileData?.email ||
+                "-"}
+            </strong>
+          </div>
 
-      default:
-        return renderHome();
-    }
-  }
+          <div className="profile-info-row">
+            <span>
+              Bracket
+            </span>
 
+            <strong>
+              Bracket{" "}
+              {playerBracket}
+            </strong>
+          </div>
+
+          <div className="profile-info-row">
+            <span>
+              Status
+            </span>
+
+            <strong>
+              {profileData?.status ||
+                "Active"}
+            </strong>
+          </div>
+
+          <div className="profile-info-row">
+            <span>
+              Joined
+            </span>
+
+            <strong>
+              {profileData?.joined
+                ? new Date(
+                    profileData.joined
+                  ).toLocaleDateString()
+                : "-"}
+            </strong>
+          </div>
+        </article>
+
+        <article className="profile-panel">
+          <h2>
+            Player Stats
+          </h2>
+
+          <div className="profile-stat-grid">
+            <div>
+              <Trophy
+                size={25}
+              />
+
+              <strong>
+                #{playerRank}
+              </strong>
+
+              <span>
+                Current Rank
+              </span>
+            </div>
+
+            <div>
+              <Star
+                size={25}
+              />
+
+              <strong>
+                {playerPoints}
+              </strong>
+
+              <span>
+                Points
+              </span>
+            </div>
+
+            <div>
+              <ShoppingBag
+                size={25}
+              />
+
+              <strong>
+                {cartCount}
+              </strong>
+
+              <span>
+                Cart Items
+              </span>
+            </div>
+
+            <div>
+              <Heart
+                size={25}
+              />
+
+              <strong>
+                {
+                  favorites.length
+                }
+              </strong>
+
+              <span>
+                Favorites
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+
+  /* =======================================================
+     PAGE SWITCH
+  ======================================================= */
+
+  const renderCurrentPage =
+    () => {
+      switch (activePage) {
+        case "shop":
+          return renderShop();
+
+        case "events":
+          return renderEvents();
+
+        case "rankings":
+          return renderRankings();
+
+        case "community":
+          return renderCommunity();
+
+        case "cart":
+          return renderCart();
+
+        case "profile":
+          return renderProfile();
+
+        case "home":
+        default:
+          return renderHome();
+      }
+    };
+
+  /* =======================================================
+     APP
+  ======================================================= */
 
   return (
     <div className="user-app">
+      {/* SIDEBAR */}
 
       <aside
         className={`user-sidebar ${
@@ -2920,13 +2699,10 @@ function UserApp({
             : ""
         }`}
       >
-
         <div className="sidebar-brand">
-
           <div className="sidebar-brand__logo">
             S
           </div>
-
 
           <div>
             <strong>
@@ -2934,10 +2710,9 @@ function UserApp({
             </strong>
 
             <span>
-              Card Marketplace
+              Card Community
             </span>
           </div>
-
 
           <button
             type="button"
@@ -2948,16 +2723,11 @@ function UserApp({
               )
             }
           >
-            <X
-              size={21}
-            />
+            <X size={18} />
           </button>
-
         </div>
 
-
         <nav className="sidebar-navigation">
-
           {menuItems.map(
             (item) => {
               const Icon =
@@ -2966,9 +2736,7 @@ function UserApp({
               return (
                 <button
                   type="button"
-                  key={
-                    item.id
-                  }
+                  key={item.id}
                   className={
                     activePage ===
                     item.id
@@ -2981,17 +2749,13 @@ function UserApp({
                     )
                   }
                 >
-
                   <Icon
-                    size={20}
+                    size={19}
                   />
 
                   <span>
-                    {
-                      item.label
-                    }
+                    {item.label}
                   </span>
-
 
                   {item.id ===
                     "cart" &&
@@ -3003,67 +2767,51 @@ function UserApp({
                         }
                       </span>
                     )}
-
                 </button>
               );
             }
           )}
-
         </nav>
 
-
         <div className="sidebar-player-card">
-
           <div className="player-avatar">
             {getInitials(
               playerName
             )}
           </div>
 
-
           <div>
             <strong>
-              {
-                playerName
-              }
+              {playerName}
             </strong>
 
             <span>
               Bracket{" "}
-              {
-                playerBracket
-              }
-
-              {playerRank !==
-                "-" &&
-                ` · Rank #${playerRank}`}
+              {playerBracket}
             </span>
           </div>
-
         </div>
-
 
         <button
           type="button"
           className="sidebar-logout"
-          onClick={
-            onLogout
-          }
+          onClick={onLogout}
         >
           <LogOut
-            size={19}
+            size={18}
           />
 
-          Log out
+          Logout
         </button>
-
       </aside>
 
+      {/* MOBILE OVERLAY */}
 
       {mobileSidebarOpen && (
         <button
           type="button"
           className="sidebar-overlay"
+          aria-label="Close menu"
           onClick={() =>
             setMobileSidebarOpen(
               false
@@ -3072,11 +2820,12 @@ function UserApp({
         />
       )}
 
+      {/* MAIN */}
 
-      <div className="user-main">
+      <main className="user-main">
+        {/* HEADER */}
 
         <header className="user-header">
-
           <button
             type="button"
             className="mobile-menu-button"
@@ -3087,23 +2836,19 @@ function UserApp({
             }
           >
             <Menu
-              size={23}
+              size={20}
             />
           </button>
 
-
           <label className="header-search">
-
             <Search
-              size={18}
+              size={17}
             />
 
             <input
-              type="search"
+              type="text"
               placeholder="Search cards..."
-              value={
-                searchText
-              }
+              value={searchText}
               onChange={(
                 event
               ) =>
@@ -3112,38 +2857,39 @@ function UserApp({
                     .value
                 )
               }
-              onFocus={() =>
-                setActivePage(
+              onFocus={() => {
+                if (
+                  activePage !==
                   "shop"
-                )
-              }
+                ) {
+                  navigate(
+                    "shop"
+                  );
+                }
+              }}
             />
-
           </label>
 
-
           <div className="header-actions">
-
             <button
               type="button"
               className="header-cart-button"
               onClick={() =>
-                navigate(
-                  "cart"
-                )
+                navigate("cart")
               }
+              aria-label="Cart"
             >
               <ShoppingCart
-                size={20}
+                size={19}
               />
 
-              <span>
-                {
-                  cartCount
-                }
-              </span>
+              {cartCount >
+                0 && (
+                <span>
+                  {cartCount}
+                </span>
+              )}
             </button>
-
 
             <button
               type="button"
@@ -3154,45 +2900,34 @@ function UserApp({
                 )
               }
             >
-
               <div className="player-avatar">
                 {getInitials(
                   playerName
                 )}
               </div>
 
-
               <div>
                 <strong>
-                  {
-                    playerName
-                  }
+                  {playerName}
                 </strong>
 
                 <span>
                   Bracket{" "}
-                  {
-                    playerBracket
-                  }
+                  {playerBracket}
                 </span>
               </div>
-
             </button>
-
           </div>
-
         </header>
 
+        {/* PAGE CONTENT */}
 
-        <main className="user-page-content">
-          {renderPage()}
-        </main>
-
-      </div>
-
+        <div className="user-page-content">
+          {renderCurrentPage()}
+        </div>
+      </main>
     </div>
   );
-}
-
+};
 
 export default UserApp;

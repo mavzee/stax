@@ -61,6 +61,10 @@ import {
 import "./admin.css";
 
 
+/* =========================================================
+   CONSTANTS
+========================================================= */
+
 const RARITIES = [
   "Common",
   "Uncommon",
@@ -92,7 +96,12 @@ const FINISHES = [
   "Etched Foil",
 ];
 
- 
+const FORMATS = [
+  "Standard",
+  "Commander",
+  "Legacy",
+  "Modern",
+];
 
 const RARITY_LETTER = {
   Common: "C",
@@ -119,6 +128,10 @@ const BRACKET_FORMAT = {
 };
 
 
+/* =========================================================
+   LOCAL USERS
+========================================================= */
+
 const initialUsers = [
   {
     id: 1,
@@ -140,6 +153,10 @@ const initialUsers = [
   },
 ];
 
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
 
 const navigationItems = [
   {
@@ -185,6 +202,10 @@ const navigationItems = [
 ];
 
 
+/* =========================================================
+   EMPTY FORMS
+========================================================= */
+
 const emptyCardForm = {
   name: "",
   game: "Magic",
@@ -203,7 +224,6 @@ const emptyCardForm = {
   imagePath: "",
 };
 
-
 const emptyEventForm = {
   title: "",
   format: "Standard",
@@ -213,12 +233,11 @@ const emptyEventForm = {
   fee: "",
   slots: "",
   registered: 0,
-  bracket: "BRACKET 1",
+  bracket: "Bracket 1",
   status: "Open",
   imageUrl: "",
   imagePath: "",
 };
-
 
 const emptyRankingForm = {
   name: "",
@@ -229,7 +248,6 @@ const emptyRankingForm = {
   rank: 1,
 };
 
-
 const emptyUserForm = {
   name: "",
   email: "",
@@ -239,6 +257,10 @@ const emptyUserForm = {
   joined: "",
 };
 
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function formatCurrency(value) {
   return new Intl.NumberFormat(
@@ -253,7 +275,6 @@ function formatCurrency(value) {
   );
 }
 
-
 function getInitials(name = "") {
   return name
     .split(" ")
@@ -263,7 +284,6 @@ function getInitials(name = "") {
     .slice(0, 2)
     .toUpperCase();
 }
-
 
 function RarityBadge({
   value,
@@ -289,7 +309,6 @@ function RarityBadge({
   );
 }
 
-
 function ColorPip({
   value,
 }) {
@@ -309,6 +328,10 @@ function ColorPip({
   );
 }
 
+
+/* =========================================================
+   ADMIN APP
+========================================================= */
 
 function AdminApp({
   onLogout,
@@ -482,11 +505,9 @@ function AdminApp({
                   card.featured,
                 status:
                   card.status,
-
                 imageUrl:
                   card.image_url ||
                   "",
-
                 imagePath:
                   card.image_path ||
                   "",
@@ -519,47 +540,35 @@ function AdminApp({
             data.map(
               (item) => ({
                 id: item.id,
-
                 title:
                   item.title,
-
                 format:
                   item.format,
-
                 date:
                   item.event_date,
-
                 time:
                   item.event_time,
-
                 venue:
                   item.venue,
-
                 fee:
                   Number(
                     item.fee
                   ),
-
                 slots:
                   Number(
                     item.slots
                   ),
-
                 registered:
                   Number(
                     item.registered
                   ),
-
                 bracket:
                   item.bracket,
-
                 status:
                   item.status,
-
                 imageUrl:
                   item.image_url ||
                   "",
-
                 imagePath:
                   item.image_path ||
                   "",
@@ -615,22 +624,16 @@ function AdminApp({
             data.map(
               (item) => ({
                 id: item.id,
-
                 user:
                   item.user_name,
-
                 category:
                   item.category,
-
                 question:
                   item.question,
-
                 replies:
                   item.replies,
-
                 status:
                   item.status,
-
                 date:
                   new Date(
                     item.created_at
@@ -669,32 +672,24 @@ function AdminApp({
             data.map(
               (item) => ({
                 id: item.id,
-
                 orderNumber:
                   item.order_number,
-
                 customer:
                   item.customer,
-
                 item:
                   item.item,
-
                 quantity:
                   Number(
                     item.quantity
                   ),
-
                 total:
                   Number(
                     item.total
                   ),
-
                 payment:
                   item.payment,
-
                 delivery:
                   item.delivery,
-
                 date:
                   new Date(
                     item.created_at
@@ -753,7 +748,6 @@ function AdminApp({
         .channel(
           "stax-admin-realtime"
         )
-
         .on(
           "postgres_changes",
           {
@@ -765,7 +759,6 @@ function AdminApp({
             loadCards();
           }
         )
-
         .on(
           "postgres_changes",
           {
@@ -777,7 +770,6 @@ function AdminApp({
             loadEvents();
           }
         )
-
         .on(
           "postgres_changes",
           {
@@ -789,7 +781,6 @@ function AdminApp({
             loadRankings();
           }
         )
-
         .on(
           "postgres_changes",
           {
@@ -802,7 +793,6 @@ function AdminApp({
             loadQuestions();
           }
         )
-
         .on(
           "postgres_changes",
           {
@@ -814,7 +804,6 @@ function AdminApp({
             loadOrders();
           }
         )
-
         .subscribe();
 
     return () => {
@@ -830,6 +819,10 @@ function AdminApp({
     loadOrders,
   ]);
 
+
+  /* =========================================================
+     COMPUTED
+  ========================================================= */
 
   const totalRevenue =
     orders
@@ -848,13 +841,11 @@ function AdminApp({
         0
       );
 
-
   const lowStockCards =
     cards.filter(
       (card) =>
         card.stock <= 2
     );
-
 
   const mythicCount =
     cards.filter(
@@ -863,6 +854,10 @@ function AdminApp({
         "Mythic Rare"
     ).length;
 
+
+  /* =========================================================
+     FILTERS
+  ========================================================= */
 
   const filteredCards =
     useMemo(
@@ -902,7 +897,6 @@ function AdminApp({
       ]
     );
 
-
   const filteredEvents =
     useMemo(
       () => {
@@ -930,7 +924,6 @@ function AdminApp({
       ]
     );
 
-
   const filteredUsers =
     useMemo(
       () => {
@@ -957,7 +950,6 @@ function AdminApp({
         globalSearch,
       ]
     );
-
 
   const filteredOrders =
     useMemo(
@@ -987,72 +979,52 @@ function AdminApp({
     );
 
 
+  /* =========================================================
+     NAVIGATION
+  ========================================================= */
+
   function navigate(page) {
     setActivePage(page);
-
-    setSidebarOpen(
-      false
-    );
-
+    setSidebarOpen(false);
     setGlobalSearch("");
-
-    setRarityFilter(
-      "All"
-    );
+    setRarityFilter("All");
   }
 
 
+  /* =========================================================
+     MODALS
+  ========================================================= */
+
   function openAddModal(type) {
-    setEditingItem(
-      null
-    );
+    setEditingItem(null);
 
-    if (
-      type === "card"
-    ) {
-      setCardForm(
-        emptyCardForm
-      );
+    if (type === "card") {
+      setCardForm({
+        ...emptyCardForm,
+      });
 
-      setCardImageFile(
-        null
-      );
-
-      setCardImagePreview(
-        ""
-      );
+      setCardImageFile(null);
+      setCardImagePreview("");
     }
 
-    if (
-      type === "event"
-    ) {
-      setEventForm(
-        emptyEventForm
-      );
+    if (type === "event") {
+      setEventForm({
+        ...emptyEventForm,
+      });
 
-      setEventImageFile(
-        null
-      );
-
-      setEventImagePreview(
-        ""
-      );
+      setEventImageFile(null);
+      setEventImagePreview("");
     }
 
-    if (
-      type === "ranking"
-    ) {
-      setRankingForm(
-        emptyRankingForm
-      );
+    if (type === "ranking") {
+      setRankingForm({
+        ...emptyRankingForm,
+      });
     }
 
-    if (
-      type === "user"
-    ) {
+    if (type === "user") {
       setUserForm({
         ...emptyUserForm,
-
         joined:
           new Date()
             .toISOString()
@@ -1066,23 +1038,18 @@ function AdminApp({
     setModal(type);
   }
 
-
   function openEditModal(
     type,
     item
   ) {
-    setEditingItem(
-      item
-    );
+    setEditingItem(item);
 
-    if (
-      type === "card"
-    ) {
-      setCardForm(item);
+    if (type === "card") {
+      setCardForm({
+        ...item,
+      });
 
-      setCardImageFile(
-        null
-      );
+      setCardImageFile(null);
 
       setCardImagePreview(
         item.imageUrl ||
@@ -1090,14 +1057,12 @@ function AdminApp({
       );
     }
 
-    if (
-      type === "event"
-    ) {
-      setEventForm(item);
+    if (type === "event") {
+      setEventForm({
+        ...item,
+      });
 
-      setEventImageFile(
-        null
-      );
+      setEventImageFile(null);
 
       setEventImagePreview(
         item.imageUrl ||
@@ -1105,46 +1070,30 @@ function AdminApp({
       );
     }
 
-    if (
-      type === "ranking"
-    ) {
-      setRankingForm(
-        item
-      );
+    if (type === "ranking") {
+      setRankingForm({
+        ...item,
+      });
     }
 
-    if (
-      type === "user"
-    ) {
-      setUserForm(item);
+    if (type === "user") {
+      setUserForm({
+        ...item,
+      });
     }
 
     setModal(type);
   }
 
-
   function closeModal() {
     setModal(null);
+    setEditingItem(null);
 
-    setEditingItem(
-      null
-    );
+    setCardImageFile(null);
+    setCardImagePreview("");
 
-    setCardImageFile(
-      null
-    );
-
-    setCardImagePreview(
-      ""
-    );
-
-    setEventImageFile(
-      null
-    );
-
-    setEventImagePreview(
-      ""
-    );
+    setEventImageFile(null);
+    setEventImagePreview("");
   }
 
 
@@ -1186,9 +1135,7 @@ function AdminApp({
       return;
     }
 
-    setCardImageFile(
-      file
-    );
+    setCardImageFile(file);
 
     const preview =
       URL.createObjectURL(
@@ -1239,9 +1186,7 @@ function AdminApp({
       return;
     }
 
-    setEventImageFile(
-      file
-    );
+    setEventImageFile(file);
 
     const preview =
       URL.createObjectURL(
@@ -1402,9 +1347,7 @@ function AdminApp({
         "Could not save card."
       );
     } finally {
-      setCardSaving(
-        false
-      );
+      setCardSaving(false);
     }
   }
 
@@ -1422,9 +1365,69 @@ function AdminApp({
       return;
     }
 
-    setEventSaving(
-      true
-    );
+    const slots =
+      Number(
+        eventForm.slots
+      );
+
+    const registered =
+      Number(
+        eventForm.registered ||
+        0
+      );
+
+    if (!eventForm.title.trim()) {
+      alert(
+        "Please enter an event title."
+      );
+
+      return;
+    }
+
+    if (!eventForm.date) {
+      alert(
+        "Please choose an event date."
+      );
+
+      return;
+    }
+
+    if (!eventForm.time) {
+      alert(
+        "Please choose an event time."
+      );
+
+      return;
+    }
+
+    if (slots <= 0) {
+      alert(
+        "Available slots must be greater than 0."
+      );
+
+      return;
+    }
+
+    if (registered < 0) {
+      alert(
+        "Registered players cannot be negative."
+      );
+
+      return;
+    }
+
+    if (
+      registered >
+      slots
+    ) {
+      alert(
+        "Registered players cannot be greater than available slots."
+      );
+
+      return;
+    }
+
+    setEventSaving(true);
 
     try {
       let imageUrl =
@@ -1459,6 +1462,16 @@ function AdminApp({
           uploaded.path;
       }
 
+      let status =
+        eventForm.status;
+
+      if (
+        registered >=
+        slots
+      ) {
+        status = "Full";
+      }
+
       const data = {
         title:
           eventForm.title.trim(),
@@ -1477,25 +1490,18 @@ function AdminApp({
 
         fee:
           Number(
-            eventForm.fee
-          ),
-
-        slots:
-          Number(
-            eventForm.slots
-          ),
-
-        registered:
-          Number(
-            eventForm.registered ||
+            eventForm.fee ||
             0
           ),
+
+        slots,
+
+        registered,
 
         bracket:
           eventForm.bracket,
 
-        status:
-          eventForm.status,
+        status,
 
         image_url:
           imageUrl ||
@@ -1505,6 +1511,11 @@ function AdminApp({
           imagePath ||
           null,
       };
+
+      console.log(
+        "Saving event:",
+        data
+      );
 
       if (editingItem) {
         await updateEvent(
@@ -1535,7 +1546,7 @@ function AdminApp({
       await loadEvents();
     } catch (error) {
       console.error(
-        "Save event:",
+        "Save event error:",
         error
       );
 
@@ -1544,9 +1555,7 @@ function AdminApp({
         "Could not save event."
       );
     } finally {
-      setEventSaving(
-        false
-      );
+      setEventSaving(false);
     }
   }
 
@@ -1617,6 +1626,10 @@ function AdminApp({
   }
 
 
+  /* =========================================================
+     SAVE USER
+  ========================================================= */
+
   function saveUser(event) {
     event.preventDefault();
 
@@ -1638,7 +1651,6 @@ function AdminApp({
               editingItem.id
                 ? {
                     ...normalizedUser,
-
                     id:
                       editingItem.id,
                   }
@@ -1662,6 +1674,10 @@ function AdminApp({
   }
 
 
+  /* =========================================================
+     DELETE
+  ========================================================= */
+
   function requestDelete(
     type,
     item
@@ -1671,7 +1687,6 @@ function AdminApp({
       item,
     });
   }
-
 
   async function confirmDelete() {
     if (!deleteTarget) {
@@ -1684,53 +1699,39 @@ function AdminApp({
     } = deleteTarget;
 
     try {
-      if (
-        type === "card"
-      ) {
+      if (type === "card") {
         await deleteCard(
           item.id,
           item.imagePath
         );
       }
 
-      if (
-        type === "event"
-      ) {
+      if (type === "event") {
         await deleteEvent(
           item.id,
           item.imagePath
         );
       }
 
-      if (
-        type ===
-        "ranking"
-      ) {
+      if (type === "ranking") {
         await deleteRanking(
           item.id
         );
       }
 
-      if (
-        type ===
-        "question"
-      ) {
+      if (type === "question") {
         await deleteQuestion(
           item.id
         );
       }
 
-      if (
-        type === "order"
-      ) {
+      if (type === "order") {
         await deleteOrder(
           item.id
         );
       }
 
-      if (
-        type === "user"
-      ) {
+      if (type === "user") {
         setUsers(
           (current) =>
             current.filter(
@@ -1741,9 +1742,27 @@ function AdminApp({
         );
       }
 
-      setDeleteTarget(
-        null
-      );
+      setDeleteTarget(null);
+
+      if (type === "card") {
+        await loadCards();
+      }
+
+      if (type === "event") {
+        await loadEvents();
+      }
+
+      if (type === "ranking") {
+        await loadRankings();
+      }
+
+      if (type === "question") {
+        await loadQuestions();
+      }
+
+      if (type === "order") {
+        await loadOrders();
+      }
     } catch (error) {
       console.error(
         "Delete error:",
@@ -1751,11 +1770,16 @@ function AdminApp({
       );
 
       alert(
+        error.message ||
         "Could not delete item."
       );
     }
   }
 
+
+  /* =========================================================
+     QUESTION STATUS
+  ========================================================= */
 
   async function updateQuestionStatus(
     id,
@@ -1772,9 +1796,18 @@ function AdminApp({
       console.error(
         error
       );
+
+      alert(
+        error.message ||
+        "Could not update question."
+      );
     }
   }
 
+
+  /* =========================================================
+     ORDER STATUS
+  ========================================================= */
 
   async function updateOrderField(
     id,
@@ -1821,9 +1854,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Manage the STAX
-              marketplace from one
-              dashboard.
+              Manage the STAX marketplace from one dashboard.
             </p>
           </div>
 
@@ -1842,6 +1873,7 @@ function AdminApp({
             Add new card
           </button>
         </section>
+
 
         <section className="admin-stat-grid">
 
@@ -2015,9 +2047,7 @@ function AdminApp({
                           "Fri",
                           "Sat",
                           "Sun",
-                        ][
-                          index
-                        ]
+                        ][index]
                       }
                     </span>
                   </div>
@@ -2291,9 +2321,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Add, edit, delete,
-              price, stock, and
-              photos.
+              Add, edit, delete, price, stock, and photos.
             </p>
           </div>
 
@@ -2591,9 +2619,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Create and manage
-              tournaments and event
-              posters.
+              Create and manage tournaments and event posters.
             </p>
           </div>
 
@@ -2827,9 +2853,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Update brackets,
-              wins, losses,
-              points and rank.
+              Update brackets, wins, losses, points and rank.
             </p>
           </div>
 
@@ -3030,8 +3054,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Review and moderate
-              community questions.
+              Review and moderate community questions.
             </p>
           </div>
         </section>
@@ -3184,9 +3207,7 @@ function AdminApp({
             </h1>
 
             <p>
-              This page is still
-              local in this
-              version.
+              This page is still local in this version.
             </p>
           </div>
 
@@ -3368,8 +3389,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Update payment and
-              delivery status.
+              Update payment and delivery status.
             </p>
           </div>
         </section>
@@ -3608,8 +3628,7 @@ function AdminApp({
             </h1>
 
             <p>
-              Update shop
-              preferences.
+              Update shop preferences.
             </p>
           </div>
         </section>
@@ -3705,8 +3724,7 @@ function AdminApp({
                 defaultValue="PHP"
               >
                 <option value="PHP">
-                  PHP — Philippine
-                  Peso
+                  PHP — Philippine Peso
                 </option>
 
                 <option value="USD">
@@ -3776,6 +3794,10 @@ function AdminApp({
   }
 
 
+  /* =========================================================
+     PAGE SWITCH
+  ========================================================= */
+
   function renderPage() {
     switch (
       activePage
@@ -3811,6 +3833,10 @@ function AdminApp({
     profile?.full_name ||
     "Admin User";
 
+
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
   return (
     <div className="admin-app">
@@ -4100,7 +4126,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       name:
                         event.target
                           .value,
@@ -4120,26 +4145,25 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       game:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option>
+                  <option value="Magic">
                     Magic
                   </option>
 
-                  <option>
+                  <option value="Pokemon">
                     Pokemon
                   </option>
 
-                  <option>
+                  <option value="Yu-Gi-Oh!">
                     Yu-Gi-Oh!
                   </option>
 
-                  <option>
+                  <option value="One Piece">
                     One Piece
                   </option>
                 </select>
@@ -4157,7 +4181,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       set:
                         event.target
                           .value,
@@ -4178,7 +4201,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       setCode:
                         event.target
                           .value,
@@ -4198,7 +4220,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       colors:
                         event.target
                           .value,
@@ -4210,6 +4231,9 @@ function AdminApp({
                     (color) => (
                       <option
                         key={
+                          color
+                        }
+                        value={
                           color
                         }
                       >
@@ -4234,7 +4258,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       rarity:
                         event.target
                           .value,
@@ -4246,6 +4269,9 @@ function AdminApp({
                     (rarity) => (
                       <option
                         key={
+                          rarity
+                        }
+                        value={
                           rarity
                         }
                       >
@@ -4270,7 +4296,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       finish:
                         event.target
                           .value,
@@ -4282,6 +4307,9 @@ function AdminApp({
                     (finish) => (
                       <option
                         key={
+                          finish
+                        }
+                        value={
                           finish
                         }
                       >
@@ -4306,7 +4334,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       condition:
                         event.target
                           .value,
@@ -4318,6 +4345,9 @@ function AdminApp({
                     (condition) => (
                       <option
                         key={
+                          condition
+                        }
+                        value={
                           condition
                         }
                       >
@@ -4342,7 +4372,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       seller:
                         event.target
                           .value,
@@ -4365,7 +4394,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       price:
                         event.target
                           .value,
@@ -4388,7 +4416,6 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       stock:
                         event.target
                           .value,
@@ -4408,18 +4435,17 @@ function AdminApp({
                   ) =>
                     setCardForm({
                       ...cardForm,
-
                       status:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option>
+                  <option value="Available">
                     Available
                   </option>
 
-                  <option>
+                  <option value="Unavailable">
                     Unavailable
                   </option>
                 </select>
@@ -4439,7 +4465,6 @@ function AdminApp({
                     ) =>
                       setCardForm({
                         ...cardForm,
-
                         featured:
                           event.target
                             .checked,
@@ -4447,8 +4472,7 @@ function AdminApp({
                     }
                   />
 
-                  Show this card as
-                  featured
+                  Show this card as featured
                 </label>
 
               </AdminField>
@@ -4538,7 +4562,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       title:
                         event.target
                           .value,
@@ -4558,7 +4581,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       format:
                         event.target
                           .value,
@@ -4570,6 +4592,9 @@ function AdminApp({
                     (format) => (
                       <option
                         key={
+                          format
+                        }
+                        value={
                           format
                         }
                       >
@@ -4594,26 +4619,25 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       bracket:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option>
+                  <option value="Bracket 1">
                     Bracket 1
                   </option>
 
-                  <option>
+                  <option value="Bracket 2">
                     Bracket 2
                   </option>
 
-                  <option>
+                  <option value="Bracket 3">
                     Bracket 3
                   </option>
 
-                  <option>
+                  <option value="Bracket 4">
                     Bracket 4
                   </option>
                 </select>
@@ -4632,7 +4656,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       date:
                         event.target
                           .value,
@@ -4654,7 +4677,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       time:
                         event.target
                           .value,
@@ -4678,7 +4700,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       venue:
                         event.target
                           .value,
@@ -4701,7 +4722,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       fee:
                         event.target
                           .value,
@@ -4724,7 +4744,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       slots:
                         event.target
                           .value,
@@ -4746,7 +4765,6 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       registered:
                         event.target
                           .value,
@@ -4766,22 +4784,21 @@ function AdminApp({
                   ) =>
                     setEventForm({
                       ...eventForm,
-
                       status:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option>
+                  <option value="Open">
                     Open
                   </option>
 
-                  <option>
+                  <option value="Full">
                     Full
                   </option>
 
-                  <option>
+                  <option value="Closed">
                     Closed
                   </option>
                 </select>
@@ -4875,7 +4892,6 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
-
                       name:
                         event.target
                           .value,
@@ -4895,7 +4911,6 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
-
                       bracket:
                         event.target
                           .value,
@@ -4903,19 +4918,19 @@ function AdminApp({
                   }
                 >
                   <option value="1">
-                    Bracket 1 ·
+                    Bracket 1
                   </option>
 
                   <option value="2">
-                    Bracket 2 ·
+                    Bracket 2
                   </option>
 
                   <option value="3">
-                    Bracket 3 ·
+                    Bracket 3
                   </option>
 
                   <option value="4">
-                    Bracket 4 ·
+                    Bracket 4
                   </option>
                 </select>
               </AdminField>
@@ -4934,7 +4949,6 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
-
                       rank:
                         event.target
                           .value,
@@ -4957,7 +4971,6 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
-
                       wins:
                         event.target
                           .value,
@@ -4980,7 +4993,6 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
-
                       losses:
                         event.target
                           .value,
@@ -5006,7 +5018,6 @@ function AdminApp({
                   ) =>
                     setRankingForm({
                       ...rankingForm,
-
                       points:
                         event.target
                           .value,
@@ -5067,7 +5078,6 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
-
                       name:
                         event.target
                           .value,
@@ -5089,7 +5099,6 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
-
                       email:
                         event.target
                           .value,
@@ -5109,18 +5118,17 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
-
                       role:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option>
+                  <option value="Player">
                     Player
                   </option>
 
-                  <option>
+                  <option value="Admin">
                     Admin
                   </option>
                 </select>
@@ -5137,7 +5145,6 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
-
                       bracket:
                         event.target
                           .value,
@@ -5145,22 +5152,19 @@ function AdminApp({
                   }
                 >
                   <option value="1">
-                    Bracket 1 ·
-                    
+                    Bracket 1
                   </option>
 
                   <option value="2">
-                    Bracket 2 ·
-                    
+                    Bracket 2
                   </option>
 
                   <option value="3">
-                    Bracket 3 ·
-                    
+                    Bracket 3
                   </option>
 
                   <option value="4">
-                    Bracket 4 ·
+                    Bracket 4
                   </option>
                 </select>
               </AdminField>
@@ -5176,22 +5180,21 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
-
                       status:
                         event.target
                           .value,
                     })
                   }
                 >
-                  <option>
+                  <option value="Active">
                     Active
                   </option>
 
-                  <option>
+                  <option value="Suspended">
                     Suspended
                   </option>
 
-                  <option>
+                  <option value="Inactive">
                     Inactive
                   </option>
                 </select>
@@ -5210,7 +5213,6 @@ function AdminApp({
                   ) =>
                     setUserForm({
                       ...userForm,
-
                       joined:
                         event.target
                           .value,
@@ -5311,6 +5313,10 @@ function AdminApp({
 }
 
 
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
 function AdminTableCard({
   title,
   icon,
@@ -5344,6 +5350,10 @@ function AdminTableCard({
 }
 
 
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
 function StatusBadge({
   value,
 }) {
@@ -5366,6 +5376,10 @@ function StatusBadge({
   );
 }
 
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
 
 function ActionButtons({
   onEdit,
@@ -5403,6 +5417,10 @@ function ActionButtons({
 }
 
 
+/* =========================================================
+   FIELD
+========================================================= */
+
 function AdminField({
   label,
   full = false,
@@ -5431,6 +5449,10 @@ function AdminField({
   );
 }
 
+
+/* =========================================================
+   MODAL
+========================================================= */
 
 function Modal({
   title,
@@ -5483,6 +5505,10 @@ function Modal({
   );
 }
 
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
 
 function ModalFooter({
   onCancel,
